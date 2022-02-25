@@ -12,18 +12,22 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+
+import edu.iscas.CCrashFuzzer.utils.FileUtil;
+
 public class Monitor {
 	Conf conf;
-	String root = "crashfuzzer/output/";
+	
 	public Monitor(Conf conf) {
 		this.conf = conf;
 	}
 	
-	public String getRootReport(String testID) {
-		if(testID.equals("init")) {
-			return root+"init_case/";
+	public String getTmpReportDir(String testID) {
+		if(testID.startsWith("init")) {
+			return FileUtil.root_tmp+testID+"/";
 		} else {
-			return root+testID+"/";
+			return FileUtil.root_tmp+testID+"/";
 		}
 	}
 	
@@ -35,61 +39,34 @@ public class Monitor {
 	//second collect I/O points
 	// like deminer + io point ID + appearIdx
 	// build a fault sequence
-	public void collectRunTimeRst(String testID, ArrayList<String> logInfo, FaultSequence seq) {
-	    String rootReport = getRootReport(testID);
+	public void generateAllFilesForTest(String testID, ArrayList<String> logInfo, FaultSequence seq) {
+	    String rootReport = getTmpReportDir(testID);
         //generateCrashNodeInfo(crashIdx, point, rootReport+"/"+"pointInfo");
-        generateFAVLogInfo(testID, logInfo, seq);
-        copyCurCrash(rootReport);
-        if(conf.MONITOR != null) {
+        FileUtil.generateFAVLogInfo(rootReport, logInfo, seq);
+        copyCurCrash(conf.CUR_CRASH_FILE.getAbsolutePath(), rootReport);
+        collectRunTimeInfo(rootReport);
+	}
+	
+	public void collectRunTimeInfo(String tmpRoot) {
+		if(conf.MONITOR != null) {
             String path = conf.MONITOR.getAbsolutePath();
             String workingDir = path.substring(0, path.lastIndexOf("/"));
-            File tofile = new File(rootReport);
-//            if (!tofile.getParentFile().exists()) {
-//                tofile.getParentFile().mkdirs();
-//            }
+            File tofile = new File(tmpRoot);
+            if (!tofile.getParentFile().exists()) {
+                tofile.getParentFile().mkdirs();
+            }
             tofile.mkdir();
-            RunCommand.run(path+" "+rootReport, workingDir);
+            RunCommand.run(path+" "+tmpRoot, workingDir);
             //return RunCommand.run(path);
         }
 	}
 	
-	public void generateFAVLogInfo(String testID, ArrayList<String> logInfo, FaultSequence seq) {
-		String rootReport = getRootReport(testID)+"/fuzz.log";
-
-        try {
-            File tofile = new File(rootReport);
-
-            if (!tofile.getParentFile().exists()) {
-                tofile.getParentFile().mkdirs();
-            }
-
-            FileWriter fw = new FileWriter(tofile);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter pw = new PrintWriter(bw);
-
-            pw.println("Fault sequence info {");
-            pw.println(seq.toString());
-            pw.println("}");
-            pw.println("FAVLog info: ");
-            for(String s :logInfo) {
-                pw.println(s);
-            }
-            pw.println("");
-
-            pw.close();
-
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-	}
-	
-	public void copyCurCrash(String rootpath) {
-        File sourceFile = conf.CUR_CRASH_FILE;
-
+	public void copyCurCrash(String src, String rootpath) {
+        File sourceFile = new File(src);
+        
         if(sourceFile.exists()){
             try {
-                String movePath = rootpath+"/"+sourceFile.getName();
+            	String movePath = rootpath+"/"+sourceFile.getName();
                 BufferedInputStream in = new BufferedInputStream(new FileInputStream(sourceFile));
                 BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(movePath));
 

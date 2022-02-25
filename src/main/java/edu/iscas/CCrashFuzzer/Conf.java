@@ -17,6 +17,8 @@ import java.util.Properties;
 import java.util.Set;
 
 public class Conf {
+	public static boolean DEBUG = true;
+	
     public File FAV_TRIGGER_CONFIG; //store the path of the configuration file which contains .sh file paths that used to start cluster, run workload, where to inject crashes and .etc.
     public File PRETREATMENT; //store the .sh file to clean and prepare the target system
     public File WORKLOAD; //store the .sh file to run the workload
@@ -34,10 +36,14 @@ public class Conf {
 	public long maxTestMinutes = Long.MAX_VALUE;
 	public long hangMinutes = 10;
 	public static int MAP_SIZE = 10000;
+	public long similarBehaviorWindow = 1000;//timestamp value
+	public int AFL_PORT;
+	public int MAX_FAULTS = Integer.MAX_VALUE;
 	
 	public class MaxDownNodes{
 		int maxDown;
-		Set<String> nodesGroup;
+		Set<String> aliveGroup;
+		Set<String> deadGroup;
 	}
 	
 	public Conf(File configFile) {
@@ -70,6 +76,21 @@ public class Conf {
         	MAP_SIZE = Integer.parseInt(mapSize);
         }
         
+        String aflPort = p.getProperty(ConfOption.AFL_PORT.toString());
+        if(aflPort != null) {
+        	AFL_PORT = Integer.parseInt(aflPort);
+        }
+        
+        String window = p.getProperty(ConfOption.WINDOW_SIZE.toString());
+        if(window != null) {
+        	similarBehaviorWindow = Long.parseLong(window);
+        }
+        
+        String maxFaults = p.getProperty(ConfOption.MAX_FAULTS.toString());
+        if(maxFaults != null) {
+        	MAX_FAULTS = Integer.parseInt(maxFaults);
+        }
+        
         String testTime = p.getProperty(ConfOption.TEST_TIME.toString());
         if(testTime != null) {
         	if(testTime.endsWith("s")) {
@@ -92,15 +113,15 @@ public class Conf {
         	}
         }
 
-        String faultConfig = p.getProperty(ConfOption.FAULT_CONFIG.toString());
+        String faultConfig = p.getProperty(ConfOption.FAULT_CSTR.toString());
+    	maxDownGroup = new ArrayList<MaxDownNodes>();
         if(faultConfig != null) {
         	FAULT_CONFIG = faultConfig; //1:{ip1,ip2,ip3};2:{ip4,ip5}
-        	maxDownGroup = new ArrayList<MaxDownNodes>();
         	String[] groups = FAULT_CONFIG.trim().split(";");
         	for(String group:groups) {
         		String[] secs = group.trim().split(":");
         		int maxDown = Integer.parseInt(secs[0]);
-        		String[] ips = secs[1].trim().split(",");
+        		String[] ips = secs[1].trim().substring(1, secs[1].trim().length()-1).split(",");
         		Set<String> ipSet = new HashSet<String>();
         		for(String ip:ips) {
         			ipSet.add(ip.trim());
@@ -108,7 +129,9 @@ public class Conf {
         		assert(maxDown<ipSet.size());
         		MaxDownNodes downGroup = new MaxDownNodes();
         		downGroup.maxDown = maxDown;
-        		downGroup.nodesGroup = ipSet;
+        		downGroup.aliveGroup = ipSet;
+        		
+        		downGroup.deadGroup = new HashSet<String>();
         		maxDownGroup.add(downGroup);
         	}
         }
@@ -210,7 +233,7 @@ public class Conf {
         System.out.println("Monitor script: "+(MONITOR==null?"":MONITOR.getAbsolutePath()));
         System.out.println("Fault constraints: ");
         for(MaxDownNodes group:maxDownGroup) {
-        	System.out.println("For nodes "+group.nodesGroup+", allowed max down nodes at same time is:"+group.maxDown);
+        	System.out.println("For nodes "+group.aliveGroup+", allowed max down nodes at same time is:"+group.maxDown);
         }
         System.out.println("=======================================================================");
     }

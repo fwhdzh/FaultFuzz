@@ -22,7 +22,7 @@ public class FaultSequence {
 	public static class FaultPoint {
 		IOPoint ioPt;
 		FaultStat stat;
-		FaultPos pos;
+		FaultPos pos;//before or after
 		String tarNodeIp;
 		String actualNodeIp;  //fill at run time
 		public String toString() {
@@ -38,6 +38,6 @@ public class FaultSequence {
 		BEFORE,AFTER
 	}
 	public String toString() {
-		return seq.toString();
+		return seq.size()+" faults: "+seq.toString();
 	}
 }

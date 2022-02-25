@@ -15,12 +15,19 @@ public class CoverageCollector {
 	
     public int actualSize(){
 		// return Conf.MAP_SIZE / 8 + (Conf.MAP_SIZE % 8 == 0 ? 0 : 1);
-		return Conf.MAP_SIZE;
+//		return Conf.MAP_SIZE;
+    	return _get_map_size();
 	}
+
+    public static int _get_map_size() {
+    	int MAP_SIZE_POW2 = 16;
+    	int MAP_SIZE = (1 << MAP_SIZE_POW2);
+    	return MAP_SIZE;
+    }
 
 	public CoverageCollector() {
 		virgin_bits = new byte[actualSize()];
-        Arrays.fill(virgin_bits, (byte)1);
+        Arrays.fill(virgin_bits, (byte)0);
 
 		trace_bits = new byte[actualSize()];
 		Arrays.fill(trace_bits, (byte)0);
@@ -34,24 +41,35 @@ public class CoverageCollector {
 
 	//my return the new covered bits.
 	public int has_new_bits() {
-		int sum=0;
-		int c=0;
-		for(int i=0;i<virgin_bits.length;i++) {
-			if(virgin_bits[i] == 1 && trace_bits[i] == 1) {
-				sum++;
-				virgin_bits[i] = (byte)0;
+		int finds= 0;
+		for(int i = 0; i< trace_bits.length; i++) {
+			if(trace_bits[i]>0 && virgin_bits[i] ==0) {
+				finds++;
+				virgin_bits[i] = trace_bits[i];
+//				System.out.println("Got new edge:"+i+".");
 			}
-			
-//		  int newCov = (virgin_bits[i]&trace_bits[i]);
-//		  c=newCov;
-//		  while(c!=0) {
-//			  c&=(c-1);
-//			  sum++;
-//		  }
-//		  virgin_bits[i] = (byte) (newCov^virgin_bits[i]);
 		}
-		Stat.log("Covered "+sum+" new code blocks!!!!!!!!!!!!!!!!!!!");
-		return sum;
+		System.out.println("Got "+finds+" new edges.");
+		
+		int rst = 0;
+		for(int i = 0; i< virgin_bits.length; i++) {
+			if(virgin_bits[i] > 0) {
+				rst++;
+			}
+		}
+		System.out.println("Current covered edges is "+rst);
+		Stat.log("Covered "+finds+" new code blocks!!!!!!!!!!!!!!!!!!!");
+		return finds;
+	}
+	
+	public static int coveredBlocks(byte[] bytes) {
+		int rst = 0;
+		for(int i = 0; i< bytes.length; i++) {
+			if(bytes[i] > 0) {
+				rst++;
+			}
+		}
+		return rst;
 	}
 	
 	public static int has_new_cov(byte[] virgin,byte[] traced) {
@@ -81,48 +99,58 @@ public class CoverageCollector {
 
 	public void read_bitmap(String fname) {
 		Arrays.fill(trace_bits, (byte)0);
-		File dir = new File(fname);
-		List<File> covFiles = new ArrayList<File>();
-		findCovFileList(dir, covFiles);
-		for(File f:covFiles) {
+		//load trace bits
+		List<File> traces = new ArrayList<File>();
+		loadTrace(traces, fname, "fuzzcov");
+		System.out.println("Got "+traces.size()+" coverage files.");
+		int edges = 0;
+		for(File f:traces) {
 			try {
-				byte[] data = new byte[Conf.MAP_SIZE];
+				byte[] data = new byte[_get_map_size()];
 				Arrays.fill(data, (byte)0);
 				FileInputStream coverFileIn = new FileInputStream(f);
 				coverFileIn.read(data);
 				for(int i = 0; i< trace_bits.length; i++) {
-					trace_bits[i] = (byte) (trace_bits[i] | data[i]);
+					trace_bits[i] = (byte) Math.max(trace_bits[i], data[i]);
 				}
+				coverFileIn.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		Stat.log("read_bitmap-Got "+coveredBlocks(trace_bits)+" covered blocks!");
+		for(int i = 0; i< trace_bits.length; i++) {
+			if(trace_bits[i] > 0) {
+				edges++;
+			}
+		}
+		System.out.println("Got "+edges+" edges for this trace.");		
+		Stat.log("read_bitmap-Got "+edges+" covered blocks!");
 	}
 	
-	public static int coveredBlocks(byte[] data) {
-		int sum = 0;
-		for(int i=0;i<data.length;i++) {
-			sum += data[i];
-		}
-		return sum;
-	}
-
-	public static void findCovFileList(File dir, List<File> fileNames) {
-        if (!dir.exists() || !dir.isDirectory()) {// 判断是否存在目录
-            return;
+	public static List<File> loadTrace(List<File> fileList, String trace_dir, String trace_file) {
+        File file = new File(trace_dir);
+        if(file.isFile() && file.getName().equals(trace_file)) {
+        	fileList.add(file);
+        	return fileList;
         }
-        String[] files = dir.list();// 读取目录下的所有目录文件信息
-        for (int i = 0; i < files.length; i++) {// 循环，添加文件名或回调自身
-            File file = new File(dir, files[i]);
-            if (file.isFile() && file.getName().equals("fuzzcov")) {// 如果文件
-                fileNames.add(file);// 添加文件全路径名
-            } else {// 如果是目录
-            	findCovFileList(file, fileNames);// 回调自身继续查询
+        
+        File[] files = file.listFiles();// 获取目录下的所有文件或文件夹
+        if (files == null) {// 如果目录为空，直接退出
+            return fileList;
+        }
+        // 遍历，目录下的所有文件
+        for (File f : files) {
+            if (f.isFile() && f.getName().equals(trace_file)) {
+//            	System.out.println("Find cov file "+f.getAbsolutePath());
+                fileList.add(f);
+            } else if (f.isDirectory()) {
+//                System.out.println(f.getAbsolutePath());
+                loadTrace(fileList, f.getAbsolutePath(), trace_file);
             }
         }
-    }
+        return fileList;
+	}
 	
 	/* When we bump into a new path, we call this to see if the path appears
 	   more "favorable" than any of the existing ones. The purpose of the

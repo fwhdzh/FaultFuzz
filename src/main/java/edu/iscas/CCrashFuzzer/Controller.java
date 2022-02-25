@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 //We do not trigger remote crash in this controller.
@@ -31,6 +32,7 @@ public class Controller {
     public boolean faultInjected;
     public ArrayList<String> rst;
     public Conf favconfig;
+    List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
 
     public Controller(Cluster cluster, int port, Conf favconfig) {
     	this.cluster = cluster;
@@ -40,6 +42,7 @@ public class Controller {
     	this.faultInjected = false;
     	this.rst = new ArrayList<String>();
     	this.clients = Collections.synchronizedSet(new HashSet<Thread>());
+    	currentCluster.addAll(favconfig.maxDownGroup);
     }
 
     public void startController() {
@@ -183,13 +186,9 @@ public class Controller {
 							if(p.ioPt.ioID == ioID && faultSequence.curAppear < p.ioPt.appearIdx) {
 								faultSequence.curAppear++;
 								if(faultSequence.curAppear == p.ioPt.appearIdx) {
-									rst.add(Stat.log("Meet current fault point:"+p));
 									faultSequence.curAppear = 0;
 									faultSequence.curFault++;
 									
-									if(faultSequence.curFault >= faultSequence.seq.size()) {
-										faultInjected = true;
-									}
 									if(p.stat.equals(FaultStat.CRASH)) {
 										p.actualNodeIp = reportNodeIp;
 										for(int i = faultSequence.curFault; i< faultSequence.seq.size(); i++) {
@@ -199,6 +198,9 @@ public class Controller {
 												break;
 											}
 										}
+										
+										rst.add(Stat.log("Meet current fault point:"+p));
+										
 										outStream.writeUTF("CRASH");
 										outStream.writeInt(faultSequence.curFault);
 //										//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
@@ -207,15 +209,24 @@ public class Controller {
 										outStream.close();
 										socket.close();
 										
+										String[] args = new String[2];
+										args[0] = p.actualNodeIp;
+										args[1] = String.valueOf(favconfig.AFL_PORT);
+										AflCli.main(args);
+										
 										//Restart the node
 						        		rst.add(Stat.log("Prepare to crash node "+p.actualNodeIp));
 						                List<String> crashRst = cluster.killNode(p.actualNodeIp, p.actualNodeIp);
 						                rst.addAll(crashRst);
 						                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
 						                rst.add(Stat.log("node "+p.actualNodeIp+" was killed!"));
+						                
+						                Mutation.buildClusterStatus(currentCluster, p.actualNodeIp, FaultStat.CRASH);
 									} else if(p.stat.equals(FaultStat.REBOOT)) {
+										rst.add(Stat.log("Meet current fault point:"+p));
+										
 										//Restart the node
-						        		rst.add(Stat.log("Prepare to restart node "+p.actualNodeIp));
+						        		rst.add(Stat.log("Prepare to restart node "+p.actualNodeIp+" before continue on node "+reportNodeIp));
 						                List<String> restartRst = cluster.restartNode(p.actualNodeIp);
 						                rst.addAll(restartRst);
 						                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
@@ -228,6 +239,8 @@ public class Controller {
 										inStream.close();
 										outStream.close();
 										socket.close();
+										
+						                Mutation.buildClusterStatus(currentCluster, p.actualNodeIp, FaultStat.REBOOT);
 									} else {
 										//no need to inject faults
 				                        outStream.writeUTF("CONTI");
@@ -237,6 +250,10 @@ public class Controller {
 										inStream.close();
 										outStream.close();
 										socket.close();
+									}
+									
+									if(faultSequence.curFault >= faultSequence.seq.size()) {
+										faultInjected = true;
 									}
 								} else {
 									//not the expected appear idx
