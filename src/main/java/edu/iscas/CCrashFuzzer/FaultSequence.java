@@ -2,12 +2,13 @@ package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class FaultSequence {
 	public static FaultSequence empty;
 	static {
 		empty = new FaultSequence();
-		empty.curFault = -1;
+		empty.curFault = new AtomicInteger(-1);
 		empty.seq = new ArrayList<FaultPoint>();
 	}
 	public static FaultSequence getEmptyIns() {
@@ -16,18 +17,46 @@ public class FaultSequence {
 	public boolean isEmpty() {
 		return this.equals(empty);
 	}
-	List<FaultPoint> seq; //only contain the points that inject crash or reboot
-	int curFault;
-	int curAppear;
+	public void reset() {
+		if(seq == null || seq.isEmpty()) {
+			curFault.set(-1);;
+		} else {
+			curFault.set(0);
+		}
+		for(FaultPoint p:seq) {
+			p.actualNodeIp = null;
+			p.curAppear = 0;
+		}
+	}
+	public FaultSequence() {
+		curFault = new AtomicInteger(-1);
+		seq = new ArrayList<FaultPoint>();
+	}
+	public List<FaultPoint> seq; //only contain the points that inject crash or reboot
+	public AtomicInteger curFault;
+	public int getFaultSeqID() {
+		String s = "";
+		for(FaultPoint p:seq) {
+			s += p.getFaultInfo();
+		}
+		return s.hashCode();
+	}
 	public static class FaultPoint {
-		IOPoint ioPt;
-		FaultStat stat;
-		FaultPos pos;//before or after
-		String tarNodeIp;
-		String actualNodeIp;  //fill at run time
+		public IOPoint ioPt;
+		public FaultStat stat;
+		public FaultPos pos;//before or after
+		public String tarNodeIp;
+		public String actualNodeIp;  //fill at run time
+		public int curAppear;
 		public String toString() {
 			return "FaultPoint=[ IOPoint=["+ioPt.toString()+"]"+", FaultStat=["+stat+"], "+", FaultPos=["+pos+"], "
 		+"tarNodeIp=["+tarNodeIp+"], actualNodeIp=["+actualNodeIp+"] ]";
+		}
+		public int getFaultID() {
+			return getFaultInfo().hashCode();
+		}
+		public String getFaultInfo() {
+			return ioPt.ioID+ioPt.appearIdx+pos.toString()+stat.toString();
 		}
 	}
 	public enum FaultStat {

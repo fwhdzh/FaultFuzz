@@ -34,12 +34,12 @@ public class AflCli {
 
 		    serverMessage = inStream.readUTF();//get notified
 		    System.out.println("From "+serverIp+", AflCli receive:"+serverMessage);
-		    if(!serverMessage.equals("FINISH")) {
-		    	throw new AflException("Save result is not FINISH:"+serverMessage);
-		    }
 		    outStream.close();
 		    inStream.close();
 		    socket.close();
+		    if(!serverMessage.equals("FINISH")) {
+		    	throw new AflException("Save result is not FINISH:"+serverMessage);
+		    }
 		  } catch(IOException e){
 			  e.printStackTrace();
 		  } finally {

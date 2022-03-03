@@ -16,8 +16,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import edu.iscas.CCrashFuzzer.utils.FileUtil;
+
 public class Conf {
 	public static boolean DEBUG = true;
+	public static boolean MANUAL = true;
 	
     public File FAV_TRIGGER_CONFIG; //store the path of the configuration file which contains .sh file paths that used to start cluster, run workload, where to inject crashes and .etc.
     public File PRETREATMENT; //store the .sh file to clean and prepare the target system
@@ -36,11 +39,11 @@ public class Conf {
 	public long maxTestMinutes = Long.MAX_VALUE;
 	public long hangMinutes = 10;
 	public static int MAP_SIZE = 10000;
-	public long similarBehaviorWindow = 1000;//timestamp value
+	public long similarBehaviorWindow = 1000;//timestamp value millisecond
 	public int AFL_PORT;
 	public int MAX_FAULTS = Integer.MAX_VALUE;
 	
-	public class MaxDownNodes{
+	public static class MaxDownNodes{
 		int maxDown;
 		Set<String> aliveGroup;
 		Set<String> deadGroup;
@@ -93,24 +96,12 @@ public class Conf {
         
         String testTime = p.getProperty(ConfOption.TEST_TIME.toString());
         if(testTime != null) {
-        	if(testTime.endsWith("s")) {
-        		maxTestMinutes = Long.parseLong(testTime.substring(0, testTime.lastIndexOf("s")))/60;
-        	} else if (testTime.endsWith("m")) {
-        		maxTestMinutes = Long.parseLong(testTime.substring(0, testTime.lastIndexOf("m")));
-        	} else if (testTime.endsWith("h")) {
-        		maxTestMinutes = Long.parseLong(testTime.substring(0, testTime.lastIndexOf("h")))*60;
-        	}
+        	maxTestMinutes = FileUtil.parseStringTimeToSeconds(testTime)/60;
         }
         
         String hangTMOut = p.getProperty(ConfOption.HANG_TMOUT.toString());
         if(hangTMOut != null) {
-        	if(testTime.endsWith("s")) {
-        		hangMinutes = Long.parseLong(testTime.substring(0, testTime.lastIndexOf("s")))/60;
-        	} else if (testTime.endsWith("m")) {
-        		hangMinutes = Long.parseLong(testTime.substring(0, testTime.lastIndexOf("m")));
-        	} else if (testTime.endsWith("h")) {
-        		hangMinutes = Long.parseLong(testTime.substring(0, testTime.lastIndexOf("h")))*60;
-        	}
+        	hangMinutes = FileUtil.parseStringTimeToSeconds(hangTMOut)/60;
         }
 
         String faultConfig = p.getProperty(ConfOption.FAULT_CSTR.toString());
@@ -222,7 +213,7 @@ public class Conf {
         System.out.println("=========================CrashFuzzer Configuration=========================");
         System.out.println("Controller port: "+CONTROLLER_PORT);
         System.out.println("Configuration file: "+FAV_TRIGGER_CONFIG.getAbsolutePath());
-        System.out.println("Bug report path: "+FAV_BUG_REPORT.getAbsolutePath());
+        System.out.println("Root report path: "+FileUtil.root);
         System.out.println("Current crash point file: "+CUR_CRASH_FILE.getAbsolutePath());
         System.out.println("Update current crash point script: "+UPDATE_CRASH.getAbsolutePath());
         System.out.println("Prepare cluster script: "+(PRETREATMENT==null?"":PRETREATMENT.getAbsolutePath()));
@@ -231,6 +222,10 @@ public class Conf {
         System.out.println("Crash node script: "+CRASH.getAbsolutePath());
         System.out.println("Restart node script: "+(RESTART==null?"":RESTART.getAbsolutePath()));
         System.out.println("Monitor script: "+(MONITOR==null?"":MONITOR.getAbsolutePath()));
+        System.out.println("Max test time: "+FileUtil.parseSecondsToStringTime(this.maxTestMinutes*60));
+        System.out.println("Hang timeout: "+FileUtil.parseSecondsToStringTime(this.hangMinutes*60));
+        System.out.println("Similar points window: "+this.similarBehaviorWindow+"ms");
+        System.out.println("Max fault number: "+this.MAX_FAULTS);
         System.out.println("Fault constraints: ");
         for(MaxDownNodes group:maxDownGroup) {
         	System.out.println("For nodes "+group.aliveGroup+", allowed max down nodes at same time is:"+group.maxDown);

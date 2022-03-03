@@ -21,6 +21,7 @@ D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCras
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\IOPointCollector.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\AflCli.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\TestCaseHangException.java
+D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\RecoveryManager.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\App.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\Conf.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\RunCommand.java

@@ -1,14 +1,19 @@
 package edu.iscas.CCrashFuzzer;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 
 public class QueueEntry {
 	String fname; //file name for the queue entry
 	int len; //fault sequence length
-	FaultSequence faultSeq;
+	public FaultSequence faultSeq;
 	List<IOPoint> ioSeq;
 	int candidate_io;
 	int max_match_fault;
+	
+	public boolean was_tested; //Had been tested at least for one time
 	
 	boolean was_fuzzed; //Had any fuzzing done yet?
 	int left_mutates_last_test;
@@ -19,7 +24,7 @@ public class QueueEntry {
     int bitmap_size;                    /* Number of bits set in bitmap     */
     int exec_cksum;                     /* Checksum of the execution trace  */
 
-    long exec_m;                        /* Execution time (minutes)              */
+    long exec_s;                        /* Execution time (seconds)              */
     long handicap;                       /* Number of queue cycles behind    */
     long depth;                          /* Path depth                       */
     
@@ -29,11 +34,38 @@ public class QueueEntry {
     QueueEntry next;           /* Next element, if any             */
     QueueEntry next_100;       /* 100 elements ahead               */
     
+    public void calibrate() {
+    	this.max_match_fault = 0;
+    	this.candidate_io = 0;
+		if(this.faultSeq == null || this.faultSeq.isEmpty()) {
+			this.faultSeq = new FaultSequence();
+			this.faultSeq.curFault.set(-1);;
+			this.faultSeq.seq = new ArrayList<FaultPoint>();
+		} else {
+			//fix faultSeq
+			//TODO: current comparison approch could cause problems
+			//fault node in fault sequence should match the real node in io sequence
+			for(; (this.candidate_io < this.ioSeq.size()) && this.max_match_fault<this.faultSeq.seq.size(); ) {
+				if(this.ioSeq.get(this.candidate_io).CALLSTACK.toString().equals(
+						this.faultSeq.seq.get(this.max_match_fault).ioPt.CALLSTACK.toString())
+						&& this.ioSeq.get(this.candidate_io).appearIdx == this.faultSeq.seq.get(this.max_match_fault).ioPt.appearIdx) {
+					this.faultSeq.seq.get(this.max_match_fault).ioPt = this.ioSeq.get(this.candidate_io);
+					this.faultSeq.seq.get(this.max_match_fault).tarNodeIp = this.faultSeq.seq.get(this.max_match_fault).actualNodeIp;
+					this.faultSeq.seq.get(this.max_match_fault).actualNodeIp = null;
+					this.max_match_fault++;
+				}
+				this.candidate_io++;
+			}
+		}
+		
+		this.faultSeq.reset();
+    }
+    
     /* Calculate case desirability score to adjust the length of havoc fuzzing.
     A helper function for fuzz_one(). Maybe some of these constants should
     go into config.h. */
     public int getPerfScore() {
-        int avg_exec_us = (int) (Fuzzer.total_exec_mins / Fuzzer.totalExecutions);
+        int avg_exec_us = (int) (Fuzzer.exec_us / Fuzzer.total_execs);
         int avg_bitmap_size = (int) (Fuzzer.total_bitmap_size / Fuzzer.total_bitmap_entries);
         int perf_score = 100;
         
@@ -41,13 +73,13 @@ public class QueueEntry {
         global average. Multiplier ranges from 0.1x to 3x. Fast inputs are
         less expensive to fuzz, so we're giving them more air time. */
 
-     if (this.exec_m * 0.1 > avg_exec_us) perf_score = 10;
-     else if (this.exec_m * 0.25 > avg_exec_us) perf_score = 25;
-     else if (this.exec_m * 0.5 > avg_exec_us) perf_score = 50;
-     else if (this.exec_m * 0.75 > avg_exec_us) perf_score = 75;
-     else if (this.exec_m * 4 < avg_exec_us) perf_score = 300;
-     else if (this.exec_m * 3 < avg_exec_us) perf_score = 200;
-     else if (this.exec_m * 2 < avg_exec_us) perf_score = 150;
+     if (this.exec_s * 0.1 > avg_exec_us) perf_score = 10;
+     else if (this.exec_s * 0.25 > avg_exec_us) perf_score = 25;
+     else if (this.exec_s * 0.5 > avg_exec_us) perf_score = 50;
+     else if (this.exec_s * 0.75 > avg_exec_us) perf_score = 75;
+     else if (this.exec_s * 4 < avg_exec_us) perf_score = 300;
+     else if (this.exec_s * 3 < avg_exec_us) perf_score = 200;
+     else if (this.exec_s * 2 < avg_exec_us) perf_score = 150;
      
      /* Adjust score based on bitmap size. The working theory is that better
      coverage translates to better targets. Multiplier from 0.25x to 3x. */

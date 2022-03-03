@@ -1,8 +1,16 @@
 package edu.iscas.CCrashFuzzer;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
@@ -14,9 +22,7 @@ public class Fuzzer {
 	private final FuzzTarget target;
     private long executionsInSample;
     private long lastSampleTime;
-    static long totalExecutions;
-    static long total_exec_mins;
-    static long a_exec_mins;
+    static long last_used_seconds = 0;
     private long totalSeedCases;
     private long totalCoverage;
     private long startTime;
@@ -25,21 +31,26 @@ public class Fuzzer {
     Monitor monitor;
     Stat stat;
     CoverageCollector coverage;
+    private int total_skipped; //including not triggered ones
+    private int total_nontrigger;
     private int total_bugs;
+    private int total_hangs;
+    public Set<Integer> testedUniqueCases;
+    public Set<String> fuzzedFiles;
     
     public static QueueEntry queue,     /* Fuzzing queue (linked list)      */
                               queue_cur, /* Current offset within the queue  */
                               queue_top, /* Top of the list                  */
                               q_prev100; /* Previous 100 marker              */
     public static List<QueueEntry> candidate_queue;
-    public static List<QueueEntry> tested_queue;
+    public static List<QueueEntry> fuzzed_queue;
     
     static long total_bitmap_size,         /* Total bit count for all bitmaps  */
     total_bitmap_entries;      /* Number of bitmaps counted        */
     
-    long exec_us,                        /* Execution time (us)              */
-    handicap,                       /* Number of queue cycles behind    */
-    depth;                          /* Path depth                       */
+    static long exec_us;                          /* Path depth                       */
+	long handicap;
+	long depth;
 
    long queued_paths,              /* Total number of queued testcases */
            queued_variable,           /* Testcases with variable behavior */
@@ -62,21 +73,21 @@ public class Fuzzer {
    unique_crashes,            /* Crashes with unique signatures   */
    total_tmouts,              /* Total number of timeouts         */
    unique_tmouts,             /* Timeouts with unique signatures  */
-   unique_hangs,              /* Hangs with unique signatures     */
-   total_execs,               /* Total execve() calls             */
-   slowest_exec_ms,           /* Slowest testcase non hang in ms  */
-   start_time,                /* Unix start time (ms)             */
-   last_path_time,            /* Time for most recent path (ms)   */
-   last_crash_time,           /* Time for most recent crash (ms)  */
-   last_hang_time,            /* Time for most recent hang (ms)   */
-   last_crash_execs,          /* Exec counter at last crash       */
-   queue_cycle,               /* Queue round counter              */
-   cycles_wo_finds,           /* Cycles without any new paths     */
-   trim_execs,                /* Execs done to trim input files   */
-   bytes_trim_in,             /* Bytes coming into the trimmer    */
-   bytes_trim_out,            /* Bytes coming outa the trimmer    */
-   blocks_eff_total,          /* Blocks subject to effector maps  */
-   blocks_eff_select;         /* Blocks selected as fuzzable      */
+   unique_hangs;         /* Blocks selected as fuzzable      */
+static long total_execs;
+long slowest_exec_ms;
+long start_time;
+long last_path_time;
+long last_crash_time;
+long last_hang_time;
+long last_crash_execs;
+long queue_cycle;
+long cycles_wo_finds;
+long trim_execs;
+long bytes_trim_in;
+long bytes_trim_out;
+long blocks_eff_total;
+long blocks_eff_select;
    
    static long total_cal_us,              /* Total calibration time (us)      */
    total_cal_cycles;          /* Total calibration cycles         */
@@ -128,22 +139,28 @@ public class Fuzzer {
     	this.conf = conf;
     	allowRecovery = recover;
     	coverage = new CoverageCollector();
+    	total_skipped = 0;
+    	total_nontrigger = 0;
     	total_bugs = 0;
-    	totalExecutions = 0;
+    	total_hangs = 0;
+    	total_execs = 0;
     	totalSeedCases = 0;
     	candidate_queue = new ArrayList<QueueEntry>();
-    	tested_queue = new ArrayList<QueueEntry>();
-    	total_exec_mins = 0;
+    	fuzzed_queue = new ArrayList<QueueEntry>();
+    	exec_us = 0;
     	total_bitmap_size = 0;
         total_bitmap_entries = 0;
+        last_used_seconds = 0;
+        testedUniqueCases = new HashSet<>();
+        fuzzedFiles = new HashSet<>();
     }
 
-    public long getUsedMinutes() {
-    	return (((System.currentTimeMillis()-startTime)/ 1000) / 60);
+    public long getUsedSeconds() {
+    	return last_used_seconds + (((System.currentTimeMillis()-startTime)/ 1000));
     }
     
-    public long getExecMinutes(long start) {
-        return (((System.currentTimeMillis()-start)/ 1000) / 60);
+    public static long getExecSeconds(long start) {
+        return (((System.currentTimeMillis()-start)/ 1000));
     }
 
 	//from 0 to limit-1
@@ -157,33 +174,36 @@ public class Fuzzer {
 
 	public void perform_first_run() {
 		//for the first run
+		Stat.log("***********************Perform inital runs to collect IO traces*****************************");
 	    long start = System.currentTimeMillis();
-		target.run_target(FaultSequence.getEmptyIns(), conf, "init");
-		a_exec_mins = getExecMinutes(start);
-		totalExecutions++;
-		total_exec_mins += a_exec_mins;
-//		monitor.generateAllFilesForTest("init", target.logInfo, FaultSequence.getEmptyIns());
-		String tmpRootDir = monitor.getTmpReportDir("init");
+		target.run_target(FaultSequence.getEmptyIns(), conf, "init", conf.hangMinutes*60);
+		total_execs++;
+		exec_us += target.a_exec_seconds;
+		String testID = "init";
+		String tmpRootDir = monitor.getTmpReportDir(testID);
 		FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), tmpRootDir);
-		FileUtil.generateFAVLogInfo(tmpRootDir, target.logInfo, FaultSequence.getEmptyIns());
+		FileUtil.generateFAVLogInfo("", testID, target.logInfo, FaultSequence.getEmptyIns());
 		
 //		MyXMLReader.read_trace_map(monitor.getRootReport("init")+"cov/cov.xml");
-		coverage.read_bitmap(tmpRootDir+FileUtil.coverageName);
+		coverage.read_bitmap(tmpRootDir+FileUtil.coverageDir);
 		int nb = coverage.has_new_bits();
 		if(nb>0) {
 //			Stat.markNewCoverage(monitor.getTmpReportDir("init"), nb);
 			String fname = stat.saveInitStat();
 			QueueEntry q = new QueueEntry();
 			q.faultSeq = null;
-			add_to_queue(q, monitor.getTmpReportDir("init")+"fav-rst");
+			q.fname = testID;
+			add_to_queue(q, testID);
+			FileUtil.writePostTestInfo(q.fname, q.bitmap_size, q.exec_s);
+			FileUtil.copyToQueue(q.fname, conf);
 			totalSeedCases++;
 		}
-		long usedMinutes = getUsedMinutes();
-		FileUtil.copyToTested(conf.CUR_CRASH_FILE.getAbsolutePath(), String.valueOf(totalExecutions), usedMinutes);
-		FileUtil.delete(conf.CUR_CRASH_FILE.getAbsolutePath());
+		long usedSeconds = getUsedSeconds();
+		FileUtil.copyToTested(testID, usedSeconds, conf);
 		if(!Conf.DEBUG) {
 			FileUtil.delete(tmpRootDir);
 		}
+        recordGlobalInfo();
 	}
 	
 	/* Take the current entry from the queue, fuzz it for a while. This
@@ -206,32 +226,35 @@ public class Fuzzer {
 			Random r = new Random();
 			int pick = r.nextInt(mutates.size());
 			
-//			int m_idx = 0;
-//			for(; m_idx< mutates.size(); m_idx++) {
-				QueueEntry tmp = mutates.get(pick);
-				if(!tmp.favored && favored_mutates.size()> 0 &&
-				         getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
-					continue;
-				}
-				
-				if(favored_mutates.isEmpty()) {
-					int rand_num = getRandomNumber(100);
-					if (rand_num < FuzzConf.SKIP_NFAV_NEW_PROB) {
-						Stat.log("Jump back to queue: "+mutates.size()+" mutatations are not tested.");
-						q.left_mutates_last_test = mutates.size();
-						return true;
-					}
-
-		            if (rand_num < FuzzConf.SKIP_NFAV_OLD_PROB) {
-		            	continue;
-		            }
-				}
-				
-				cur_mutate = tmp;
-				mutates.remove(pick);
-//				break;
-//			}
 			//retrive a mutation or skip to queue
+			QueueEntry tmp = mutates.get(pick);
+			if(!tmp.favored && favored_mutates.size()> 0 &&
+			         getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
+				continue;
+			}
+			
+			if(favored_mutates.isEmpty()) {
+				int rand_num = getRandomNumber(100);
+				if (rand_num < FuzzConf.SKIP_NFAV_NEW_PROB) {
+					Stat.log("Jump back to queue: "+mutates.size()+" mutatations are not tested.");
+					q.left_mutates_last_test = mutates.size();
+					FileUtil.recordSkippedTests(q.fname, mutates, conf);
+					total_skipped+=mutates.size();
+					for(QueueEntry m:mutates) {
+						if(m.was_tested) {
+							total_nontrigger++;
+						}
+					}
+					return true;
+				}
+
+	            if (rand_num < FuzzConf.SKIP_NFAV_OLD_PROB) {
+	            	continue;
+	            }
+			}
+			
+			cur_mutate = tmp;
+			mutates.remove(pick);
 			
 			if(cur_mutate != null) {
 				System.out.println("Going to test mutation "+pick);
@@ -239,13 +262,11 @@ public class Fuzzer {
 				FaultPoint last_fault = cur_mutate.faultSeq.seq.get(cur_mutate.faultSeq.seq.size()-1);
 				injected_fault.stat = last_fault.stat;
 				injected_fault.ioPt = last_fault.ioPt;
-				int exec_rst = common_fuzz_stuff(cur_mutate);
-				
+				int exec_rst = common_fuzz_stuff(cur_mutate, q.fname);
 				if(exec_rst < 0) {
 					mutates.add(cur_mutate);//not triggered in this time, try next time
 					continue;
 				}
-				
 				//adjust favored value
 				int unfavored = 0;
 				for(int i = 0; i< mutates.size(); i++) {
@@ -273,24 +294,65 @@ public class Fuzzer {
 		q.was_fuzzed = true;
 		Stat.log("Jump back to queue: "+mutates.size()+" mutatations are not tested.");
 		q.left_mutates_last_test = mutates.size();
+		total_skipped+=mutates.size();
+		for(QueueEntry m:mutates) {
+			if(m.was_tested) {
+				total_nontrigger++;
+			}
+		}
+		FileUtil.recordSkippedTests(q.fname, mutates, conf);
 		return rst;
 	}
 	
 	/* Write a modified test case, run program, process results. Handle
 	   error conditions, returning 1 if it's time to bail out. This is
 	   a helper function for fuzz_one(). */
-	public int common_fuzz_stuff(QueueEntry q) {
+	public int common_fuzz_stuff(QueueEntry q, String seedName) {
 		//save current test case to file
 		//run_target
 		//save_if_interesting
 		String fname = stat.saveTestCase();
 		int rst = -1;
         long start = System.currentTimeMillis();
-		rst = target.run_target(q.faultSeq, conf, String.valueOf(totalExecutions+1));
-		a_exec_mins = getExecMinutes(start);
-		totalExecutions++;
-        total_exec_mins += a_exec_mins;
-        save_if_interesting(q, rst);
+        long waitTime = q.exec_s == 0L? conf.hangMinutes*60:q.exec_s*3;
+		rst = target.run_target(q.faultSeq, conf, String.valueOf(total_execs+1), waitTime);
+		q.fname = String.valueOf(total_execs+1);
+		q.was_tested = true;
+		total_execs++;
+		exec_us += target.a_exec_seconds;
+        save_if_interesting(q, rst, q.fname, seedName);
+        
+        if(rst == -1 || rst == 2) {//test again for not triggered cases and hang cases with a larger timeout
+        	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangMinutes*60);
+        	if(Conf.MANUAL) {
+            	Scanner scan = new Scanner(System.in);
+            	scan.nextLine();
+            }
+        	q.faultSeq.reset();
+        	int lastRst = rst;
+        	String lastTestID = String.valueOf(total_execs);
+        	start = System.currentTimeMillis();
+    		rst = target.run_target(q.faultSeq, conf, lastTestID+"-retry", conf.hangMinutes*60);
+    		q.fname = lastTestID+"-retry";
+    		total_execs++;
+    		exec_us += target.a_exec_seconds;
+            save_if_interesting(q, rst, q.fname, seedName);
+            
+            if(lastRst == 2 && rst != 2) {//not a hang bug
+            	FileUtil.removeFromHang(lastTestID,conf);
+            	total_hangs--;
+            }
+        }
+        
+        testedUniqueCases.add(q.faultSeq.getFaultSeqID());
+        
+        recordGlobalInfo();
+
+        if(Conf.MANUAL) {
+        	Scanner scan = new Scanner(System.in);
+        	scan.nextLine();
+        }
+        
 		return rst;
 	}
 	
@@ -302,42 +364,53 @@ public class Fuzzer {
 	 * Crashes and hangs are considered "unique" if the associated execution paths
 	 * involve any state transitions not seen in previously-recorded faults. 
 	 */
-	public boolean save_if_interesting(QueueEntry q, int faultMode) {
+	public boolean save_if_interesting(QueueEntry q, int faultMode, String testID, String seedName) {
 		//check current rst:
 		//save bugs
 		//add instereting test cases to queue
 //		monitor.generateAllFilesForTest(String.valueOf(totalExecutions), target.logInfo, q.faultSeq);
 //		MyXMLReader.read_trace_map(monitor.getRootReport(String.valueOf(seq.hashCode()))+"cov/cov.xml");
-		String tmpRootDir = monitor.getTmpReportDir(String.valueOf(totalExecutions));
 //		FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), tmpRootDir);
-		FileUtil.generateFAVLogInfo(tmpRootDir, target.logInfo, q.faultSeq);
-		coverage.read_bitmap(tmpRootDir+FileUtil.coverageName);
-		long usedMinutes = getUsedMinutes();
+		FileUtil.generateFAVLogInfo(seedName,testID, target.logInfo, q.faultSeq);
+		coverage.read_bitmap(FileUtil.root_tmp+testID+"/"+FileUtil.coverageDir);
+		long usedSeconds = getUsedSeconds();
 		if(faultMode >0) {
 			//save the bug report
 			//cp it from root/case_ID/ to root/bugs/
-			total_bugs++;
 			if(faultMode == 1) {
-				FileUtil.copyDirToBugs(tmpRootDir, String.valueOf(totalExecutions), usedMinutes);
+				total_bugs++;
+				Stat.log("*********************Find a BUG for test "+testID+"*********************");
+				FileUtil.copyDirToBugs(testID, usedSeconds);
 			} else if (faultMode == 2) {
-				FileUtil.copyDirToHangs(tmpRootDir, String.valueOf(totalExecutions), usedMinutes);
+				total_hangs++;
+				Stat.log("*********************Find a HANG for test "+testID+"*********************");
+				FileUtil.copyDirToHangs(testID, usedSeconds);
 			}
 //			Stat.markBug(monitor.getTmpReportDir(String.valueOf(totalExecutions)));
+		} else if(faultMode <0) {
+			Stat.log("*********************Test "+testID+" CANNOT be triggered*********************");
+			FileUtil.copyToUntriggered(testID,conf);
+			if(!Conf.DEBUG) {
+				FileUtil.delete(FileUtil.root_tmp+testID);
+			}
+			return true;
+		} else {
+			int nb = coverage.has_new_bits();
+			if(nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH) {//TODO: rethink this
+//				Stat.markNewCoverage(tmpRootDir, nb);
+				Stat.log("*********************Test "+testID+" is ADDED to queue*********************");
+				add_to_queue(q, testID);
+				FileUtil.writePostTestInfo(testID, q.bitmap_size, q.exec_s);
+//				queue_cur.has_new_cov = true;
+//				queue_cur.was_fuzzed = false;
+				totalSeedCases++;
+				FileUtil.copyToQueue(testID, conf);
+			}
 		}
-		int nb = coverage.has_new_bits();
-		if(nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH) {//TODO: rethink this
-//			Stat.markNewCoverage(tmpRootDir, nb);
-			add_to_queue(q, tmpRootDir+FileUtil.ioTracesName);
-//			queue_cur.has_new_cov = true;
-//			queue_cur.was_fuzzed = false;
-			totalSeedCases++;
-
-			FileUtil.copyToQueue(tmpRootDir+conf.CUR_CRASH_FILE.getName(), String.valueOf(totalExecutions));
-		}
-		FileUtil.copyToTested(tmpRootDir+conf.CUR_CRASH_FILE.getName(), String.valueOf(totalExecutions), usedMinutes);
+		FileUtil.copyToTested(testID, usedSeconds, conf);
 //		FileUtil.delete(conf.CUR_CRASH_FILE.getAbsolutePath());
 		if(!Conf.DEBUG) {
-			FileUtil.delete(tmpRootDir);
+			FileUtil.delete(FileUtil.root_tmp+testID);
 		}
 		return true;
 	}
@@ -345,42 +418,22 @@ public class Fuzzer {
 	/* Append new test case to the queue. */
 
 	public void add_to_queue(QueueEntry q, String fname) {
-		Stat.log("Add current entry to queue!");
 		//after test, the retrieved ioSeq could be different from the original q.ioSeq
 		//the actual faultSeq could also be different from the original q.faultSeq
 		
 		//read from file,add to queue
-		TraceReader reader = new TraceReader(fname);
+		TraceReader reader = new TraceReader(FileUtil.root_tmp+fname+"/"+FileUtil.ioTracesDir);
 		reader.readTraces();
+		if(reader.ioPoints == null || reader.ioPoints.isEmpty()) {
+			return;
+		}
 		q.ioSeq = reader.ioPoints;
 		
-		q.max_match_fault = 0;
-		if(q.faultSeq == null || q.faultSeq.isEmpty()) {
-			q.faultSeq = new FaultSequence();
-			q.faultSeq.curFault = -1;
-			q.faultSeq.seq = new ArrayList<FaultPoint>();
-			q.candidate_io = 0;
-		} else {
-			//fix faultSeq
-			//TODO: current comparison approch could cause problems
-			//fault node in fault sequence should match the real node in io sequence
-			for(q.candidate_io = 0; (q.candidate_io < q.ioSeq.size()) && q.max_match_fault<q.faultSeq.seq.size(); q.candidate_io++) {
-				if(q.ioSeq.get(q.candidate_io).CALLSTACK.toString().equals(
-						q.faultSeq.seq.get(q.max_match_fault).ioPt.CALLSTACK.toString())
-						&& q.ioSeq.get(q.candidate_io).appearIdx == q.faultSeq.seq.get(q.max_match_fault).ioPt.appearIdx) {
-					q.faultSeq.seq.get(q.max_match_fault).ioPt = q.ioSeq.get(q.candidate_io);
-					q.faultSeq.seq.get(q.max_match_fault).tarNodeIp = q.faultSeq.seq.get(q.max_match_fault).actualNodeIp;
-					q.faultSeq.seq.get(q.max_match_fault).actualNodeIp = null;
-					q.max_match_fault++;
-				}
-			}
-		}
+		q.calibrate();
 		
-		q.faultSeq.curAppear = 0;
-		q.faultSeq.curFault = 0;
 		q.depth = this.cur_depth + 1;
 		q.bitmap_size = coverage.coveredBlocks(coverage.trace_bits);
-		q.exec_m = a_exec_mins;
+		q.exec_s = target.a_exec_seconds;
 		
 		total_bitmap_size += q.bitmap_size;
 		total_bitmap_entries++;
@@ -458,7 +511,7 @@ public class Fuzzer {
         }
         Stat.log("Retrieve entry:"+Math.max(0,i-1));
 //        return candidate_queue.get(Math.max(0,i-1));
-        return candidate_queue.remove(Math.max(0,i-1));
+        return candidate_queue.get(Math.max(0,i-1));
 	    
 //		if(queue_cur == null) {
 //			return null;
@@ -482,24 +535,150 @@ public class Fuzzer {
 		//  fuzz_one
 		//}
         this.totalCoverage = 0;
-        this.totalExecutions = 0;
+        this.total_execs = 0;
         this.executionsInSample = 0;
         this.lastSampleTime = System.currentTimeMillis();
 
+        RecoveryManager recover = new RecoveryManager();
+        recover.loadQueue(candidate_queue, FileUtil.root_queue, conf);
+        recover.loadFuzzed(fuzzedFiles, FileUtil.root_fuzzed, conf);
+        
         boolean hasFaultSequence = true;
         startTime = System.currentTimeMillis();
         
-        perform_first_run();//now we only support one workload as input, in the future, we should 
-       //support loading a series workloads as the initial input.
+        if(candidate_queue.isEmpty() && fuzzedFiles.isEmpty()) {
+        	perform_first_run();//now we only support one workload as input, in the future, we should 
+            //support loading a series workloads as the initial input.
+        } else {
+        	Stat.log("***********************Recover from last test!*****************************");
+        	Stat.log("**-----------------------Queue size:"+candidate_queue.size()+"-----------------------**");
+        	Stat.log("**-----------------------Fuzzed size:"+fuzzedFiles.size()+"-----------------------**");
+        	loadGlobalInfo();
+        	Stat.log("**-----------------------Cost testing time:"+FileUtil.parseSecondsToStringTime(this.last_used_seconds)+"-----------------------**");
+        	Stat.log("**-----------------------Total target execution time:"+FileUtil.parseSecondsToStringTime(this.exec_us)+"-----------------------**");
+        	Stat.log("**-----------------------Total target execution number:"+this.total_execs+"-----------------------**");
+        	Stat.log("**-----------------------Total bitmap size:"+this.total_bitmap_size+"-----------------------**");
+        	Stat.log("**-----------------------Total bitmap entries:"+this.total_bitmap_entries+"-----------------------**");
+        	Stat.log("**-----------------------Virgin covered blocks:"+CoverageCollector.coveredBlocks(coverage.virgin_bits)+"-----------------------**");
+        	Stat.log("****************************************************************************");
+        }
+        
+        if(Conf.MANUAL) {
+        	Scanner scan = new Scanner(System.in);
+        	scan.nextLine();
+        }
         
         int tmp = 5;
-        while (( getUsedMinutes() < conf.maxTestMinutes) && hasFaultSequence && tmp>0) {
+        while (( getUsedSeconds() < (conf.maxTestMinutes*60)) && hasFaultSequence && tmp>0) {
         	cull_queue();
         	
         	QueueEntry q = retrieveAnEntry();
         	
         	boolean skipped_fuzz = fuzz_one(q);
+        	q.was_fuzzed = true;
+        	candidate_queue.remove(q);
+        	FileUtil.copyToFuzzed(q.fname, getUsedSeconds());
+        	FileUtil.removeFromQueue(q.fname, conf);
+        	fuzzedFiles.add(q.fname);
+//        	fuzzed_queue.add(q);
+        	
         	hasFaultSequence = !candidate_queue.isEmpty();
         }
+        
+        System.out.println(generateClientReport());
     }
+	
+	public void recordGlobalInfo() {
+		//record total execution time, total used time, total execution number, total map size, total map entry
+		try {
+			FileOutputStream out = new FileOutputStream(FileUtil.root+FileUtil.exec_second_file);
+			out.write(FileUtil.parseSecondsToStringTime(this.exec_us).getBytes());
+			out.flush();
+			out.close();
+			
+			out = new FileOutputStream(FileUtil.root+FileUtil.total_execution_file);
+			out.write(String.valueOf(this.total_execs).getBytes());
+			out.flush();
+			out.close();
+			
+			out = new FileOutputStream(FileUtil.root+FileUtil.total_tested_time);
+			out.write(FileUtil.parseSecondsToStringTime(getUsedSeconds()).getBytes());
+			out.flush();
+			out.close();
+			
+			out = new FileOutputStream(FileUtil.root+FileUtil.traced_size_file);
+			out.write(String.valueOf(this.total_bitmap_size).getBytes());
+			out.flush();
+			out.close();
+			
+			out = new FileOutputStream(FileUtil.root+FileUtil.total_map_entry_file);
+			out.write(String.valueOf(this.total_bitmap_entries).getBytes());
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void loadGlobalInfo() {
+		//load total execution time, total used time, total execution number, total map size, total map entry
+		coverage.virgin_bits = coverage.load_a_bitmap(FileUtil.root+FileUtil.virgin_map_file);
+		
+		try {
+			FileInputStream in = new FileInputStream(FileUtil.root+FileUtil.exec_second_file);
+			byte[] content = new byte[1024];
+			in.read(content);
+			this.exec_us = FileUtil.parseStringTimeToSeconds((new String(content)).trim());
+			in.close();
+			
+			in = new FileInputStream(FileUtil.root+FileUtil.total_execution_file);
+			Arrays.fill(content, (byte)0);
+			in.read(content);
+			this.total_execs = Long.parseLong((new String(content)).trim());
+			in.close();
+			
+			in = new FileInputStream(FileUtil.root+FileUtil.total_tested_time);
+			Arrays.fill(content, (byte)0);
+			in.read(content);
+			this.last_used_seconds = FileUtil.parseStringTimeToSeconds((new String(content)).trim());
+			in.close();
+			
+			in = new FileInputStream(FileUtil.root+FileUtil.traced_size_file);
+			Arrays.fill(content, (byte)0);
+			in.read(content);
+			this.total_bitmap_size = Long.parseLong((new String(content)).trim());
+			in.close();
+			
+			in = new FileInputStream(FileUtil.root+FileUtil.total_map_entry_file);
+			Arrays.fill(content, (byte)0);
+			in.read(content);
+			this.total_bitmap_entries = Long.parseLong((new String(content)).trim());
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	public String generateClientReport() {
+		String rst = "";
+		
+		rst += "*******************************CrashFuzz Result**********************************\n";
+		rst += "*Tested time: "+FileUtil.parseSecondsToStringTime(getUsedSeconds())+"\n";
+		rst += "*For "+this.total_execs+" performed tests, the total execution time is "
+		+FileUtil.parseSecondsToStringTime(this.exec_us)+", the average execution time is "
+				+FileUtil.parseSecondsToStringTime(this.exec_us/this.total_execs)+"\n";
+		rst += "*For "+this.total_bitmap_entries+" collected maps, the total map size is "
+						+total_bitmap_size+", the average size of every map is "+(this.total_bitmap_size/this.total_bitmap_entries)
+				+"\n";
+		rst += "*Skip "+this.total_skipped+" tests, including "+this.total_nontrigger+" not triggered cases.";
+		rst += "*Fuzzed "+this.fuzzedFiles.size()+" tests.";
+		rst += "*Test "+this.testedUniqueCases.size()+" unique cases (different fault sequence IDs).";
+		rst += "---------------------------------------------------------------------------------\n";
+		rst += "*Got "+this.total_bugs+" bugs.";
+		rst += "*Got "+this.total_hangs+" hangs.";
+		rst += "*********************************************************************************\n";
+		return rst;
+	}
 }

@@ -2,10 +2,14 @@ package edu.iscas.CCrashFuzzer;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class CoverageCollector {
 	static byte[] virgin_bits,     /* Regions yet untouched by fuzzing */
@@ -57,6 +61,10 @@ public class CoverageCollector {
 				rst++;
 			}
 		}
+
+		if(finds > 0) {
+			write_bitmap(virgin_bits, FileUtil.root+FileUtil.virgin_map_file);
+		}
 		System.out.println("Current covered edges is "+rst);
 		Stat.log("Covered "+finds+" new code blocks!!!!!!!!!!!!!!!!!!!");
 		return finds;
@@ -91,8 +99,38 @@ public class CoverageCollector {
 	   -B option, to focus a separate fuzzing session on a particular
 	   interesting input without rediscovering all the others. */
 
-	public void write_bitmap() {
-
+	public void write_bitmap(byte[] bytes, String fname) {
+		FileOutputStream out;
+		try {
+			File f = new File(fname);
+			if(!f.exists()) {
+				f.getParentFile().mkdir();
+			}
+			
+			out = new FileOutputStream(fname);
+//			System.out.println("CrashFuzz: mark covered blocks"+coveredBlocks(data)+" | "+coveredBlocks2(data));
+			out.write(bytes, 0, bytes.length);
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public byte[] load_a_bitmap(String fname) {
+		byte[] map = new byte[actualSize()];
+		File coverFile = new File(fname);
+		try {
+			if(coverFile.exists()) {//load last trace map and combine
+				FileInputStream tracedFileIn = new FileInputStream(coverFile);
+				tracedFileIn.read(map);
+				tracedFileIn.close();
+			}
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return map;
 	}
 	
 	/* Read bitmap from file. This is for the -B option again. */

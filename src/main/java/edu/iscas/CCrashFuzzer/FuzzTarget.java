@@ -13,33 +13,36 @@ import edu.iscas.CCrashFuzzer.utils.FileUtil;
 public class FuzzTarget extends AbstractFuzzTarget{
 	ArrayList<String> logInfo;
 	ArrayList<String> checkInfo;
+	long a_exec_seconds;
 	//0 triggered, no bug
 	//1 triggered, non-hang bug
 	//2 triggered, hang bug
 	//-1 not triggered
-	public int run_target(FaultSequence seq, Conf conf, String testID) {
+	public int run_target(FaultSequence seq, Conf conf, String testID, long waitSeconds) {
 		logInfo = new ArrayList<String>();
 		checkInfo = new ArrayList<String>();
+		a_exec_seconds = 0;
 		
-		logInfo.add(Stat.log("=========================Going to conduct test "+testID+"========================="));
+		logInfo.add(Stat.log("=========================Going to conduct test "+testID+"("+waitSeconds+"s)========================="));
 		logInfo.add(Stat.log(""));
 		logInfo.add(Stat.log("Fault sequence info {"));
 		logInfo.add(Stat.log(seq.toString()));
 		logInfo.add(Stat.log("}"));
 		
 		int rst = -1;
-		rst = runATest(seq,conf,testID);
+		rst = runATest(seq,conf,testID,waitSeconds);
 		
 		logInfo.add(Stat.log("Finish "+testID+"th test, test result is:"+rst
-				+". (0: triggered-no-bug; 1: triggered-bug; -1: not-triggered)"));
+				+". (0: triggered-no-bug; 1: triggered-bug; 2: triggered-hang; -1: not-triggered)"));
 		return rst;
 	}
 
 	//0 triggered, no bug
     //1 triggered, bug
+	//2 triggered, hang
 	//-1 not triggered
-	public int runATest(FaultSequence seq, Conf conf, String testID) {
-		int ret = -1;
+	public int runATest(FaultSequence seq, Conf conf, String testID, long waitSeconds) {
+		int ret = 0;
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
@@ -69,15 +72,24 @@ public class FuzzTarget extends AbstractFuzzTarget{
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
+				logInfo.add(Stat.log("The workload is running ..."));
 				logInfo.addAll(controller.cluster.runWorkload());
 				logInfo.add(Stat.log("The workload was finished."));
 			}
 		};
+		long start = System.currentTimeMillis();
 		runWorkload.start();
 		
 		int waitIdx = 0;
-		boolean addController = false;
-		while(!controller.faultInjected || runWorkload.isAlive()) {
+		boolean addedController = false;
+		do {
+			if(controller.injectionAborted) {
+				ret = -1;
+				addedController = true;
+				logInfo.addAll(controller.rst);
+		    	logInfo.add(Stat.log("Exit abnormally since current fault sequence was aborted, stop controller ..."));
+        		break;
+			}
 		    try {
                 Thread.sleep(1000);
                 waitIdx++;
@@ -85,24 +97,25 @@ public class FuzzTarget extends AbstractFuzzTarget{
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-		    if(waitIdx > (conf.hangMinutes*60)) {
+		    if(waitIdx > waitSeconds) {
             	if(!controller.faultInjected) {
             		logInfo.addAll(controller.rst);
-    		    	logInfo.add(Stat.log("Exit abnormally, stop controller ..."));
-            		controller.stopController();
-            		addController = true;
-            		return -1;
+    		    	logInfo.add(Stat.log("Exit abnormally after waiting "+waitSeconds+" seconds, stop controller ..."));
+    		    	addedController = true;
+    		    	ret = -1;
+    		    	break;
             	} else if (controller.faultInjected && runWorkload.isAlive()) {
             		logInfo.addAll(controller.rst);
-            		logInfo.add(Stat.log("FAV test has failed: the run did not finished in "+conf.hangMinutes+" minutes."));
+            		logInfo.add(Stat.log("FAV test has failed: the run did not finished in "+waitSeconds+" seconds."));
             		ret = 2;
-            		addController = true;
+            		addedController = true;
             		break;
             	}
             }
-		}
+		} while(!controller.faultInjected || runWorkload.isAlive());
+		a_exec_seconds = Fuzzer.getExecSeconds(start);
 
-		if(!addController) {
+		if(!addedController) {
 			logInfo.addAll(controller.rst);
 		}
 		
@@ -148,17 +161,15 @@ public class FuzzTarget extends AbstractFuzzTarget{
 		m.collectRunTimeInfo(runInfoPath);
 		FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
 		
-		logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
-		logInfo.addAll(controller.cluster.runChecker(seq, conf, controller.currentCluster, runInfoPath+FileUtil.monitorName));
-		int checkBug = checkBug(seq, conf);
-		
-		logInfo.add(Stat.log("Exit normally, stop controller ..."));
-		controller.stopController();
-		if(ret == 2) {
-			return 2;
-		} else {
-			return checkBug;
+		if(ret == 0) {
+			logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
+			logInfo.addAll(controller.cluster.runChecker(seq, conf, controller.currentCluster, runInfoPath+FileUtil.monitorDir));
+			ret = checkBug(seq, conf);
+			logInfo.add(Stat.log("Exit normally, stop controller ..."));
 		}
+		
+		controller.stopController();
+		return ret;
 	}
 
 	private int checkBug(FaultSequence seq, Conf conf) {

@@ -3,6 +3,7 @@ package edu.iscas.CCrashFuzzer;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,9 +17,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
+import edu.iscas.CCrashFuzzer.utils.FileUtil;
 //We do not trigger remote crash in this controller.
 //This controller aims to trigger local crashes for systems deployed as processes in the same machine
 public class Controller {
@@ -30,9 +33,11 @@ public class Controller {
     public Thread serverThread;
     public ServerSocket serverSocket;
     public boolean faultInjected;
+    public boolean injectionAborted;//cannot schedule current fault sequence any more
     public ArrayList<String> rst;
     public Conf favconfig;
     List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
+    public final int maxClients = 300;
 
     public Controller(Cluster cluster, int port, Conf favconfig) {
     	this.cluster = cluster;
@@ -40,9 +45,10 @@ public class Controller {
     	this.CONTROLLER_PORT = port;
     	this.favconfig = favconfig;
     	this.faultInjected = false;
+    	this.injectionAborted = false;
     	this.rst = new ArrayList<String>();
     	this.clients = Collections.synchronizedSet(new HashSet<Thread>());
-    	currentCluster.addAll(favconfig.maxDownGroup);
+    	currentCluster = Mutation.cloneCluster(favconfig.maxDownGroup);
     }
 
     public void startController() {
@@ -58,6 +64,9 @@ public class Controller {
 				    Stat.log("Controller started ...");
 		            int counter = 0;
 		            while(running){
+		            	while(clients.size()>maxClients) {
+		            		Thread.currentThread().sleep(500);
+		            	}
 		            	counter++;
 		            	Socket socket = serverSocket.accept();  //server accept the client connection request
 		            	//System.out.println("a client "+counter+" was connected"+socket.getRemoteSocketAddress());
@@ -86,6 +95,14 @@ public class Controller {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		for(Thread c:clients) {
+			try {
+				c.join(3000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				c.interrupt();
+			}
+		}
 		File file = favconfig.CUR_CRASH_FILE;
 		if(file.exists()) {
 			file.delete();
@@ -99,6 +116,7 @@ public class Controller {
 			Stat.log("No faults to inject in this round.");
 		}
 		faultSequence = p;
+		faultSequence.reset();
 		updataCurCrashPointFile();
 		Stat.log("Current fault sequence was prepared.");
 	}
@@ -115,39 +133,13 @@ public class Controller {
 		        }
 			}
 		} else {
-			File tofile = favconfig.CUR_CRASH_FILE;
-
-			if (!tofile.getParentFile().exists()) {
-	            tofile.getParentFile().mkdirs();
-	        }
-
-			try {
-				FileWriter fw = new FileWriter(tofile);
-				BufferedWriter bw = new BufferedWriter(fw);
-				PrintWriter pw = new PrintWriter(bw);
-
-				for(FaultPoint p:faultSequence.seq) {
-					pw.write("fault point="+p.toString().hashCode()+"\n");
-					pw.write("event="+p.stat+"\n");
-					pw.write("pos="+p.pos+"\n");
-					pw.write("nodeIp="+p.tarNodeIp+"\n");
-					pw.write("ioID="+p.ioPt.ioID+"\n");
-					pw.write("ioCallStack="+p.ioPt.CALLSTACK+"\n");
-					pw.write("ioAppearIdx="+p.ioPt.appearIdx+"\n");
-					pw.write("end"+"\n");
-				}
-				
-				pw.close();
-
-				if(favconfig.UPDATE_CRASH != null) {
-                    String path = favconfig.UPDATE_CRASH.getAbsolutePath();
-                    String workingDir = path.substring(0, path.lastIndexOf("/"));
-                    RunCommand.run(path, workingDir);
-                }
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			FileUtil.genereteFaultSequenceFile(faultSequence, favconfig.CUR_CRASH_FILE);
+			
+			if(favconfig.UPDATE_CRASH != null) {
+                String path = favconfig.UPDATE_CRASH.getAbsolutePath();
+                String workingDir = path.substring(0, path.lastIndexOf("/"));
+                RunCommand.run(path, workingDir);
+            }
 		}
 	}
 
@@ -161,6 +153,9 @@ public class Controller {
 
 		@Override
 		public void run() {
+			boolean injectFault = false;
+			int pendingFault = 0;
+			FaultPoint pendingPoint = null;
 			try{
 				//System.out.println("ClientHandler "+id+" was started!"+socket.getLocalPort()+":"+socket.getRemoteSocketAddress());
 				DataInputStream inStream = new DataInputStream(socket.getInputStream());
@@ -168,127 +163,180 @@ public class Controller {
 				ObjectInputStream objIn = new ObjectInputStream(inStream);
 				int ioID = inStream.readInt();
 				String reportNodeIp = inStream.readUTF();
+				String cliID = inStream.readUTF()+" for ioID "+ioID+", ";
 				//System.out.println("ClientHandler-" +id+ ": msg is :"+mess);
 				synchronized(faultSequence) {
+					int curFault = faultSequence.curFault.get();
+					int curAppear = 0;
+					if(curFault == -1 || curFault >= faultSequence.seq.size()) {
+						curAppear = 0;
+					} else {
+						curAppear = faultSequence.seq.get(curFault).curAppear;
+					}
 					//System.out.println("Client "+id+" enter synchronized area: "+socket.getRemoteSocketAddress());
 					if(!faultSequence.isEmpty()) {
-						if(faultInjected) {
+						if(faultInjected || injectionAborted) {//all the faults have been injected or aborted
 							//all faults have been tested
+//							Stat.log(cliID+"-----------faultInjected || injectionAborted----------");
 	                        outStream.writeUTF("CONTI");
-	                        outStream.writeInt(faultSequence.curFault);
+	                        outStream.writeInt(curFault);
+							outStream.writeInt(curAppear);
 //							//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
 							outStream.flush();
 							inStream.close();
 							outStream.close();
 							socket.close();
-						} else {
-							FaultPoint p = faultSequence.seq.get(faultSequence.curFault);
-							if(p.ioPt.ioID == ioID && faultSequence.curAppear < p.ioPt.appearIdx) {
-								faultSequence.curAppear++;
-								if(faultSequence.curAppear == p.ioPt.appearIdx) {
-									faultSequence.curAppear = 0;
-									faultSequence.curFault++;
-									
-									if(p.stat.equals(FaultStat.CRASH)) {
-										p.actualNodeIp = reportNodeIp;
-										for(int i = faultSequence.curFault; i< faultSequence.seq.size(); i++) {
-											if(faultSequence.seq.get(i).stat.equals(FaultStat.REBOOT)
-													&& faultSequence.seq.get(i).tarNodeIp.equals(p.tarNodeIp)) {
-												faultSequence.seq.get(i).actualNodeIp = reportNodeIp;
-												break;
-											}
-										}
-										
-										rst.add(Stat.log("Meet current fault point:"+p));
-										
-										outStream.writeUTF("CRASH");
-										outStream.writeInt(faultSequence.curFault);
-//										//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
-										outStream.flush();
-										inStream.close();
-										outStream.close();
-										socket.close();
-										
-										String[] args = new String[2];
-										args[0] = p.actualNodeIp;
-										args[1] = String.valueOf(favconfig.AFL_PORT);
-										AflCli.main(args);
-										
-										//Restart the node
-						        		rst.add(Stat.log("Prepare to crash node "+p.actualNodeIp));
-						                List<String> crashRst = cluster.killNode(p.actualNodeIp, p.actualNodeIp);
-						                rst.addAll(crashRst);
-						                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
-						                rst.add(Stat.log("node "+p.actualNodeIp+" was killed!"));
-						                
-						                Mutation.buildClusterStatus(currentCluster, p.actualNodeIp, FaultStat.CRASH);
-									} else if(p.stat.equals(FaultStat.REBOOT)) {
-										rst.add(Stat.log("Meet current fault point:"+p));
-										
-										//Restart the node
-						        		rst.add(Stat.log("Prepare to restart node "+p.actualNodeIp+" before continue on node "+reportNodeIp));
-						                List<String> restartRst = cluster.restartNode(p.actualNodeIp);
-						                rst.addAll(restartRst);
-						                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
-						                rst.add(Stat.log("node "+p.actualNodeIp+" was restarted!"));
-							            
-						                outStream.writeUTF("CONTI");
-										outStream.writeInt(faultSequence.curFault);
-//										//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
-										outStream.flush();
-										inStream.close();
-										outStream.close();
-										socket.close();
-										
-						                Mutation.buildClusterStatus(currentCluster, p.actualNodeIp, FaultStat.REBOOT);
-									} else {
-										//no need to inject faults
-				                        outStream.writeUTF("CONTI");
-										outStream.writeInt(faultSequence.curFault);
-//										//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
-										outStream.flush();
-										inStream.close();
-										outStream.close();
-										socket.close();
+						} else {//check faultSequence
+							for(int i = curFault;i<faultSequence.seq.size(); i++) {
+								FaultPoint p = faultSequence.seq.get(i);
+								if(p.ioPt.ioID == ioID && p.curAppear < p.ioPt.appearIdx) {
+									//meet the a fault point, check appear indexes
+									p.curAppear++;
+//									Stat.log(cliID+"---------"+i+"th--"+ioID+"'s curAppear++:"+p.curAppear+"----------");
+									if(p.curAppear == p.ioPt.appearIdx) {
+										//can inject a fault
+										Stat.log(cliID+"---------"+i+"th--"+ioID+" meet:"+p.curAppear+"----------");
+										pendingFault = i;
+										injectFault = true;
+										pendingPoint = p;
 									}
-									
-									if(faultSequence.curFault >= faultSequence.seq.size()) {
-										faultInjected = true;
-									}
-								} else {
-									//not the expected appear idx
-			                        outStream.writeUTF("CONTI");
-									outStream.writeInt(faultSequence.curFault);
-//									//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
-									outStream.flush();
-									inStream.close();
-									outStream.close();
-									socket.close();
 								}
-							} else {
-								//not the expected io ID
-		                        outStream.writeUTF("CONTI");
-								outStream.writeInt(faultSequence.curFault);
-//								//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
+							}
+
+							if(!injectFault) {//not the time to inject the fault or do not match a fault
+//								Stat.log(cliID+"---------not the time to inject the fault or do not match a fault----------");
+								outStream.writeUTF("CONTI");
+		                        outStream.writeInt(curFault);
+								outStream.writeInt(curAppear);
+								//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
 								outStream.flush();
 								inStream.close();
 								outStream.close();
 								socket.close();
 							}
 						}
-					} else {
+					} else {//no fault to inject
 //					    rst.add(Stat.log("Controller already has an accepted node id is "+acceptedCrashNode));
+//						Stat.log(cliID+"---------no fault to inject----------");
+						
                         outStream.writeUTF("CONTI");
-						outStream.writeInt(faultSequence.curFault);
-//						//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
+                        outStream.writeInt(curFault);
+						outStream.writeInt(curAppear);
+						//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
 						outStream.flush();
 						inStream.close();
 						outStream.close();
 						socket.close();
 					}
 				}
-		    } catch(Exception ex) {
-		    	System.out.println(ex);
+				
+				if(injectFault) {//inject a fault
+					int cur_Fault = faultSequence.curFault.get();
+					while(pendingFault != cur_Fault) {
+						//wait for the fault time
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						cur_Fault = faultSequence.curFault.get();
+					}
+//					Stat.log(cliID+"---------Time to inject fault "+cur_Fault+"----------");
+					if(pendingPoint.stat.equals(FaultStat.CRASH)) {
+						pendingPoint.actualNodeIp = reportNodeIp;
+						for(int i = cur_Fault; i< faultSequence.seq.size(); i++) {
+							if(faultSequence.seq.get(i).stat.equals(FaultStat.REBOOT)
+									&& faultSequence.seq.get(i).tarNodeIp.equals(pendingPoint.tarNodeIp)) {
+								faultSequence.seq.get(i).actualNodeIp = reportNodeIp;
+								break;
+							}
+						}
+						
+						rst.add(Stat.log("Meet "+cur_Fault+"th fault point [CRASH]:"+pendingPoint));
+						if(Mutation.isDeadNode(currentCluster, pendingPoint.actualNodeIp)) {
+							throw new AbortFaultException("Crashing a dead node "+pendingPoint.actualNodeIp+"!!!");
+						}
+
+						Stat.log(cliID+"---------For fault "+cur_Fault+", time to info reporting node: CRASH:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");
+						outStream.writeUTF("CRASH");
+						outStream.writeInt(cur_Fault);
+						outStream.writeInt(faultSequence.seq.get(cur_Fault).curAppear);
+//						//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
+						outStream.flush();
+						inStream.close();
+						outStream.close();
+						socket.close();
+//						Stat.log(cliID+"---------For fault "+cur_Fault+", informed reporting node: CRASH:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");
+						
+						
+						String[] args = new String[2];
+						args[0] = pendingPoint.actualNodeIp;
+						args[1] = String.valueOf(favconfig.AFL_PORT);
+						AflCli.main(args);
+						
+						//Restart the node
+		        		rst.add(Stat.log("Prepare to crash node "+pendingPoint.actualNodeIp));
+		                List<String> crashRst = cluster.killNode(pendingPoint.actualNodeIp, pendingPoint.actualNodeIp);
+		                rst.addAll(crashRst);
+		                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
+		                rst.add(Stat.log("node "+pendingPoint.actualNodeIp+" was killed!"));
+		                
+		                Mutation.buildClusterStatus(currentCluster, pendingPoint.actualNodeIp, FaultStat.CRASH);
+					} else if(pendingPoint.stat.equals(FaultStat.REBOOT)) {
+						rst.add(Stat.log("Meet "+cur_Fault+"th fault point[REBOOT]:"+pendingPoint));
+						if(Mutation.isAliveNode(currentCluster, pendingPoint.actualNodeIp)) {
+							throw new AbortFaultException("Restarting an alive node "+pendingPoint.actualNodeIp+"!!!");
+						}
+						
+						//Restart the node
+		        		rst.add(Stat.log("Prepare to restart node "+pendingPoint.actualNodeIp+" before continue on node "+reportNodeIp));
+		                List<String> restartRst = cluster.restartNode(pendingPoint.actualNodeIp);
+		                rst.addAll(restartRst);
+		                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
+		                rst.add(Stat.log("node "+pendingPoint.actualNodeIp+" was restarted!"));
+			            
+		                Stat.log(cliID+"---------For fault "+cur_Fault+", time to info reporting node: REBOOT:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");
+						
+		                outStream.writeUTF("REBOOT");
+						outStream.writeInt(cur_Fault);
+						outStream.writeInt(faultSequence.seq.get(cur_Fault).curAppear);
+//						//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
+						outStream.flush();
+						inStream.close();
+						outStream.close();
+						socket.close();
+//						Stat.log(cliID+"---------For fault "+cur_Fault+", informed reporting node: REBOOT:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");
+						
+						
+		                Mutation.buildClusterStatus(currentCluster, pendingPoint.actualNodeIp, FaultStat.REBOOT);
+					} else {
+						//no need to inject faults
+						Stat.log(cliID+"---------For fault "+cur_Fault+", time to info reporting node: NONE:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");
+						
+                        outStream.writeUTF("CONTI");
+						outStream.writeInt(cur_Fault);
+						outStream.writeInt(faultSequence.seq.get(cur_Fault).curAppear);
+//						//System.out.println("Send continue response to client "+id+":"+socket.getRemoteSocketAddress());
+						outStream.flush();
+						inStream.close();
+						outStream.close();
+						socket.close();
+//						Stat.log(cliID+"---------For fault "+cur_Fault+", informed reporting node: REBOOT:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");
+						
+					}
+					int injectedFaultsNum = faultSequence.curFault.incrementAndGet();
+					if(injectedFaultsNum >= faultSequence.seq.size()) {
+						faultInjected = true;
+					}
+					injectFault = false;
+				}
+		    } catch (IOException | AbortFaultException | AflException e) {
+		    	if(injectFault) {//cannot schedule this fault sequence
+		    		injectionAborted = true;
+		    		System.err.println(e.getMessage());
+		    		System.err.println(e);
+		    	}
 		    } finally {
 				clients.remove(this);
 				//System.out.println("ClientHandler-" + id + " exit!! ");
@@ -299,5 +347,11 @@ public class Controller {
     public int getRandom(int start,int end) {
     	int num = (int) (Math.random()*(end-start+1)+start);
 		return num;
+	}
+    
+    public static class AbortFaultException extends Exception {
+		public AbortFaultException(String errorMessage) {
+	        super(errorMessage);
+	    }
 	}
 }

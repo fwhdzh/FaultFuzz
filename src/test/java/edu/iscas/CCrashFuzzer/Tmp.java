@@ -23,6 +23,10 @@ public class Tmp {
 		//[a, a]
 		
 		test();
+		
+		String s = "34";
+		byte[] content = s.getBytes();
+		Long.parseLong(new String(content));
 	}
 	
 	public static void test() {

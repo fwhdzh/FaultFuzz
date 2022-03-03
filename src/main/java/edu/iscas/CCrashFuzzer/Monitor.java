@@ -31,22 +31,6 @@ public class Monitor {
 		}
 	}
 	
-	//clear tmp folder
-	// put following info under tmp folder
-	//first collect coverage info:
-	// node1: basic block IDs, node2: basic block IDs
-	// use these ids to build a bit map
-	//second collect I/O points
-	// like deminer + io point ID + appearIdx
-	// build a fault sequence
-	public void generateAllFilesForTest(String testID, ArrayList<String> logInfo, FaultSequence seq) {
-	    String rootReport = getTmpReportDir(testID);
-        //generateCrashNodeInfo(crashIdx, point, rootReport+"/"+"pointInfo");
-        FileUtil.generateFAVLogInfo(rootReport, logInfo, seq);
-        copyCurCrash(conf.CUR_CRASH_FILE.getAbsolutePath(), rootReport);
-        collectRunTimeInfo(rootReport);
-	}
-	
 	public void collectRunTimeInfo(String tmpRoot) {
 		if(conf.MONITOR != null) {
             String path = conf.MONITOR.getAbsolutePath();

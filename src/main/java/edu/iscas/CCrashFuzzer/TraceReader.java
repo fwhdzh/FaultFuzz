@@ -9,9 +9,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.commons.io.FileUtils;
+
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 
 public class TraceReader {
 	private File traceDir;
@@ -19,7 +24,7 @@ public class TraceReader {
 	public int total = 0;
 	static List<IOPoint> ioPoints = new ArrayList<IOPoint>();
 
-	public ConcurrentHashMap<Integer, Integer> uniqueEntryToAppearIdx = new ConcurrentHashMap<Integer, Integer>();
+	public ConcurrentHashMap<Integer, AtomicInteger> uniqueEntryToAppearIdx = new ConcurrentHashMap<Integer, AtomicInteger>();
 
 	public TraceReader(String traceDir) {
 		File file = new File(traceDir);
@@ -35,7 +40,7 @@ public class TraceReader {
 	}
 
 	public void readTraces() {
-		if(!traceDir.exists() || !traceDir.isDirectory()) {
+		if(traceDir==null || !traceDir.exists() || !traceDir.isDirectory()) {
 			return;
 		}
 		Stat.deleteEmptyFile(traceDir);
@@ -62,16 +67,18 @@ public class TraceReader {
 		ioPoints.sort(Comparator.comparingLong(a -> a.TIMESTAMP));
 		
 		for(IOPoint sortedRec: ioPoints) {
-            Integer entryId = this.uniqueEntryToAppearIdx.get(sortedRec.CALLSTACK.hashCode());
-            if(entryId == null || entryId.intValue() == 0) {
-            	sortedRec.appearIdx = 1;
-            	this.uniqueEntryToAppearIdx.put(sortedRec.CALLSTACK.hashCode(), 1);
-            } else {
-                int idx = entryId + 1;
-                sortedRec.appearIdx = idx;
-                this.uniqueEntryToAppearIdx.put(sortedRec.CALLSTACK.hashCode(), idx);
-            }
+			AtomicInteger appearIdx = uniqueEntryToAppearIdx.computeIfAbsent(sortedRec.computeIoID(), k -> new AtomicInteger(0));
+			sortedRec.appearIdx = appearIdx.incrementAndGet();
         }
+//		for(IOPoint sortedRec: ioPoints) {
+//			if(sortedRec.ioID == 1075509077) {
+//				System.out.println("!!!!!!!!!!!!!!!!!!!!!read 1075509077!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//			    System.out.println(sortedRec);
+//			    Scanner scan = new Scanner(System.in);
+//	        	scan.nextLine();
+//			}
+//        }
+		
 
 		System.out.println("Get "+ioPoints.size()+" records");
 	}
@@ -139,8 +146,13 @@ public class TraceReader {
 		            		point.PATH = lineContent.trim();
 		            		recEntryIdx++;
 		            	} else if (recEntryIdx == 4) {
+		            		if(lineContent.trim().equals(FaultPos.BEFORE)) {
+		            			point.pos = FaultPos.BEFORE;
+		            		} else if (lineContent.trim().equals(FaultPos.AFTER)) {
+		            			point.pos = FaultPos.AFTER;
+		            		}
 		            		recEntryIdx++;//md5
-		            	} else if (recEntryIdx == 5) {
+		            	} else if (recEntryIdx == 5) {//taint
 		            		String labelsContent = "";
 		            		
 		            		recEntryIdx++;

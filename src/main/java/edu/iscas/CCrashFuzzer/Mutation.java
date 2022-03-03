@@ -3,6 +3,7 @@ package edu.iscas.CCrashFuzzer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
@@ -33,6 +34,44 @@ public class Mutation {
 			}
 		}
 	}
+	public static boolean isAliveNode(List<MaxDownNodes> currentCluster, String faultNodeIp) {
+		for(MaxDownNodes subCluster:currentCluster) {
+//			System.out.println("mutation, maxDown "+subCluster.maxDown
+//					+", alive:"+subCluster.aliveGroup+", dead:"+subCluster.deadGroup);
+			if(subCluster.aliveGroup.contains(faultNodeIp)) {
+				return true;
+			} else {
+				continue;
+			}
+		}
+		return false;
+	}
+	public static boolean isDeadNode(List<MaxDownNodes> currentCluster, String faultNodeIp) {
+		for(MaxDownNodes subCluster:currentCluster) {
+//			System.out.println("mutation, maxDown "+subCluster.maxDown
+//					+", alive:"+subCluster.aliveGroup+", dead:"+subCluster.deadGroup);
+			if(subCluster.deadGroup.contains(faultNodeIp)) {
+				return true;
+			} else {
+				continue;
+			}
+		}
+		return false;
+	}
+	public static List<MaxDownNodes> cloneCluster(List<MaxDownNodes> srcCluster) {
+		List<MaxDownNodes> desCluster = new ArrayList<MaxDownNodes>();
+		for(MaxDownNodes sub:srcCluster) {
+    		MaxDownNodes group = new MaxDownNodes();
+    		group.maxDown = sub.maxDown;
+    		group.aliveGroup = new HashSet<String>();
+    		group.aliveGroup.addAll(sub.aliveGroup);
+    		
+    		group.deadGroup = new HashSet<String>();
+    		group.deadGroup.addAll(sub.deadGroup);
+    		desCluster.add(group);
+    	}
+		return desCluster;
+	}
 	public static List<QueueEntry> mutateFaultSequence(QueueEntry q, Conf conf) {
 		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
 		FaultSequence original_faults = q.faultSeq;
@@ -47,14 +86,22 @@ public class Mutation {
 		}
 
 
-		List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
-		currentCluster.addAll(conf.maxDownGroup);
+		List<MaxDownNodes> currentCluster = Mutation.cloneCluster(conf.maxDownGroup);
 		for(FaultPoint fault:original_faults.seq) {
 			buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
 		}
 		
-//		int lastIO = q.ioSeq.size();
-		int lastIO = 6;
+		int lastIO = q.ioSeq.size();
+//		int lastIO = 6;
+//		if(original_faults.seq.size()==0) {
+//			lastIO = 2;
+//		} else if (original_faults.seq.size()==1) {
+//			lastIO = 4;
+//		} else if (original_faults.seq.size()==2) {
+//			lastIO = 10;
+//		} else {
+//			lastIO = 30;
+//		}
 //		System.out.println("mutation, io_index:"+io_index+", "+q.max_match_fault);
 		Stat.log("Start to check fault point from "+io_index+" th I/O point for "+q.ioSeq.size()+" I/O points.");
 		for(int curIO = io_index; curIO< lastIO; curIO++) {
@@ -75,13 +122,13 @@ public class Mutation {
 						p.stat = FaultStat.CRASH;
 						p.actualNodeIp = null;
 						faults.seq.add(p);
-						faults.curFault = 0;
-						faults.curAppear = 0;
+						faults.reset();
 						
 						QueueEntry new_q = new QueueEntry();
 						new_q.ioSeq = q.ioSeq;
 						new_q.faultSeq = faults;
 						new_q.favored = true;
+						new_q.exec_s  = q.exec_s;
 						mutates.add(new_q);
 					}
 					if(canReboot) {
@@ -94,14 +141,23 @@ public class Mutation {
 							p.pos = FaultPos.BEFORE;
 							p.tarNodeIp = rebootNode;
 							p.stat = FaultStat.REBOOT;
+							p.actualNodeIp = null;
 							faults.seq.add(p);
-							faults.curFault = 0;
-							faults.curAppear = 0;
+							faults.reset();
+//							if(faults.seq.size() ==  2 &&
+//									faults.seq.get(0).ioPt.ioID == 1075509077
+//									&& faults.seq.get(1).ioPt.ioID == 1075509077) {
+//								System.out.println("!!!!!!!!!!!!!!!!!!!!!MEET 1075509077!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//							    System.out.println(faults);
+//							    Scanner scan = new Scanner(System.in);
+//					        	scan.nextLine();
+//							}
 							
 							QueueEntry new_q = new QueueEntry();
 							new_q.ioSeq = q.ioSeq;
 							new_q.faultSeq = faults;
 							new_q.favored = true;
+							new_q.exec_s  = q.exec_s;
 							mutates.add(new_q);
 						}
 					}

@@ -1,8 +1,15 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.util.Arrays;
+
+import org.apache.commons.io.FileUtils;
+
+import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class CloudFuzzMain {
 
@@ -18,6 +25,11 @@ public class CloudFuzzMain {
 			System.out.println("The configuration file does not exist!");
 			return;
 		}
+		
+		RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        //System.out.println(runtimeMXBean.getName());
+        int myproc = Integer.valueOf(runtimeMXBean.getName().split("@")[0]).intValue();
+		FileUtils.writeByteArrayToFile(new File(FileUtil.root+FileUtil.fuzzer_id_file), String.valueOf(myproc).getBytes());
 
 		Conf conf = new Conf(confFile);
 		conf.CONTROLLER_PORT = Integer.parseInt(args[0].trim());
