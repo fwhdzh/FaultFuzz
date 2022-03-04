@@ -120,86 +120,90 @@ public class FuzzTarget extends AbstractFuzzTarget{
 			logInfo.addAll(controller.rst);
 		}
 		
-		//wait recovery process finish
-		logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
-		List<Thread> waitRecoveryTds = new ArrayList<Thread>();
-		for(MaxDownNodes subCluster:controller.currentCluster) {
-			for(String alive:subCluster.aliveGroup) {
-				Thread t = new Thread() {
+		if(ret == 0) {// not need to wait hangs and not triggered cases
+			//wait recovery process finish
+			logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
+			List<Thread> waitRecoveryTds = new ArrayList<Thread>();
+			for(MaxDownNodes subCluster:controller.currentCluster) {
+				for(String alive:subCluster.aliveGroup) {
+					Thread t = new Thread() {
 
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						super.run();
-						String[] args = new String[3];
-						args[0] = alive;
-						args[1] = String.valueOf(conf.AFL_PORT);
-						args[2] = AflCommand.STABLE.toString();
-						try {
-							AflCli.main(args);
-						} catch (AflException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							super.run();
+							String[] args = new String[3];
+							args[0] = alive;
+							args[1] = String.valueOf(conf.AFL_PORT);
+							args[2] = AflCommand.STABLE.toString();
+							try {
+								AflCli.main(args);
+							} catch (AflException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
-					}
-					
-				};
-				t.start();
-				waitRecoveryTds.add(t);
+						
+					};
+					t.start();
+					waitRecoveryTds.add(t);
+				}
 			}
-		}
-		for(Thread t:waitRecoveryTds) {
-			try {
-				t.join(300000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			for(Thread t:waitRecoveryTds) {
+				try {
+					t.join(300000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
-		logInfo.add(Stat.log("Finish waiting recovery processes."));
-		
-		logInfo.add(Stat.log("Command to save run-time traces ..."));
-		List<Thread> saveTraceThs = new ArrayList<Thread>();
-		for(MaxDownNodes subCluster:controller.currentCluster) {
-			for(String alive:subCluster.aliveGroup) {
-				Thread t = new Thread() {
+			logInfo.add(Stat.log("Finish waiting recovery processes."));
+			
+			logInfo.add(Stat.log("Command to save run-time traces ..."));
+			List<Thread> saveTraceThs = new ArrayList<Thread>();
+			for(MaxDownNodes subCluster:controller.currentCluster) {
+				for(String alive:subCluster.aliveGroup) {
+					Thread t = new Thread() {
 
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						super.run();
-						String[] args = new String[3];
-						args[0] = alive;
-						args[1] = String.valueOf(conf.AFL_PORT);
-						args[2] = AflCommand.SAVE.toString();
-						try {
-							AflCli.main(args);
-						} catch (AflException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							super.run();
+							String[] args = new String[3];
+							args[0] = alive;
+							args[1] = String.valueOf(conf.AFL_PORT);
+							args[2] = AflCommand.SAVE.toString();
+							try {
+								AflCli.main(args);
+							} catch (AflException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
-					}
-					
-				};
-				t.start();
-				saveTraceThs.add(t);
+						
+					};
+					t.start();
+					saveTraceThs.add(t);
+				}
 			}
-		}
-		for(Thread t:saveTraceThs) {
-			try {
-				t.join(600000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			for(Thread t:saveTraceThs) {
+				try {
+					t.join(600000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+			logInfo.add(Stat.log("Finish saving run-time traces."));
 		}
-		logInfo.add(Stat.log("Finish saving run-time traces."));
-		
-		logInfo.add(Stat.log("Collecting run-time information ..."));
+
 		Monitor m = new Monitor(conf);
 		String runInfoPath = m.getTmpReportDir(testID);
-		m.collectRunTimeInfo(runInfoPath);
-		FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
+		if(ret != -1) {//no need to collect traces and logs for not triggered ones
+			logInfo.add(Stat.log("Collecting run-time information ..."));
+			m.collectRunTimeInfo(runInfoPath);
+			FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
+		}
 		
 		if(ret == 0) {
 			logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
