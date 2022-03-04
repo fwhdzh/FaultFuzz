@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
@@ -119,6 +120,44 @@ public class FuzzTarget extends AbstractFuzzTarget{
 			logInfo.addAll(controller.rst);
 		}
 		
+		//wait recovery process finish
+		logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
+		List<Thread> waitRecoveryTds = new ArrayList<Thread>();
+		for(MaxDownNodes subCluster:controller.currentCluster) {
+			for(String alive:subCluster.aliveGroup) {
+				Thread t = new Thread() {
+
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						super.run();
+						String[] args = new String[3];
+						args[0] = alive;
+						args[1] = String.valueOf(conf.AFL_PORT);
+						args[2] = AflCommand.STABLE.toString();
+						try {
+							AflCli.main(args);
+						} catch (AflException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					
+				};
+				t.start();
+				waitRecoveryTds.add(t);
+			}
+		}
+		for(Thread t:waitRecoveryTds) {
+			try {
+				t.join(300000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		logInfo.add(Stat.log("Finish waiting recovery processes."));
+		
 		logInfo.add(Stat.log("Command to save run-time traces ..."));
 		List<Thread> saveTraceThs = new ArrayList<Thread>();
 		for(MaxDownNodes subCluster:controller.currentCluster) {
@@ -129,9 +168,10 @@ public class FuzzTarget extends AbstractFuzzTarget{
 					public void run() {
 						// TODO Auto-generated method stub
 						super.run();
-						String[] args = new String[2];
+						String[] args = new String[3];
 						args[0] = alive;
 						args[1] = String.valueOf(conf.AFL_PORT);
+						args[2] = AflCommand.SAVE.toString();
 						try {
 							AflCli.main(args);
 						} catch (AflException e) {

@@ -4,29 +4,29 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class AflCli {
 
 	public static void main(String[] args) throws AflException {
 		// TODO Auto-generated method stub
-		if(args.length < 1) {
-			System.out.println("Please specify afl port! [ip] [port]");
+		if(args.length < 3) {
+			System.out.println("Please specify afl port! [ip] [port] [command:SAVE|STABLE]:"+Arrays.asList(args));
 			return;
 		}
-		String serverIp = "127.0.0.1";
-		int serverPort;
-		if(args.length == 1) {
-			serverPort = Integer.parseInt(args[0]);
-		} else {
-			serverIp = args[0].trim();
-			serverPort = Integer.parseInt(args[1]);
+		String serverIp = args[0].trim();
+		int serverPort = Integer.parseInt(args[1].trim());
+		String command = args[2].trim();
+		if(!command.equals(AflCommand.SAVE.toString()) && !command.equals(AflCommand.STABLE.toString())) {
+			System.err.println("Illegal command, should be [SAVE|STABLE]");
+			return;
 		}
 		try{
 		    Socket socket = new Socket(serverIp,serverPort);
 		    DataInputStream inStream = new DataInputStream(socket.getInputStream());
 		    DataOutputStream outStream = new DataOutputStream(socket.getOutputStream());
 		    String clientMessage = "",serverMessage = "";
-		    clientMessage = "SAVE";
+		    clientMessage = command;
 
 		    System.out.println("AflCli send to "+serverIp+":"+clientMessage);
 		    outStream.writeUTF(clientMessage);//request to save results
@@ -37,7 +37,7 @@ public class AflCli {
 		    outStream.close();
 		    inStream.close();
 		    socket.close();
-		    if(!serverMessage.equals("FINISH")) {
+		    if(!serverMessage.equals(AflCommand.FINISH.toString())) {
 		    	throw new AflException("Save result is not FINISH:"+serverMessage);
 		    }
 		  } catch(IOException e){
@@ -45,6 +45,13 @@ public class AflCli {
 		  } finally {
 			  System.out.println("AflCli to "+serverIp+" exit!");
 		  }
+	}
+
+	public static enum AflCommand {
+		SAVE, STABLE,//command
+		FINISH, //succ response
+		TMOUT, //timeout response
+		ILLEGAL //Illegal command
 	}
 
 	public static class AflException extends Exception {

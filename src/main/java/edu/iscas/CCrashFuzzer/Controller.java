@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
@@ -270,9 +271,10 @@ public class Controller {
 //						Stat.log(cliID+"---------For fault "+cur_Fault+", informed reporting node: CRASH:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");
 						
 						
-						String[] args = new String[2];
+						String[] args = new String[3];
 						args[0] = pendingPoint.actualNodeIp;
 						args[1] = String.valueOf(favconfig.AFL_PORT);
+						args[2] = AflCommand.SAVE.toString();
 						AflCli.main(args);
 						
 						//Restart the node

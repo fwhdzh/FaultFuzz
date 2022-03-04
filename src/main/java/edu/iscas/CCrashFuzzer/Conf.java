@@ -19,8 +19,8 @@ import java.util.Set;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class Conf {
-	public static boolean DEBUG = true;
-	public static boolean MANUAL = true;
+	public static boolean DEBUG = false;
+	public static boolean MANUAL = false;
 	
     public File FAV_TRIGGER_CONFIG; //store the path of the configuration file which contains .sh file paths that used to start cluster, run workload, where to inject crashes and .etc.
     public File PRETREATMENT; //store the .sh file to clean and prepare the target system
