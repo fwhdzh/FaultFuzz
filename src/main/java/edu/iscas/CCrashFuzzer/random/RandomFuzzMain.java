@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.random;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,9 +9,10 @@ import java.util.Arrays;
 
 import org.apache.commons.io.FileUtils;
 
+import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
-public class CloudFuzzMain {
+public class RandomFuzzMain {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
@@ -40,7 +41,7 @@ public class CloudFuzzMain {
 			allowRecovery = true;
 		}
 		
-		Fuzzer fuzzer = new Fuzzer(new FuzzTarget(), conf, allowRecovery);
+		RandomFuzzer fuzzer = new RandomFuzzer(new RandomFuzzTarget(), conf, allowRecovery);
 		fuzzer.start();
 	}
 }

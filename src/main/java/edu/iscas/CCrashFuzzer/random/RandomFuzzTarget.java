@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.random;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,12 +6,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.iscas.CCrashFuzzer.AbstractFuzzTarget;
+import edu.iscas.CCrashFuzzer.AflCli;
+import edu.iscas.CCrashFuzzer.Cluster;
+import edu.iscas.CCrashFuzzer.Conf;
+import edu.iscas.CCrashFuzzer.Controller;
+import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.Fuzzer;
+import edu.iscas.CCrashFuzzer.Monitor;
+import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
-public class FuzzTarget extends AbstractFuzzTarget{
+public class RandomFuzzTarget {
 	ArrayList<String> logInfo;
 	ArrayList<String> checkInfo;
 	long a_exec_seconds;
@@ -19,7 +28,7 @@ public class FuzzTarget extends AbstractFuzzTarget{
 	//1 triggered, non-hang bug
 	//2 triggered, hang bug
 	//-1 not triggered
-	public int run_target(FaultSequence seq, Conf conf, String testID, long waitSeconds) {
+	public int run_target(RandomFaultSequence seq, Conf conf, String testID, long waitSeconds) {
 		logInfo = new ArrayList<String>();
 		checkInfo = new ArrayList<String>();
 		a_exec_seconds = 0;
@@ -42,29 +51,17 @@ public class FuzzTarget extends AbstractFuzzTarget{
     //1 triggered, bug
 	//2 triggered, hang
 	//-1 not triggered
-	public int runATest(FaultSequence seq, Conf conf, String testID, long waitSeconds) {
+	public int runATest(RandomFaultSequence seq, Conf conf, String testID, long waitSeconds) {
 		int ret = 0;
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
-		Controller controller = new Controller(new Cluster(conf), conf.CONTROLLER_PORT, conf);
+		RandomController controller = new RandomController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 //        controller.prepareFaultSeq(FaultSequence.getEmptyIns());//keep curCrash null
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(controller.cluster.prepareCluster());
 		logInfo.add(Stat.log("Prepare current fault sequence ..."));
 		controller.prepareFaultSeq(seq);
-		logInfo.add(Stat.log("Start controller ..."));
-		controller.startController();
-		
-		logInfo.add(Stat.log("Waiting for alive controller server thread ..."));
-		while(!controller.serverThread.isAlive()) {
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 		
 		//start the cluster
 		//run the test case
@@ -80,6 +77,9 @@ public class FuzzTarget extends AbstractFuzzTarget{
 		};
 		long start = System.currentTimeMillis();
 		runWorkload.start();
+
+		logInfo.add(Stat.log("Start controller ..."));
+		controller.startController();
 		
 		int waitIdx = 0;
 		boolean addedController = false;
@@ -216,7 +216,7 @@ public class FuzzTarget extends AbstractFuzzTarget{
 		return ret;
 	}
 
-	private int checkBug(FaultSequence seq, Conf conf) {
+	private int checkBug(RandomFaultSequence seq, Conf conf) {
 		// TODO Auto-generated method stub
 		for(int i = 0; i<logInfo.size(); i++) {
             String s = logInfo.get(i);

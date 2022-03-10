@@ -44,9 +44,9 @@ public class Conf {
 	public int MAX_FAULTS = Integer.MAX_VALUE;
 	
 	public static class MaxDownNodes{
-		int maxDown;
-		Set<String> aliveGroup;
-		Set<String> deadGroup;
+		public int maxDown;
+		public Set<String> aliveGroup;
+		public Set<String> deadGroup;
 	}
 	
 	public Conf(File configFile) {
@@ -149,6 +149,16 @@ public class Conf {
             if(f.exists()) {
                 MONITOR = f;
             }
+        }
+        
+        String root = p.getProperty(ConfOption.ROOT_DIR.toString());
+        if(root != null) {
+        	if(root.trim().endsWith("/")) {
+                FileUtil.root = root.trim();
+        	} else {
+        		FileUtil.root = root.trim()+"/";
+        	}
+        	FileUtil.init(FileUtil.root);
         }
 
         String updateCurCrash = p.getProperty(ConfOption.UPDATE_CRASH.toString());

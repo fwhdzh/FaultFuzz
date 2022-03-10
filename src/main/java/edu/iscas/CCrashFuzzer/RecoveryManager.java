@@ -115,6 +115,8 @@ public class RecoveryManager {
             	} else if (lineContent.startsWith("ioCallStack=")) {
             		List<String> callstack = new ArrayList<String>(Arrays.asList(content.substring(1, content.length()-1).split(", ")));
             		p.ioPt.CALLSTACK = callstack;
+            	} else if (lineContent.startsWith("path=")) {
+            		p.ioPt.PATH = content.trim();
             	} else if(lineContent.startsWith("ioAppearIdx=")) {
             		p.ioPt.appearIdx = Integer.parseInt(content.trim());
             	} else if(lineContent.equals("end")) {

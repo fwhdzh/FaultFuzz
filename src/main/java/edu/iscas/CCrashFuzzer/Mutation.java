@@ -92,20 +92,30 @@ public class Mutation {
 		}
 		
 		int lastIO = q.ioSeq.size();
-//		int lastIO = 6;
-//		if(original_faults.seq.size()==0) {
-//			lastIO = 2;
-//		} else if (original_faults.seq.size()==1) {
-//			lastIO = 4;
-//		} else if (original_faults.seq.size()==2) {
-//			lastIO = 10;
-//		} else {
-//			lastIO = 30;
-//		}
-//		System.out.println("mutation, io_index:"+io_index+", "+q.max_match_fault);
 		Stat.log("Start to check fault point from "+io_index+" th I/O point for "+q.ioSeq.size()+" I/O points.");
+		
 		for(int curIO = io_index; curIO< lastIO; curIO++) {
-			
+			/*
+			List<IOPoint> beforeNeighbors = new ArrayList<IOPoint>();
+			List<IOPoint> afterNeighbors = new ArrayList<IOPoint>();
+			int adjacentNewCovs = 0;
+			for(int i = io_index-1; i >=0; i--) {
+				if((q.ioSeq.get(io_index).TIMESTAMP - q.ioSeq.get(i).TIMESTAMP) <= conf.similarBehaviorWindow) {
+					beforeNeighbors.add(q.ioSeq.get(i));
+					adjacentNewCovs += q.ioSeq.get(i).newCovs;
+				} else {
+					break;
+				}
+			}
+			for(int i = io_index; i < lastIO; i++) {
+				if((q.ioSeq.get(i).TIMESTAMP - q.ioSeq.get(io_index).TIMESTAMP) <= conf.similarBehaviorWindow) {
+					afterNeighbors.add(q.ioSeq.get(i));
+					adjacentNewCovs += q.ioSeq.get(i).newCovs;
+				} else {
+					break;
+				}
+			}
+			*/
 			for(MaxDownNodes subCluster:currentCluster) {
 				if(subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip)
 						|| subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip)) {
@@ -117,12 +127,14 @@ public class Mutation {
 						faults.seq.addAll(original_faults.seq);
 						FaultPoint p  = new FaultPoint();
 						p.ioPt = q.ioSeq.get(curIO);
+						p.ioPtIdx = curIO;
 						p.pos = FaultPos.BEFORE;
 						p.tarNodeIp = p.ioPt.ip;
 						p.stat = FaultStat.CRASH;
 						p.actualNodeIp = null;
 						faults.seq.add(p);
 						faults.reset();
+//						faults.adjacent_new_covs = adjacentNewCovs;
 						
 						QueueEntry new_q = new QueueEntry();
 						new_q.ioSeq = q.ioSeq;
@@ -138,20 +150,14 @@ public class Mutation {
 							faults.seq.addAll(original_faults.seq);
 							FaultPoint p  = new FaultPoint();
 							p.ioPt = q.ioSeq.get(curIO);
+							p.ioPtIdx = curIO;
 							p.pos = FaultPos.BEFORE;
 							p.tarNodeIp = rebootNode;
 							p.stat = FaultStat.REBOOT;
 							p.actualNodeIp = null;
 							faults.seq.add(p);
 							faults.reset();
-//							if(faults.seq.size() ==  2 &&
-//									faults.seq.get(0).ioPt.ioID == 1075509077
-//									&& faults.seq.get(1).ioPt.ioID == 1075509077) {
-//								System.out.println("!!!!!!!!!!!!!!!!!!!!!MEET 1075509077!!!!!!!!!!!!!!!!!!!!!!!!!!");
-//							    System.out.println(faults);
-//							    Scanner scan = new Scanner(System.in);
-//					        	scan.nextLine();
-//							}
+//							faults.adjacent_new_covs = adjacentNewCovs;
 							
 							QueueEntry new_q = new QueueEntry();
 							new_q.ioSeq = q.ioSeq;

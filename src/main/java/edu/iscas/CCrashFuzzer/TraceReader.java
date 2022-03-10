@@ -70,6 +70,16 @@ public class TraceReader {
 			AtomicInteger appearIdx = uniqueEntryToAppearIdx.computeIfAbsent(sortedRec.computeIoID(), k -> new AtomicInteger(0));
 			sortedRec.appearIdx = appearIdx.incrementAndGet();
         }
+		
+		if(Conf.MANUAL) {
+			for(IOPoint p:ioPoints) {
+				System.out.println("timestamp: "+p.TIMESTAMP);
+				System.out.println("new covs: "+p.newCovs);
+				System.out.println(p.toString());
+	        	Scanner scan = new Scanner(System.in);
+	        	scan.nextLine();
+			}
+        }
 //		for(IOPoint sortedRec: ioPoints) {
 //			if(sortedRec.ioID == 1075509077) {
 //				System.out.println("!!!!!!!!!!!!!!!!!!!!!read 1075509077!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -126,7 +136,7 @@ public class TraceReader {
 		            IOPoint point = null;
 		            while((lineContent = br.readLine()) != null){
 		            	//prepare to read next record
-		            	if(recEntryIdx == 7) {
+		            	if(recEntryIdx == 8) {
 		            		recEntryIdx = 0;
 		            		continue;
 		            	}
@@ -152,14 +162,17 @@ public class TraceReader {
 		            			point.pos = FaultPos.AFTER;
 		            		}
 		            		recEntryIdx++;//md5
-		            	} else if (recEntryIdx == 5) {//taint
+		            	} else if (recEntryIdx == 5) {
+		            		point.newCovs = Integer.parseInt(lineContent.trim());
+		            		recEntryIdx++;//md5
+		            	} else if (recEntryIdx == 6) {//taint
 		            		String labelsContent = "";
 		            		
 		            		recEntryIdx++;
-		            	} else if (recEntryIdx == 6) {
+		            	} else if (recEntryIdx == 7) {
 		            		List<String> callstack = new ArrayList<String>(Arrays.asList(lineContent.substring(1, lineContent.length()-1).split(", ")));
 		            		point.CALLSTACK = callstack;
-		            		point.ioID = callstack.toString().hashCode();
+		            		point.ioID = point.computeIoID();
 		            		recCount++;
                             records.add(point);
 	            			if(point.PATH.startsWith("CREALC")) {

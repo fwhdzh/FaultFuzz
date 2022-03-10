@@ -2,6 +2,7 @@ package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class Tmp {
@@ -27,6 +28,14 @@ public class Tmp {
 		String s = "34";
 		byte[] content = s.getBytes();
 		Long.parseLong(new String(content));
+		
+		HashMap<Integer, Integer> faultsToTests = FuzzInfo.timeToFaulsToTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
+//		faultsToTests.computeIfAbsent(4, key -> 5);
+		faultsToTests.put(4, 5);
+		faultsToTests.computeIfAbsent(4, key -> 0);
+		faultsToTests.computeIfPresent(4, (key, value) -> value + 1);
+		
+		System.out.println(faultsToTests);
 	}
 	
 	public static void test() {

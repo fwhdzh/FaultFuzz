@@ -2,6 +2,7 @@ package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 
@@ -16,20 +17,21 @@ public class QueueEntry {
 	public boolean was_tested; //Had been tested at least for one time
 	
 	boolean was_fuzzed; //Had any fuzzing done yet?
-	int left_mutates_last_test;
+	int fuzzed_time; //count to retrieve it from the queue
+
+	List<QueueEntry> mutates;
+	Set<Integer> not_tested_io_id;
     boolean has_new_cov;                    /* Triggers new coverage?           */
     boolean favored;        //gy for mutate favored                /* Currently favored?               */
     boolean fs_redundant;                   /* Marked as redundant in the fs?   */
     
     int bitmap_size;                    /* Number of bits set in bitmap     */
     int exec_cksum;                     /* Checksum of the execution trace  */
+    int new_cov_contribution; 
 
     long exec_s;                        /* Execution time (seconds)              */
-    long handicap;                       /* Number of queue cycles behind    */
+    int handicap;                       /* Number of queue cycles behind    */
     long depth;                          /* Path depth                       */
-    
-    boolean trace_mini;                     /* Trace bytes, if kept             */
-    int tc_ref;                         /* Trace bytes ref count            */
     
     QueueEntry next;           /* Next element, if any             */
     QueueEntry next_100;       /* 100 elements ahead               */
@@ -65,8 +67,8 @@ public class QueueEntry {
     A helper function for fuzz_one(). Maybe some of these constants should
     go into config.h. */
     public int getPerfScore() {
-        int avg_exec_us = (int) (Fuzzer.exec_us / Fuzzer.total_execs);
-        int avg_bitmap_size = (int) (Fuzzer.total_bitmap_size / Fuzzer.total_bitmap_entries);
+        int avg_exec_us = FuzzInfo.total_execs==0?0:(int) (FuzzInfo.exec_us / FuzzInfo.total_execs);
+        int avg_bitmap_size = (int) (FuzzInfo.total_bitmap_size / FuzzInfo.total_bitmap_entries);
         int perf_score = 100;
         
         /* Adjust score based on execution speed of this path, compared to the
@@ -91,8 +93,30 @@ public class QueueEntry {
   else if (this.bitmap_size * 2 < avg_bitmap_size) perf_score *= 0.5;
   else if (this.bitmap_size * 1.5 < avg_bitmap_size) perf_score *= 0.75;
   
-  //ajust score according to the number of injected faults
-  //TODO
+  if (this.handicap >= 4) {
+
+	    perf_score *= 4;
+//	    this.handicap -= 4;
+
+	  } else if (this.handicap>0) {
+
+	    perf_score *= 2;
+//	    this.handicap--;
+
+	  }
+
+	  /* Final adjustment based on input depth, under the assumption that fuzzing
+	     deeper test cases is more likely to reveal stuff that can't be
+	     discovered with traditional fuzzers. */
+
+      int faults = this.faultSeq.seq.size();
+      if(faults < 6 && faults > 0) {
+    	  perf_score *= faults; 
+      } else if(faults >= 6 && faults <9 ) {
+    	  perf_score *= 3;
+      } else if(faults >= 9 && faults <12) {
+    	  perf_score *= 2;
+      }
   
   if (perf_score > FuzzConf.HAVOC_MAX_MULT * 100) perf_score = FuzzConf.HAVOC_MAX_MULT * 100;
 

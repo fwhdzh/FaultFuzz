@@ -34,6 +34,8 @@ public class FaultSequence {
 	}
 	public List<FaultPoint> seq; //only contain the points that inject crash or reboot
 	public AtomicInteger curFault;
+	public int adjacent_new_covs; // for the last injected fault, the adjacent new covs of IO points in
+	                              // similarBehaviorWindow
 	public int getFaultSeqID() {
 		String s = "";
 		for(FaultPoint p:seq) {
@@ -43,6 +45,7 @@ public class FaultSequence {
 	}
 	public static class FaultPoint {
 		public IOPoint ioPt;
+		public int ioPtIdx;
 		public FaultStat stat;
 		public FaultPos pos;//before or after
 		public String tarNodeIp;

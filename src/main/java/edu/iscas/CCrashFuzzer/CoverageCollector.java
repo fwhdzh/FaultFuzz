@@ -7,15 +7,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class CoverageCollector {
-	static byte[] virgin_bits,     /* Regions yet untouched by fuzzing */
-                  virgin_tmout,    /* Bits we haven't seen in tmouts   */
-                  virgin_crash;    /* Bits we haven't seen in crashes  */
-	static byte[] trace_bits;//store covered bits in a run
+	public static byte[] virgin_bits;    /* Bits we haven't seen in crashes  */
+	static byte[] virgin_tmout;
+	static byte[] virgin_crash;
+	public static byte[] trace_bits;//store covered bits in a run
 	
     public int actualSize(){
 		// return Conf.MAP_SIZE / 8 + (Conf.MAP_SIZE % 8 == 0 ? 0 : 1);
@@ -46,11 +47,15 @@ public class CoverageCollector {
 	//my return the new covered bits.
 	public int has_new_bits() {
 		int finds= 0;
+		int curCovCounts = 0;
 		for(int i = 0; i< trace_bits.length; i++) {
 			if(trace_bits[i]>0 && virgin_bits[i] ==0) {
 				finds++;
 				virgin_bits[i] = trace_bits[i];
 //				System.out.println("Got new edge:"+i+".");
+			}
+			if(virgin_bits[i] > 0) {
+				curCovCounts ++;
 			}
 		}
 		System.out.println("Got "+finds+" new edges.");
@@ -64,6 +69,9 @@ public class CoverageCollector {
 
 		if(finds > 0) {
 			write_bitmap(virgin_bits, FileUtil.root+FileUtil.virgin_map_file);
+			int key = (int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60));
+			FuzzInfo.timeToTotalCovs.put(key, curCovCounts);
+			FuzzInfo.lastNewCovTime = FuzzInfo.getUsedSeconds();
 		}
 		System.out.println("Current covered edges is "+rst);
 		Stat.log("Covered "+finds+" new code blocks!!!!!!!!!!!!!!!!!!!");

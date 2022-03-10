@@ -17,6 +17,7 @@ public class IOPoint {
     public List<String> CALLSTACK;
     public String procID;
     public String ip;
+    public int newCovs = 0;
     public FaultPos pos;//before or after
 	public String toString() {
 		return "IOID=["+ioID+"]"+", IOIP=["+ip+"], AppearIdx=["+appearIdx+"]"+", CallStack="+CALLSTACK

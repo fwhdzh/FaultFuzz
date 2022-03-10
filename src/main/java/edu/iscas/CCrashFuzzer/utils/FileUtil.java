@@ -38,15 +38,38 @@ public class FileUtil {
 
 	public static String seed_file = "SEED";
 	
+	public static String fuzzed_time_file = "FUZZED_TIME";
+	public static String mutates_size_file = "MUTATES_SIZE";
+	public static String handicap_file = "HANDICAP";
+	public static String mutates_file = "MUTATES";
+	
+	public static String neighbor_new_covs_file = "ADJACENT_NEW_COVS";
+	
 	public static String exec_second_file = "EXEC_TIME";
-	public static String traced_size_file = "MAP_SIZE";
+	public static String traced_size_file = "TRACE_SIZE";
 	
 	public static String total_execution_file = "TOTAL_EXEC_NUM";
 	public static String total_map_entry_file = "TOTAL_MAP_ENTRY";
 	
+	public static String map_file = "MAP";
 	public static String virgin_map_file = "VIRGIN_MAP";
+	public static String virgin_map_size_file = "VIRGIN_MAP_SIZE";
+	
+	public static String report_file = "TEST_REPORT";
 	
 	public static String total_tested_time = "TESTED_TIME";
+	
+	public static void init(String _root) {
+		root = _root;
+		root_tested = root+"tested/";//create a new file every "newBugFileWindow" miniues.
+		root_queue = root+"queue/";
+		root_fuzzed = root+"fuzzed/";
+		root_skipped = root+"skipped/";
+		root_non_triggered = root+"miss/";
+		root_bugs = root+"bugs/";//create a new file every "newBugFileWindow" miniues.
+		root_hangs = root+"hangs/";//create a new file every "newBugFileWindow" miniues.
+		root_tmp = root+"tmp/";
+	}
 	
 	public static void generateFAVLogInfo(String seed, String testID, ArrayList<String> logInfo, FaultSequence seq) {
 		String rootReport = FileUtil.root_tmp+testID+"/"+"fuzz.log";
@@ -84,6 +107,39 @@ public class FileUtil {
         }
 	}
 	
+	public static void generateFAVLogInfo(String seed, String testID, ArrayList<String> logInfo) {
+		String rootReport = FileUtil.root_tmp+testID+"/"+"fuzz.log";
+
+        try {
+            File tofile = new File(rootReport);
+
+            if (!tofile.getParentFile().exists()) {
+                tofile.getParentFile().mkdirs();
+            }
+
+            FileWriter fw = new FileWriter(tofile);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter pw = new PrintWriter(bw);
+
+            pw.println("FAVLog info: ");
+            for(String s :logInfo) {
+                pw.println(s);
+            }
+            pw.println("");
+
+            pw.close();
+            
+            
+            FileOutputStream out = new FileOutputStream(FileUtil.root_tmp+testID+"/"+FileUtil.seed_file);
+            out.write(seed.getBytes());
+            out.flush();
+            out.close();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+	}
+	
 	public static void writePostTestInfo(String testID, int bitmap_size, long exec_s) {
 		try {
 			FileOutputStream out = new FileOutputStream(FileUtil.root_tmp+testID+"/"+traced_size_file);
@@ -93,6 +149,58 @@ public class FileUtil {
 			
 			out = new FileOutputStream(FileUtil.root_tmp+testID+"/"+exec_second_file);
 			out.write(FileUtil.parseSecondsToStringTime(exec_s).getBytes());
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateQueueInfo(String testID, List<QueueEntry> mutates, int fuzzed_time, int handicap) {
+		try {
+			FileOutputStream out = new FileOutputStream(FileUtil.root_queue+testID+"/"+FileUtil.fuzzed_time_file);
+			out.write(String.valueOf(fuzzed_time).getBytes());
+			out.flush();
+			out.close();
+			
+			out = new FileOutputStream(FileUtil.root_queue+testID+"/"+FileUtil.mutates_size_file);
+			out.write(String.valueOf(mutates.size()).getBytes());
+			out.flush();
+			out.close();
+			
+			out = new FileOutputStream(FileUtil.root_queue+testID+"/"+FileUtil.handicap_file);
+			out.write(String.valueOf(handicap).getBytes());
+			out.flush();
+			out.close();
+			
+//			out = new FileOutputStream(FileUtil.root_queue+testID+"/"+FileUtil.mutates_file);
+//			for(QueueEntry m:mutates) {
+//				
+//			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void writeMap(String testID, byte[] map, int map_size, int new_bits) {
+		try {
+			FileOutputStream out = new FileOutputStream(FileUtil.root_tmp+testID
+					+"/"+FileUtil.map_file+"_"+map_size+"("+new_bits+")");
+			out.write(map);
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public static void writeNeighborNewCovs(String testID, int new_covs) {
+		try {
+			FileOutputStream out = new FileOutputStream(FileUtil.root_tmp+testID
+					+"/"+FileUtil.neighbor_new_covs_file+"_"+new_covs);
+			out.write(String.valueOf(new_covs).getBytes());
 			out.flush();
 			out.close();
 		} catch (IOException e) {
@@ -148,6 +256,27 @@ public class FileUtil {
 				e.printStackTrace();
 			}
         }
+        
+        File tmpFile = new File(FileUtil.root_tmp+testID);
+        if(tmpFile.exists() && tmpFile.isDirectory()) {
+        	for(File f:tmpFile.listFiles()) {
+        		if(f.getName().startsWith(FileUtil.map_file)) {
+        			try {
+						FileUtils.copyFileToDirectory(f, des);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+        		} else if (f.getName().startsWith(FileUtil.neighbor_new_covs_file)) {
+        			try {
+						FileUtils.copyFileToDirectory(f, des);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+        		}
+        	}
+        }
 	}
 
     public static void removeFromQueue(String testID, Conf conf) {
@@ -196,6 +325,27 @@ public class FileUtil {
 		        File seedFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.seed_file);
 		        if(seedFile.exists()){
 		        	FileUtils.copyFileToDirectory(seedFile, des);
+		        }
+		        
+		        File tmpFile = new File(FileUtil.root_tmp+testID);
+		        if(tmpFile.exists() && tmpFile.isDirectory()) {
+		        	for(File f:tmpFile.listFiles()) {
+		        		if(f.getName().startsWith(FileUtil.map_file)) {
+		        			try {
+								FileUtils.copyFileToDirectory(f, des);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+		        		} else if (f.getName().startsWith(FileUtil.neighbor_new_covs_file)) {
+		        			try {
+								FileUtils.copyFileToDirectory(f, des);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+		        		}
+		        	}
 		        }
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -270,6 +420,7 @@ public class FileUtil {
 					pw.write("nodeIp="+p.tarNodeIp+"\n");
 					pw.write("ioID="+p.ioPt.ioID+"\n");
 					pw.write("ioCallStack="+p.ioPt.CALLSTACK+"\n");
+					pw.write("path="+p.ioPt.PATH+"\n");
 					pw.write("ioAppearIdx="+p.ioPt.appearIdx+"\n");
 					pw.write("end"+"\n");
 				}
