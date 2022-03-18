@@ -28,7 +28,7 @@ import edu.iscas.CCrashFuzzer.utils.FileUtil;
 public class Controller {
 	public Cluster cluster;
 	public boolean running;
-	public Set<Thread> clients;
+	public Set<ClientHandler> clients;
 	public int CONTROLLER_PORT = 8888;
 	public FaultSequence faultSequence; //store current crash point ID to the crash before point
     public Thread serverThread;
@@ -48,7 +48,7 @@ public class Controller {
     	this.faultInjected = false;
     	this.injectionAborted = false;
     	this.rst = new ArrayList<String>();
-    	this.clients = Collections.synchronizedSet(new HashSet<Thread>());
+    	this.clients = Collections.synchronizedSet(new HashSet<ClientHandler>());
     	currentCluster = Mutation.cloneCluster(favconfig.maxDownGroup);
     }
 
@@ -87,25 +87,25 @@ public class Controller {
 	public void stopController() {
 		running = false;
 		try {
-			serverSocket.close();
-			for(Thread t:clients) {
-				t.join();
+			if(serverThread.isAlive()) {
+				serverThread.interrupt();
 			}
-			serverThread.join();
-		} catch (InterruptedException | IOException | NullPointerException e) {
+			for(ClientHandler t:clients) {
+				if(t.isAlive()) {
+					t.interrupt();
+				}
+			}
+			if(serverSocket != null && !serverSocket.isClosed()) {
+				serverSocket.close();
+			}
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			System.err.println("exception when stopping controller ...");
 			e.printStackTrace();
-		}
-		for(Thread c:clients) {
-			try {
-				c.join(3000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				c.interrupt();
-			}
 		}
 		File file = favconfig.CUR_CRASH_FILE;
 		if(file.exists()) {
+			System.out.println("Detete cur crash file.");
 			file.delete();
 		}
 		System.out.println("Controller was stopped.");
@@ -150,6 +150,17 @@ public class Controller {
 		public ClientHandler(Socket socket,  int id) {
 			this.socket = socket;
 			this.id = id;
+		}
+
+		public void shutdown() {
+			if(socket != null && !socket.isClosed()) {
+				try {
+					socket.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 
 		@Override
@@ -340,6 +351,14 @@ public class Controller {
 		    		System.err.println(e);
 		    	}
 		    } finally {
+		    	if(socket != null && !socket.isClosed()) {
+		    		try {
+						socket.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		    	}
 				clients.remove(this);
 				//System.out.println("ClientHandler-" + id + " exit!! ");
 		    }

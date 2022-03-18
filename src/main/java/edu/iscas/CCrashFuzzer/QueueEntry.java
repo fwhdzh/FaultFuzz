@@ -20,7 +20,10 @@ public class QueueEntry {
 	int fuzzed_time; //count to retrieve it from the queue
 
 	List<QueueEntry> mutates;
-	Set<Integer> not_tested_io_id;
+	List<QueueEntry> on_recovery_mutates;
+	Set<Integer> unique_io_id;
+	Set<Integer> recovery_io_id;
+	Set<Integer> not_tested_fault_id;
     boolean has_new_cov;                    /* Triggers new coverage?           */
     boolean favored;        //gy for mutate favored                /* Currently favored?               */
     boolean fs_redundant;                   /* Marked as redundant in the fs?   */

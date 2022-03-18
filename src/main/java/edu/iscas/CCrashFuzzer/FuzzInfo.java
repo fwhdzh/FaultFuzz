@@ -83,11 +83,14 @@ public class FuzzInfo {
 		rst += "********************************COVERAGE*****************************************\n";
 		rst += "last new coverate: "+FileUtil.parseSecondsToStringTime(lastNewCovTime)
 		+"("+lastNewCovFaults+" faults)\n";
-		for(Integer key:timeToTotalCovs.keySet()) {
+		List<Integer> sortedKeys = new ArrayList<Integer>();
+		sortedKeys.addAll(timeToTotalCovs.keySet());
+		sortedKeys.sort(Comparator.comparingInt(x -> x));
+		for(Integer key:sortedKeys) {
 			rst += "for "+key+"th "+reportWindow+" minutes, the total coverage is "+timeToTotalCovs.get(key)+"\n";
 		}
 		int total = 0;
-		List<Integer> sortedKeys = new ArrayList<Integer>();
+		sortedKeys.clear();
 		sortedKeys.addAll(timeToFaulsToTestsNum.keySet());
 		sortedKeys.sort(Comparator.comparingInt(x -> x));
 		HashMap<Integer, Integer> faultToExec = new HashMap<Integer, Integer>();

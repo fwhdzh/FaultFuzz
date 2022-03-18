@@ -31,9 +31,11 @@ public class FaultSequence {
 	public FaultSequence() {
 		curFault = new AtomicInteger(-1);
 		seq = new ArrayList<FaultPoint>();
+		on_recovery = false;
 	}
 	public List<FaultPoint> seq; //only contain the points that inject crash or reboot
 	public AtomicInteger curFault;
+    public boolean on_recovery;
 	public int adjacent_new_covs; // for the last injected fault, the adjacent new covs of IO points in
 	                              // similarBehaviorWindow
 	public int getFaultSeqID() {

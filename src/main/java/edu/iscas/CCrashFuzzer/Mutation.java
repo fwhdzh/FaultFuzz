@@ -133,6 +133,9 @@ public class Mutation {
 						p.stat = FaultStat.CRASH;
 						p.actualNodeIp = null;
 						faults.seq.add(p);
+						if(q.recovery_io_id.contains(p.ioPt.ioID)) {
+							faults.on_recovery = true;
+						}
 						faults.reset();
 //						faults.adjacent_new_covs = adjacentNewCovs;
 						
@@ -156,6 +159,9 @@ public class Mutation {
 							p.stat = FaultStat.REBOOT;
 							p.actualNodeIp = null;
 							faults.seq.add(p);
+							if(q.recovery_io_id.contains(p.ioPt.ioID)) {
+								faults.on_recovery = true;
+							}
 							faults.reset();
 //							faults.adjacent_new_covs = adjacentNewCovs;
 							

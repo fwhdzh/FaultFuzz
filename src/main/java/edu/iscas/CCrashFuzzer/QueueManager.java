@@ -59,17 +59,26 @@ public class QueueManager {
 	public static int pickAMutation(QueueEntry q, List<QueueEntry> mutates, 
 			int favored, int untested_io, int queue_cycle, double no_new_cov_pro) {
 		int cur_mutate = -1;
-
+		
+		if(true) {
+			return 0;
+		}
+		
 		while(!mutates.isEmpty() && cur_mutate == -1) {
-			Random r = new Random();
-			int pick = r.nextInt(mutates.size());
+			int pick = -1;
+			QueueEntry tmp = null;
+			if(!q.on_recovery_mutates.isEmpty()) {
+				tmp = q.on_recovery_mutates.get(0);
+				pick = mutates.indexOf(tmp);
+			}
 			
-//		for(int pick = 0; pick < mutates.size(); pick++) {
-			//retrive a mutation or skip to queue
-			QueueEntry tmp = mutates.get(pick);
+			if(pick == -1) {
+				Random r = new Random();
+				pick = r.nextInt(mutates.size());
+				tmp = mutates.get(pick);
+			}
 			
-			
-			if(favored> 0 || untested_io > 0) {
+			if(favored> 0 || untested_io > 0 || !q.on_recovery_mutates.isEmpty()) {
 				//long no new coverage
 				int rand_num = Fuzzer.getRandomNumber(100);
 				if(no_new_cov_pro > 0.5 && rand_num < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {

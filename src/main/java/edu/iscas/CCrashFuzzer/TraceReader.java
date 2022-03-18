@@ -71,15 +71,15 @@ public class TraceReader {
 			sortedRec.appearIdx = appearIdx.incrementAndGet();
         }
 		
-		if(Conf.MANUAL) {
-			for(IOPoint p:ioPoints) {
-				System.out.println("timestamp: "+p.TIMESTAMP);
-				System.out.println("new covs: "+p.newCovs);
-				System.out.println(p.toString());
-	        	Scanner scan = new Scanner(System.in);
-	        	scan.nextLine();
-			}
-        }
+//		if(Conf.MANUAL) {
+//			for(IOPoint p:ioPoints) {
+//				System.out.println("timestamp: "+p.TIMESTAMP);
+//				System.out.println("new covs: "+p.newCovs);
+//				System.out.println(p.toString());
+//	        	Scanner scan = new Scanner(System.in);
+//	        	scan.nextLine();
+//			}
+//        }
 //		for(IOPoint sortedRec: ioPoints) {
 //			if(sortedRec.ioID == 1075509077) {
 //				System.out.println("!!!!!!!!!!!!!!!!!!!!!read 1075509077!!!!!!!!!!!!!!!!!!!!!!!!!!");

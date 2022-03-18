@@ -115,7 +115,7 @@ public class FuzzTarget extends AbstractFuzzTarget{
             }
 		} while(!controller.faultInjected || runWorkload.isAlive());
 		a_exec_seconds = Fuzzer.getExecSeconds(start);
-
+		
 		if(!addedController) {
 			logInfo.addAll(controller.rst);
 		}
