@@ -1,7 +1,9 @@
 package edu.iscas.CCrashFuzzer;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -61,9 +63,14 @@ public class FuzzInfo {
     
 
 	public static String generateClientReport() {
+		SimpleDateFormat sdf = new SimpleDateFormat();// 格式化时间 
+        sdf.applyPattern("yyyy-MM-dd HH:mm:ss a");// a为am/pm的标记  
+        Date date = new Date();// 获取当前时间 
+        String time = sdf.format(date);
 		String rst = "";
 		rst += "*********************************************************************************\n";
 		rst += "*******************************CrashFuzz Result**********************************\n";
+		rst += "*******************************"+time+"**********************************\n";
 		rst += "*********************************************************************************\n";
 		rst += "*Tested time: "+FileUtil.parseSecondsToStringTime(FuzzInfo.getUsedSeconds())+"\n";
 		rst += "*For "+FuzzInfo.total_execs+" performed tests, the total execution time is "

@@ -144,6 +144,9 @@ public class Mutation {
 						new_q.faultSeq = faults;
 						new_q.favored = true;
 						new_q.exec_s  = q.exec_s;
+						new_q.bitmap_size = q.bitmap_size;
+						new_q.handicap = 0;
+						
 						mutates.add(new_q);
 					}
 					if(canReboot) {
@@ -170,6 +173,8 @@ public class Mutation {
 							new_q.faultSeq = faults;
 							new_q.favored = true;
 							new_q.exec_s  = q.exec_s;
+							new_q.bitmap_size = q.bitmap_size;
+							new_q.handicap = 0;
 							mutates.add(new_q);
 						}
 					}

@@ -218,12 +218,16 @@ public class FuzzTarget extends AbstractFuzzTarget{
 
 	private int checkBug(FaultSequence seq, Conf conf) {
 		// TODO Auto-generated method stub
+		boolean phosError = false;
 		for(int i = 0; i<logInfo.size(); i++) {
             String s = logInfo.get(i);
             if(s.contains("FAV test has failed")) {
+            	if(s.contains("ClassCircularityError")) {
+            		phosError = true;
+            	}
                 this.checkInfo.add(s);
             }
         }
-		return (this.checkInfo.size()>0)? 1:0;
+		return phosError?-1:((this.checkInfo.size()>0)? 1:0);
 	}
 }

@@ -60,10 +60,6 @@ public class QueueManager {
 			int favored, int untested_io, int queue_cycle, double no_new_cov_pro) {
 		int cur_mutate = -1;
 		
-		if(true) {
-			return 0;
-		}
-		
 		while(!mutates.isEmpty() && cur_mutate == -1) {
 			int pick = -1;
 			QueueEntry tmp = null;

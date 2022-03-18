@@ -8,6 +8,7 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 
 public class QueueEntry {
 	String fname; //file name for the queue entry
+	String seed; 
 	int len; //fault sequence length
 	public FaultSequence faultSeq;
 	List<IOPoint> ioSeq;
@@ -21,6 +22,8 @@ public class QueueEntry {
 
 	List<QueueEntry> mutates;
 	List<QueueEntry> on_recovery_mutates;
+	List<QueueEntry> favored_mutates;
+	
 	Set<Integer> unique_io_id;
 	Set<Integer> recovery_io_id;
 	Set<Integer> not_tested_fault_id;

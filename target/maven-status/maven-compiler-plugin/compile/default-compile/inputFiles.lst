@@ -2,6 +2,7 @@ D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCras
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\TraceReader.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\ConfOption.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\Mutation.java
+D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\Fuzzer_old.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\Stat.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\Monitor.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\random\RandomController.java
@@ -29,6 +30,7 @@ D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCras
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\random\RandomFaultSequence.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\App.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\Conf.java
+D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\QueueManagerNew.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\RunCommand.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\BitArray.java
 D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer\src\main\java\edu\iscas\CCrashFuzzer\Fuzzer.java

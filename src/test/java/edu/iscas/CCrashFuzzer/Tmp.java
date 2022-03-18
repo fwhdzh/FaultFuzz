@@ -6,20 +6,34 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Tmp {
+	public static class Data {
+		public String s;
+		public Data(String s) {
+			this.s = s;
+		}
+		public String toString() {return s;}
+	}
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		List<String> l1 = new ArrayList<String>();
-		l1.add("a");
-		l1.add("a");
-		l1.add("a");
+		List<Data> l1 = new ArrayList<Data>();
+		l1.add(new Data("a"));
+		l1.add(new Data("a"));
+		l1.add(new Data("a"));
 		
-		List<String> l2 = new ArrayList<String>();
+		List<Data> l2 = new ArrayList<Data>();
 		l2.addAll(l1);
 		l2.remove(0);
 		
+		l2.get(0).s = "modify";
+		
+		l1.remove(l2.get(0));
+		
 		System.out.println(l1);
 		System.out.println(l2);
+		
+		Integer i = 1;
+		System.out.println(i.equals(new Integer(1)));
 		//[a, a, a]
 		//[a, a]
 		

@@ -18,10 +18,9 @@ import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
-import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
-public class Fuzzer {
+public class Fuzzer_old {
 	public static int MAP_SIZE = 100;
 	private final FuzzTarget target;
     private long totalSeedCases;
@@ -49,7 +48,7 @@ public class Fuzzer {
    
    int queue_cycle;
    
-    public static QueueEntry[] top_rated = new QueueEntry[Fuzzer.MAP_SIZE]; /* Top entries for bitmap bytes     */
+    public static QueueEntry[] top_rated = new QueueEntry[Fuzzer_old.MAP_SIZE]; /* Top entries for bitmap bytes     */
     
     /* Execution status fault codes */
 
@@ -62,7 +61,7 @@ public class Fuzzer {
       /* 05 */ FAULT_NOBITS
     };
     
-    public Fuzzer(FuzzTarget target, Conf conf, boolean recover) {
+    public Fuzzer_old(FuzzTarget target, Conf conf, boolean recover) {
     	monitor = new Monitor(conf);
     	stat = new Stat();
     	this.target = target;
@@ -121,18 +120,6 @@ public class Fuzzer {
 			if(q.recovery_io_id == null || q.recovery_io_id.isEmpty()) {
 				q.recovery_io_id = new HashSet<Integer>();
 			}
-			q.mutates = Mutation.mutateFaultSequence(q, conf);
-			q.not_tested_fault_id = new HashSet<Integer>();
-			q.on_recovery_mutates = new ArrayList<QueueEntry>();
-			for(QueueEntry m:q.mutates) {
-				FaultPoint lastFault = m.faultSeq.seq.get(m.faultSeq.seq.size()-1);
-				q.not_tested_fault_id.add((lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode());
-				if(m.faultSeq.on_recovery) {
-					q.on_recovery_mutates.add(m);
-				}
-			}
-			q.favored_mutates = q.mutates;
-			
 			q.has_new_cov = true;
 			q.handicap = 0;
 			q.fuzzed_time = 0;
@@ -157,69 +144,156 @@ public class Fuzzer {
 	   function is a tad too long... returns 0 if fuzzed successfully, 1 if
 	   skipped or bailed out. */
 
-	public void update_queue(QueuePair q) {
-    	q.seed.mutates.remove(q.mutateIdx);
-    	if(q.mutate.favored) {
-    		q.seed.favored_mutates.remove(q.mutate);
-    	}
-    	if(q.mutate.faultSeq.on_recovery) {
-    		q.seed.on_recovery_mutates.remove(q.mutate);
-    	}
-    	
-    	FaultPoint tmpLastFault = q.mutate.faultSeq.seq.get(q.mutate.faultSeq.seq.size()-1);
-		int tmpID = (tmpLastFault.ioPt.CALLSTACK+tmpLastFault.stat.toString()+tmpLastFault.tarNodeIp).hashCode();
-		q.seed.not_tested_fault_id.remove(tmpID);
-    	
-		FaultPoint injected_fault = tmpLastFault;
-		
-		int startLoc = (q.mutateIdx-10)>=0? q.mutateIdx-10:0;
-		long tmpTime = q.seed.mutates.get(startLoc).faultSeq.seq.get(q.seed.mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
-		while((injected_fault.ioPt.TIMESTAMP - tmpTime) < conf.similarBehaviorWindow
-				&& startLoc != 0) {
-			startLoc = (startLoc-10)>=0? startLoc-10:0;
-			tmpTime = q.seed.mutates.get(startLoc).faultSeq.seq.get(q.seed.mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
+	public boolean fuzz_one(QueueEntry q) {
+		Stat.log("Going to fuzz q:"+q.faultSeq);
+		//generate mutations
+		if(q.mutates == null || q.mutates.isEmpty()) {
+			q.mutates = Mutation.mutateFaultSequence(q, conf);
 		}
 		
-		int unfavored = 0;
-		for(int i = startLoc; i< q.seed.mutates.size(); i++) {
-			FaultPoint adjacentPoint = q.seed.mutates.get(i).faultSeq.seq.get(q.seed.mutates.get(i).faultSeq.seq.size()-1);
-			if((adjacentPoint.ioPt.TIMESTAMP<=injected_fault.ioPt.TIMESTAMP)
-					&& (injected_fault.ioPt.TIMESTAMP-adjacentPoint.ioPt.TIMESTAMP)<conf.similarBehaviorWindow
-					&& injected_fault.stat == adjacentPoint.stat
-					&& q.seed.mutates.get(i).favored) {
-				if(adjacentPoint.ioPt.CALLSTACK.toString().equals(injected_fault.ioPt.CALLSTACK.toString())
-						|| (!injected_fault.ioPt.PATH.startsWith("FAVMSG")
-								&& !adjacentPoint.ioPt.PATH.startsWith("FAVMSG")
-								&& injected_fault.ioPt.PATH.equals(adjacentPoint.ioPt.PATH))){
-					q.seed.favored_mutates.remove(q.seed.mutates.get(i));
-					q.seed.mutates.get(i).favored = false;
-					unfavored++;
-				}
-			} else if (adjacentPoint.ioPt.TIMESTAMP>injected_fault.ioPt.TIMESTAMP) {
-				if((adjacentPoint.ioPt.TIMESTAMP-injected_fault.ioPt.TIMESTAMP)<conf.similarBehaviorWindow
-						&& injected_fault.stat == adjacentPoint.stat
-						&& q.seed.mutates.get(i).favored) {
-					if(adjacentPoint.ioPt.CALLSTACK.toString().equals(injected_fault.ioPt.CALLSTACK.toString())
-							|| (!injected_fault.ioPt.PATH.startsWith("FAVMSG")
-									&& !adjacentPoint.ioPt.PATH.startsWith("FAVMSG")
-									&& injected_fault.ioPt.PATH.equals(adjacentPoint.ioPt.PATH))){
-						q.seed.favored_mutates.remove(q.seed.mutates.get(i));
-						q.seed.mutates.get(i).favored = false;
-						unfavored++;
-					}
-				} else {
-					break;
-				}
+		List<QueueEntry> mutates = q.mutates;
+		if(q.not_tested_fault_id == null || q.not_tested_fault_id.isEmpty()) {
+			q.not_tested_fault_id = new HashSet<Integer>();
+		}
+		if(q.on_recovery_mutates == null || q.on_recovery_mutates.isEmpty()) {
+			q.on_recovery_mutates = new ArrayList<QueueEntry>();
+		}
+		for(QueueEntry m:mutates) {
+			FaultPoint lastFault = m.faultSeq.seq.get(m.faultSeq.seq.size()-1);
+			q.not_tested_fault_id.add((lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode());
+			if(m.faultSeq.on_recovery) {
+				q.on_recovery_mutates.add(m);
 			}
 		}
-		Stat.log(unfavored+" mutations are marked as unfavored.");
+//		List<QueueEntry> mutates = Muatation.mutateTwoSimilarSeq(q);
+		List<QueueEntry> favored_mutates = mutates;
+		int favored = mutates.size();
+		List<QueueEntry> nonfavored_mutates = new ArrayList<>();
 		
-		if(q.seed.mutates == null || q.seed.mutates.isEmpty()) {
-    		candidate_queue.remove(q.seedIdx);
-        	FileUtil.removeFromQueue(q.seed.fname, conf);
-        	FuzzInfo.fuzzedFiles.add(q.seed.fname);
-        	FileUtil.copyToFuzzed(q.seed.fname, FuzzInfo.getUsedSeconds());
-    	}
+		boolean rst = false;
+		
+//		Comparator<QueueEntry> comparator = Comparator.comparingInt(x -> x.faultSeq.adjacent_new_covs);
+//		mutates.sort(comparator.reversed());
+		
+		int totalMutates = mutates.size();
+		double lastNewCovLoc = 0;
+		double curMLoc = 0;
+		int testedMutates = 0;
+		
+		while(!mutates.isEmpty()) {
+			curMLoc = new BigDecimal((float)testedMutates/totalMutates)
+					.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+			
+			int pick = QueueManager.pickAMutation(q, mutates, favored, 
+					q.not_tested_fault_id.size(), queue_cycle, (curMLoc - lastNewCovLoc));
+			if(pick == -1) {/*
+				Stat.log("Jump back to queue: "+mutates.size()+" mutatations are not tested.");
+				q.left_mutates_last_test = mutates.size();
+				FileUtil.recordSkippedTests(q.fname, mutates, conf);
+				FuzzInfo.total_skipped+=mutates.size();
+				for(QueueEntry m:mutates) {
+					if(m.was_tested) {
+						FuzzInfo.total_nontrigger++;
+					}
+				}
+				return true;
+				*/
+				System.out.println("mutates:"+mutates.size()+", not tested io: "+q.not_tested_fault_id.size()
+				+", last cov:"+ lastNewCovLoc+", curLoc:"+curMLoc+", fuzzed time: "
+						+q.fuzzed_time+", faults: "+q.faultSeq.seq.size());
+//				Scanner scan = new Scanner(System.in);
+//	        	scan.nextLine();
+				break;
+			}
+
+			QueueEntry cur_mutate = mutates.get(pick);
+			mutates.remove(pick);
+			if(cur_mutate.favored) {
+				favored--;
+			}
+			
+			FaultPoint tmpLastFault = cur_mutate.faultSeq.seq.get(cur_mutate.faultSeq.seq.size()-1);
+			int tmpID = (tmpLastFault.ioPt.CALLSTACK+tmpLastFault.stat.toString()+tmpLastFault.tarNodeIp).hashCode();
+			boolean unique_io = q.not_tested_fault_id.remove(tmpID);
+			
+			if(cur_mutate != null) {
+				System.out.println("Going to test mutation "+pick);
+				FaultPoint injected_fault = new FaultPoint();
+				FaultPoint last_fault = cur_mutate.faultSeq.seq.get(cur_mutate.faultSeq.seq.size()-1);
+				injected_fault.stat = last_fault.stat;
+				injected_fault.ioPt = last_fault.ioPt;
+				int exec_rst = common_fuzz_stuff(cur_mutate, q);
+				if(exec_rst < 0) {
+					mutates.add(cur_mutate);//not triggered in this time, try next time
+					favored++;
+					if(unique_io) {
+						q.not_tested_fault_id.add(tmpID);
+					}
+					continue;
+				}
+				
+				q.on_recovery_mutates.remove(cur_mutate);
+				testedMutates++;
+				if(cur_mutate.has_new_cov) {
+					lastNewCovLoc = new BigDecimal((float)testedMutates/totalMutates)
+							.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+				}
+				//adjust favored value
+				int unfavored = 0;
+				
+				int startLoc = (pick-10)>=0? pick-10:0;
+				long tmpTime = mutates.get(startLoc).faultSeq.seq.get(mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
+				while((injected_fault.ioPt.TIMESTAMP - tmpTime) < conf.similarBehaviorWindow
+						&& startLoc != 0) {
+					startLoc = (startLoc-10)>=0? startLoc-10:0;
+					tmpTime = mutates.get(startLoc).faultSeq.seq.get(mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
+				}
+				
+				for(int i = startLoc; i< mutates.size(); i++) {
+					FaultPoint adjacentPoint = mutates.get(i).faultSeq.seq.get(mutates.get(i).faultSeq.seq.size()-1);
+					if((adjacentPoint.ioPt.TIMESTAMP<=injected_fault.ioPt.TIMESTAMP)
+							&& (injected_fault.ioPt.TIMESTAMP-adjacentPoint.ioPt.TIMESTAMP)<conf.similarBehaviorWindow
+							&& injected_fault.stat == adjacentPoint.stat
+							&& mutates.get(i).favored) {
+						if(adjacentPoint.ioPt.CALLSTACK.toString().equals(injected_fault.ioPt.CALLSTACK.toString())
+								|| (!injected_fault.ioPt.PATH.startsWith("FAVMSG")
+										&& !adjacentPoint.ioPt.PATH.startsWith("FAVMSG")
+										&& injected_fault.ioPt.PATH.equals(adjacentPoint.ioPt.PATH))){
+							mutates.get(i).favored = false;
+							unfavored++;
+							favored--;
+						}
+					} else if (adjacentPoint.ioPt.TIMESTAMP>injected_fault.ioPt.TIMESTAMP) {
+						if((adjacentPoint.ioPt.TIMESTAMP-injected_fault.ioPt.TIMESTAMP)<conf.similarBehaviorWindow
+								&& injected_fault.stat == adjacentPoint.stat
+								&& mutates.get(i).favored) {
+							if(adjacentPoint.ioPt.CALLSTACK.toString().equals(injected_fault.ioPt.CALLSTACK.toString())
+									|| (!injected_fault.ioPt.PATH.startsWith("FAVMSG")
+											&& !adjacentPoint.ioPt.PATH.startsWith("FAVMSG")
+											&& injected_fault.ioPt.PATH.equals(adjacentPoint.ioPt.PATH))){
+								mutates.get(i).favored = false;
+								unfavored++;
+								favored--;
+							}
+						} else {
+							break;
+						}
+					}
+				}
+				Stat.log(unfavored+" mutations are marked as unfavored.");
+			}
+		}
+		q.was_fuzzed = true;
+		q.fuzzed_time++;
+		Stat.log("Jump back to queue: "+mutates.size()+" mutatations are not tested.");
+		FuzzInfo.total_skipped+=mutates.size();
+		for(QueueEntry m:mutates) {
+			if(m.was_tested) {
+				FuzzInfo.total_nontrigger++;
+			}
+		}
+		FileUtil.recordSkippedTests(q.fname, mutates, conf);
+		return rst;
 	}
 	
 	/* Write a modified test case, run program, process results. Handle
@@ -232,7 +306,6 @@ public class Fuzzer {
 		String fname = stat.saveTestCase();
 		int rst = -1;
         long start = System.currentTimeMillis();
-        
         long waitTime = q.exec_s == 0L? conf.hangMinutes*60:q.exec_s*3;
         String testID = String.valueOf(FuzzInfo.total_execs+1)+"_"+q.faultSeq.seq.size()+"f";
 		rst = target.run_target(q.faultSeq, conf, testID, waitTime);
@@ -245,7 +318,7 @@ public class Fuzzer {
 		faultsToTests.computeIfPresent(q.faultSeq.seq.size(), (key, value) -> value + 1);
         save_if_interesting(q, rst, q.fname, seedQ);
         
-        if(rst == 2) {//test again for hang cases with a larger timeout
+        if(rst == -1 || rst == 2) {//test again for not triggered cases and hang cases with a larger timeout
         	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangMinutes*60);
         	if(Conf.MANUAL) {
             	Scanner scan = new Scanner(System.in);
@@ -355,18 +428,6 @@ public class Fuzzer {
 					q.recovery_io_id.addAll(q.unique_io_id);
 					q.recovery_io_id.removeAll(seedQ.unique_io_id);
 				}
-				q.mutates = Mutation.mutateFaultSequence(q, conf);
-				q.not_tested_fault_id = new HashSet<Integer>();
-				q.on_recovery_mutates = new ArrayList<QueueEntry>();
-				for(QueueEntry m:q.mutates) {
-					FaultPoint lastFault = m.faultSeq.seq.get(m.faultSeq.seq.size()-1);
-					q.not_tested_fault_id.add((lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode());
-					if(m.faultSeq.on_recovery) {
-						q.on_recovery_mutates.add(m);
-					}
-				}
-				q.favored_mutates = q.mutates;
-				
 //				queue_cur.has_new_cov = true;
 //				queue_cur.was_fuzzed = false;
 				totalSeedCases++;
@@ -466,9 +527,7 @@ public class Fuzzer {
 	   all fuzzing steps. */
 	public void cull_queue() {
 	   for(QueueEntry q:candidate_queue) {
-		   for(QueueEntry m:q.mutates) {
-			   m.handicap++;
-		   }
+		   q.handicap++;
 	   }
 	}
 	
@@ -548,21 +607,17 @@ public class Fuzzer {
         	queue_cycle++;
         	cull_queue();
         	
-        	QueuePair q = QueueManagerNew.retrieveAnEntry(candidate_queue);
-        	if(q == null) {
-        		break;
+        	QueueEntry q = QueueManager.retrieveAnEntry(candidate_queue);
+        	
+        	boolean skipped_fuzz = fuzz_one(q);
+        	q.was_fuzzed = true;
+        	FileUtil.updateQueueInfo(q.fname, q.mutates, q.fuzzed_time, q.handicap);
+        	if(q.mutates == null || q.mutates.isEmpty()) {
+        		candidate_queue.remove(q);
+            	FileUtil.removeFromQueue(q.fname, conf);
+            	FuzzInfo.fuzzedFiles.add(q.fname);
+            	FileUtil.copyToFuzzed(q.fname, FuzzInfo.getUsedSeconds());
         	}
-        	Stat.log("Going to test queue entry"+q.seedIdx+"'s mutation:"+q.mutateIdx);
-        	
-        	int exec_rst = common_fuzz_stuff(q.mutate, q.seed);
-        	
-        	q.seed.was_fuzzed = true;
-        	FileUtil.updateQueueInfo(q.seed.fname, q.seed.mutates, q.seed.fuzzed_time, q.seed.handicap);
-        	
-        	if(exec_rst != -1) {
-            	update_queue(q);
-        	}
-        	
 //        	fuzzed_queue.add(q);
         	
         	hasFaultSequence = !candidate_queue.isEmpty();
