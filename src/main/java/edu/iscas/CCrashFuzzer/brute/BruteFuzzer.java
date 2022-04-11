@@ -453,7 +453,10 @@ public class BruteFuzzer {
         	queue_cycle++;
 //        	cull_queue();
         	
-        	QueueEntry q = candidate_queue.get(0);
+        	Random rand = new Random();
+        	int index = rand.nextInt(candidate_queue.size());
+        	
+        	QueueEntry q = candidate_queue.get(index);
         	if(q == null) {
         		break;
         	}
@@ -462,13 +465,10 @@ public class BruteFuzzer {
         	int exec_rst = common_fuzz_stuff(q, q);
         	
         	if(exec_rst != -1) {
-        		candidate_queue.remove(0);
+        		candidate_queue.remove(index);
             	FileUtil.removeFromQueue(q.fname, conf);
             	FuzzInfo.fuzzedFiles.add(q.fname);
             	FileUtil.copyToFuzzed(q.fname, FuzzInfo.getUsedSeconds());
-        	} else {
-        		candidate_queue.remove(0);
-        		candidate_queue.add(q);
         	}
         	
         	
