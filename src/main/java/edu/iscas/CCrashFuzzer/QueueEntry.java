@@ -1,46 +1,56 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 
 public class QueueEntry {
-	String fname; //file name for the queue entry
-	String seed; 
-	int len; //fault sequence length
+	public String fname; //file name for the queue entry
+	public String seed; 
+	public int len; //fault sequence length
 	public FaultSequence faultSeq;
-	List<IOPoint> ioSeq;
-	int candidate_io;
-	int max_match_fault;
+	public List<IOPoint> ioSeq;
+	public int candidate_io;
+	public int max_match_fault;
 	
 	public boolean was_tested; //Had been tested at least for one time
 	
-	boolean was_fuzzed; //Had any fuzzing done yet?
-	int fuzzed_time; //count to retrieve it from the queue
-
-	List<QueueEntry> mutates;
-	List<QueueEntry> on_recovery_mutates;
-	List<QueueEntry> favored_mutates;
+	public boolean was_fuzzed; //Had any fuzzing done yet?
+	public int fuzzed_time; //count to retrieve it from the queue
 	
-	Set<Integer> unique_io_id;
-	Set<Integer> recovery_io_id;
-	Set<Integer> not_tested_fault_id;
-    boolean has_new_cov;                    /* Triggers new coverage?           */
-    boolean favored;        //gy for mutate favored                /* Currently favored?               */
-    boolean fs_redundant;                   /* Marked as redundant in the fs?   */
-    
-    int bitmap_size;                    /* Number of bits set in bitmap     */
-    int exec_cksum;                     /* Checksum of the execution trace  */
-    int new_cov_contribution; 
+	public QueueEntry() {
+		mutates = new ArrayList<QueueEntry>();
+		on_recovery_mutates = new ArrayList<QueueEntry>();
+		favored_mutates = new ArrayList<QueueEntry>();
+		unique_io_id = new HashSet<Integer>();
+		recovery_io_id = new HashSet<Integer>();
+		not_tested_fault_id = new HashSet<Integer>();
+	}
 
-    long exec_s;                        /* Execution time (seconds)              */
-    int handicap;                       /* Number of queue cycles behind    */
-    long depth;                          /* Path depth                       */
+	public List<QueueEntry> mutates;
+	public List<QueueEntry> on_recovery_mutates;
+	public List<QueueEntry> favored_mutates;
+	
+	public Set<Integer> unique_io_id;
+	public Set<Integer> recovery_io_id;
+	public Set<Integer> not_tested_fault_id;
+	public boolean has_new_cov;                    /* Triggers new coverage?           */
+	public boolean favored;        //gy for mutate favored                /* Currently favored?               */
+	public boolean fs_redundant;                   /* Marked as redundant in the fs?   */
     
-    QueueEntry next;           /* Next element, if any             */
-    QueueEntry next_100;       /* 100 elements ahead               */
+	public int bitmap_size;                    /* Number of bits set in bitmap     */
+	public int exec_cksum;                     /* Checksum of the execution trace  */
+	public int new_cov_contribution; 
+
+	public long exec_s;                        /* Execution time (seconds)              */
+	public int handicap;                       /* Number of queue cycles behind    */
+	public long depth;                          /* Path depth                       */
+    
+	public QueueEntry next;           /* Next element, if any             */
+	public QueueEntry next_100;       /* 100 elements ahead               */
     
     public void calibrate() {
     	this.max_match_fault = 0;
@@ -64,6 +74,8 @@ public class QueueEntry {
 				}
 				this.candidate_io++;
 			}
+			this.ioSeq.subList(this.candidate_io, this.ioSeq.size());
+			this.candidate_io = 0;
 		}
 		
 		this.faultSeq.reset();

@@ -12,9 +12,9 @@ import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class FuzzTarget extends AbstractFuzzTarget{
-	ArrayList<String> logInfo;
-	ArrayList<String> checkInfo;
-	long a_exec_seconds;
+	public ArrayList<String> logInfo;
+	public ArrayList<String> checkInfo;
+	public long a_exec_seconds;
 	//0 triggered, no bug
 	//1 triggered, non-hang bug
 	//2 triggered, hang bug

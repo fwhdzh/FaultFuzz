@@ -1,9 +1,11 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
@@ -15,6 +17,7 @@ public class QueueManagerNew {
 		public QueueEntry mutate;
 		public int mutateIdx;
 	}
+	public static Set<Integer> tested_fault_id = new HashSet<Integer>();;
 	public static QueuePair retrieveAnEntry(List<QueueEntry> candidate_queue) {
 		if(candidate_queue == null ||candidate_queue.isEmpty()) {
 			return null;
@@ -23,9 +26,57 @@ public class QueueManagerNew {
 	    Random rand = new Random();
 	    int totalSum = 0;
 	    
-	    int skip = Fuzzer.getRandomNumber(100);
+	    if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
+	    	Stat.log("Check entry in global not_tested");
+	    	totalSum = 0;
+	    	for(QueueEntry q:candidate_queue) {
+	    		for(QueueEntry m:q.mutates) {
+    				FaultPoint lastFault = m.faultSeq.seq.get(m.faultSeq.seq.size()-1);
+    				int id = (lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode();
+					
+    				if(!tested_fault_id.contains(id)) {
+    					totalSum += m.getPerfScore();
+    				}
+    			}
+		    }
+		    
+		    if(totalSum != 0) {
+		    	int index = rand.nextInt(totalSum);
+		        int sum = 0;
+		        int i=0;
+		        int j = 0;
+		        while(sum < index ) {
+		        	for(j = 0; j<candidate_queue.get(i).mutates.size() && sum < index; j++) {
+	    				FaultPoint lastFault = candidate_queue.get(i).mutates.get(j).faultSeq.seq.get(candidate_queue.get(i).mutates.get(j).faultSeq.seq.size()-1);
+	    				int id = (lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode();
+						
+	    				if(!tested_fault_id.contains(id)) {
+	    					sum = sum + candidate_queue.get(i).mutates.get(j).getPerfScore();
+	    				}
+	    			}
+		            i++;
+		        }
+		        Stat.log("Retrieve entry in global not_tested_fault_id:"+Math.max(0,i-1)+":"+Math.max(0,j-1));
+		    	
+		    	if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap >= 4) {
+		    		candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap -= 4;
+		    	  } else if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap>0) {
+		    		  candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap--;
+		    	  }
+		    	
+		    	QueuePair pair = new QueuePair();
+		    	pair.seedIdx = Math.max(0,i-1);
+		    	pair.seed = candidate_queue.get(pair.seedIdx);
+		    	pair.mutateIdx = Math.max(0,j-1);
+		    	pair.mutate = pair.seed.mutates.get(pair.mutateIdx);
+		    	
+		        return pair;
+		    }
+	    }
 	    
-	    if(skip > (99-FuzzConf.SKIP_TO_NEW_PROB)) {
+	    if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_NFAV_OLD_PROB) {
+	    	Stat.log("Check entry on_recovery");
+	    	totalSum = 0;
 	    	for(QueueEntry q:candidate_queue) {
 		    	for(QueueEntry m:q.on_recovery_mutates) {
 		    		if(m.faultSeq.on_recovery) {
@@ -40,7 +91,7 @@ public class QueueManagerNew {
 		        int i=0;
 		        int j = 0;
 		        while(sum < index ) {
-		        	 for(j = 0; j<candidate_queue.get(i).on_recovery_mutates.size(); j++) {
+		        	 for(j = 0; j<candidate_queue.get(i).on_recovery_mutates.size() && sum < index; j++) {
 		        		 if(candidate_queue.get(i).on_recovery_mutates.get(j).faultSeq.on_recovery) {
 		        			 sum = sum + candidate_queue.get(i).on_recovery_mutates.get(j).getPerfScore();
 		        		 }
@@ -48,7 +99,7 @@ public class QueueManagerNew {
 		             i++;
 		        }
 		        Stat.log("Retrieve entry in on_recovery:"+Math.max(0,i-1)+":"+Math.max(0,j-1));
-		        int mutateIdx = candidate_queue.get(i).mutates.indexOf(candidate_queue.get(Math.max(0,i-1)).on_recovery_mutates.get(Math.max(0,j-1)));
+		        int mutateIdx = candidate_queue.get(Math.max(0,i-1)).mutates.indexOf(candidate_queue.get(Math.max(0,i-1)).on_recovery_mutates.get(Math.max(0,j-1)));
 		    	
 		    	if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap >= 4) {
 		    		candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap -= 4;
@@ -66,7 +117,10 @@ public class QueueManagerNew {
 		    }
 	    }
 	    
-	    if(skip > (99-FuzzConf.SKIP_TO_NEW_PROB)) {
+	    
+	    if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
+	    	Stat.log("Check entry in local not_tested_fault_id");
+	    	totalSum = 0;
 	    	for(QueueEntry q:candidate_queue) {
 	    		if(!q.not_tested_fault_id.isEmpty()) {
 	    			for(QueueEntry m:q.mutates) {
@@ -87,7 +141,7 @@ public class QueueManagerNew {
 		        int j = 0;
 		        while(sum < index ) {
 		        	if(!candidate_queue.get(i).not_tested_fault_id.isEmpty()) {
-		        		for(j = 0; j<candidate_queue.get(i).mutates.size(); j++) {
+		        		for(j = 0; j<candidate_queue.get(i).mutates.size() && sum < index; j++) {
 		    				FaultPoint lastFault = candidate_queue.get(i).mutates.get(j).faultSeq.seq.get(candidate_queue.get(i).mutates.get(j).faultSeq.seq.size()-1);
 		    				int id = (lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode();
 							
@@ -116,7 +170,8 @@ public class QueueManagerNew {
 		    }
 	    }
 	    
-	    if(skip > (99-FuzzConf.SKIP_NFAV_OLD_PROB)) {
+	    if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
+	    	Stat.log("Check favored entries");
 	    	totalSum = 0;
 		    
 		    for(QueueEntry q:candidate_queue) {
@@ -132,7 +187,7 @@ public class QueueManagerNew {
 		        int i=0;
 		        int j = 0;
 		        while(sum < index ) {
-		        	 for(j = 0; j<candidate_queue.get(i).favored_mutates.size(); j++) {
+		        	 for(j = 0; j<candidate_queue.get(i).favored_mutates.size() && sum < index; j++) {
 		        		 if(candidate_queue.get(i).favored_mutates.get(j).favored) {
 		        			 sum = sum + candidate_queue.get(i).favored_mutates.get(j).getPerfScore();
 		        		 }
@@ -140,7 +195,7 @@ public class QueueManagerNew {
 		             i++;
 		        }
 		        Stat.log("Retrieve entry in favored:"+Math.max(0,i-1)+":"+Math.max(0,j-1));
-		        int mutateIdx = candidate_queue.get(i).mutates.indexOf(candidate_queue.get(Math.max(0,i-1)).favored_mutates.get(Math.max(0,j-1)));
+		        int mutateIdx = candidate_queue.get(Math.max(0,i-1)).mutates.indexOf(candidate_queue.get(Math.max(0,i-1)).favored_mutates.get(Math.max(0,j-1)));
 		    	
 		    	if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap >= 4) {
 		    		candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap -= 4;
@@ -158,7 +213,8 @@ public class QueueManagerNew {
 		        return pair;
 		    }
 	    }
-	    
+
+    	Stat.log("Check all the entries");
 	    totalSum = 0;
 	    for(QueueEntry q:candidate_queue) {
 	    	for(QueueEntry m:q.mutates) {
@@ -170,7 +226,7 @@ public class QueueManagerNew {
         int i=0;
         int j = 0;
         while(sum < index ) {
-        	 for(j = 0; j<candidate_queue.get(i).mutates.size(); j++) {
+        	 for(j = 0; j<candidate_queue.get(i).mutates.size() && sum < index; j++) {
                  sum = sum + candidate_queue.get(i).mutates.get(j).getPerfScore();
         	 }
              i++;

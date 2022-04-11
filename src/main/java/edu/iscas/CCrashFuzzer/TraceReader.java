@@ -22,7 +22,7 @@ public class TraceReader {
 	private File traceDir;
 	//store records for every process file
 	public int total = 0;
-	static List<IOPoint> ioPoints = new ArrayList<IOPoint>();
+	public static List<IOPoint> ioPoints = new ArrayList<IOPoint>();
 
 	public ConcurrentHashMap<Integer, AtomicInteger> uniqueEntryToAppearIdx = new ConcurrentHashMap<Integer, AtomicInteger>();
 
@@ -93,6 +93,19 @@ public class TraceReader {
 		System.out.println("Get "+ioPoints.size()+" records");
 	}
 
+	public static enum TraceItem {
+		START, 
+		TIMESTAMP,
+		THREADID,
+		THREADOBJ,
+		PATH,
+		FAULTPOS,
+		NEWCOV,
+		TAINT,
+		CALLSTACK,
+		END
+	}
+	
 	public static class ReadTraceThread extends Thread {
 		private final File procFile;
 		private final CountDownLatch mDoneSignal;
@@ -136,57 +149,105 @@ public class TraceReader {
 		            IOPoint point = null;
 		            while((lineContent = br.readLine()) != null){
 		            	//prepare to read next record
-		            	if(recEntryIdx == 8) {
-		            		recEntryIdx = 0;
-		            		continue;
-		            	}
-		            	if(recEntryIdx == 0) {
+		            	if(lineContent.trim().equals(TraceItem.START.toString())) {
 		            		point = new IOPoint();
+		            	} else if (lineContent.trim().startsWith(TraceItem.TIMESTAMP.toString()+":")) {
+		            		if(point == null) {
+		            			continue;
+		            		}
 		            		point.ip = ip;
 		            		point.procID = procId;
-		            		point.TIMESTAMP = Long.parseLong(lineContent.trim());
-		            		recEntryIdx++;
-		            	} else if (recEntryIdx == 1) {
-		            		point.THREADID = Long.parseLong(lineContent.trim());
-		            		recEntryIdx++;
-		            	} else if (recEntryIdx == 2) {
-		            		point.THREADOBJ = Integer.parseInt(lineContent.trim());
-		            		recEntryIdx++;
-		            	} else if (recEntryIdx == 3) {
-		            		point.PATH = lineContent.trim();
-		            		recEntryIdx++;
-		            	} else if (recEntryIdx == 4) {
-		            		if(lineContent.trim().equals(FaultPos.BEFORE)) {
-		            			point.pos = FaultPos.BEFORE;
-		            		} else if (lineContent.trim().equals(FaultPos.AFTER)) {
-		            			point.pos = FaultPos.AFTER;
+		            		try {
+		            			point.TIMESTAMP = Long.parseLong(lineContent.trim().substring(TraceItem.TIMESTAMP.toString().length()+1));
+		            		} catch (NumberFormatException | IndexOutOfBoundsException | NullPointerException e) {
+		    					// TODO Auto-generated catch block
+		    					e.printStackTrace();
+		    				}
+		            	} else if (lineContent.trim().startsWith(TraceItem.THREADID.toString()+":")) {
+		            		if(point == null) {
+		            			continue;
 		            		}
-		            		recEntryIdx++;//md5
-		            	} else if (recEntryIdx == 5) {
-		            		point.newCovs = Integer.parseInt(lineContent.trim());
-		            		recEntryIdx++;//md5
-		            	} else if (recEntryIdx == 6) {//taint
-		            		String labelsContent = "";
-		            		
-		            		recEntryIdx++;
-		            	} else if (recEntryIdx == 7) {
-		            		List<String> callstack = new ArrayList<String>(Arrays.asList(lineContent.substring(1, lineContent.length()-1).split(", ")));
-		            		point.CALLSTACK = callstack;
-		            		point.ioID = point.computeIoID();
-		            		recCount++;
-                            records.add(point);
-	            			if(point.PATH.startsWith("CREALC")) {
-	            				createFileRecords.add(point);
-	            			} else if (point.PATH.startsWith("DELLC")) {
-	            				deleteFileRecords.add(point);
-	            			} else if (point.PATH.startsWith("OPENLC")) {
-//	            				openFileRecords.add(rec);
-	            			}
-		            		recEntryIdx++;
+		            		try {
+		            			point.THREADID = Long.parseLong(lineContent.trim().substring(TraceItem.THREADID.toString().length()+1));
+		            		} catch (NumberFormatException | IndexOutOfBoundsException | NullPointerException e) {
+		    					// TODO Auto-generated catch block
+		    					e.printStackTrace();
+		    				}
+		            	} else if (lineContent.trim().startsWith(TraceItem.THREADOBJ.toString()+":")) {
+		            		if(point == null) {
+		            			continue;
+		            		}
+		            		try{
+		            			point.THREADOBJ = Integer.parseInt(lineContent.trim().substring(TraceItem.THREADOBJ.toString().length()+1));
+		            		} catch (NumberFormatException | IndexOutOfBoundsException | NullPointerException e) {
+		    					// TODO Auto-generated catch block
+		    					e.printStackTrace();
+		    				}
+		            	} else if (lineContent.trim().startsWith(TraceItem.PATH.toString()+":")) {
+		            		if(point == null) {
+		            			continue;
+		            		}
+		            		try{
+		            			point.PATH = lineContent.trim().substring(TraceItem.PATH.toString().length()+1);
+		            		} catch (NumberFormatException | IndexOutOfBoundsException | NullPointerException e) {
+		    					// TODO Auto-generated catch block
+		    					e.printStackTrace();
+		    				}
+		            	} else if (lineContent.trim().startsWith(TraceItem.FAULTPOS.toString()+":")) {
+		            		if(point == null) {
+		            			continue;
+		            		}
+		            		String content = lineContent.trim().substring(TraceItem.FAULTPOS.toString().length()+1);
+		            		if(content.trim().equals(FaultPos.BEFORE)) {
+		            			point.pos = FaultPos.BEFORE;
+		            		} else if (content.trim().equals(FaultPos.AFTER)) {
+		            			point.pos = FaultPos.BEFORE;
+		            		}
+		            	} else if (lineContent.trim().startsWith(TraceItem.NEWCOV.toString()+":")) {
+		            		if(point == null) {
+		            			continue;
+		            		}
+		            		try{
+		            			point.newCovs = Integer.parseInt(lineContent.trim().substring(TraceItem.NEWCOV.toString().length()+1));
+		            		} catch (NumberFormatException | IndexOutOfBoundsException | NullPointerException e) {
+		    					// TODO Auto-generated catch block
+		    					e.printStackTrace();
+		    				}
+		            	} else if (lineContent.trim().startsWith(TraceItem.TAINT.toString()+":")) {
+		            		continue;
+		            	} else if (lineContent.trim().startsWith(TraceItem.CALLSTACK.toString()+":")) {
+		            		if(point == null) {
+		            			continue;
+		            		}
+		            		String content = lineContent.substring(TraceItem.CALLSTACK.toString().length()+1);
+		            		try{
+		            			List<String> callstack = new ArrayList<String>(Arrays.asList(content.substring(1, content.length()-1).split(", ")));
+		            			point.CALLSTACK = callstack;
+			            		point.ioID = point.computeIoID();
+		            		} catch (NumberFormatException | IndexOutOfBoundsException | NullPointerException e) {
+		    					// TODO Auto-generated catch block
+		    					e.printStackTrace();
+		    				}
+		            	} else if (lineContent.trim().equals(TraceItem.END.toString())) {
+		            		if(point != null && point.CALLSTACK != null && !point.CALLSTACK.isEmpty()
+		            				&& point.ip != null && point.PATH != null) {
+		            			if(point.pos == null) {
+		            				point.pos = FaultPos.BEFORE;
+		            			}
+			            		recCount++;
+	                            records.add(point);
+		            			if(point.PATH.startsWith("CREALC")) {
+		            				createFileRecords.add(point);
+		            			} else if (point.PATH.startsWith("DELLC")) {
+		            				deleteFileRecords.add(point);
+		            			} else if (point.PATH.startsWith("OPENLC")) {
+//		            				openFileRecords.add(rec);
+		            			}
+		            		}
+	            			point = null;
 		            	}
 		            }
-				} catch (NumberFormatException | IOException e) {
-					// TODO Auto-generated catch block
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}

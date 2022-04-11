@@ -72,7 +72,7 @@ public class Mutation {
     	}
 		return desCluster;
 	}
-	public static List<QueueEntry> mutateFaultSequence(QueueEntry q, Conf conf) {
+	public static void mutateFaultSequence(QueueEntry q, Conf conf) {
 		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
 		FaultSequence original_faults = q.faultSeq;
 		
@@ -82,7 +82,9 @@ public class Mutation {
 		if(io_index == q.ioSeq.size() || fault_index < original_faults.seq.size() || original_faults.seq.size() >= conf.MAX_FAULTS) {
 			//no I/O points to inject a new fault
 			//or current I/O points do not match with the fault sequence
-			return mutates;
+			q.mutates = mutates;
+			q.favored_mutates = q.mutates;
+			return;
 		}
 
 
@@ -147,6 +149,18 @@ public class Mutation {
 						new_q.bitmap_size = q.bitmap_size;
 						new_q.handicap = 0;
 						
+						if(q.not_tested_fault_id == null) {
+							q.not_tested_fault_id = new HashSet<Integer>();
+						}
+						if(q.on_recovery_mutates == null) {
+							q.on_recovery_mutates = new ArrayList<QueueEntry>();
+						}
+						int faultid = (p.ioPt.CALLSTACK+p.stat.toString()+p.tarNodeIp).hashCode();
+						q.not_tested_fault_id.add(faultid);
+						if(faults.on_recovery) {
+							q.on_recovery_mutates.add(new_q);
+						}
+						
 						mutates.add(new_q);
 					}
 					if(canReboot) {
@@ -175,6 +189,19 @@ public class Mutation {
 							new_q.exec_s  = q.exec_s;
 							new_q.bitmap_size = q.bitmap_size;
 							new_q.handicap = 0;
+
+							if(q.not_tested_fault_id == null) {
+								q.not_tested_fault_id = new HashSet<Integer>();
+							}
+							if(q.on_recovery_mutates == null) {
+								q.on_recovery_mutates = new ArrayList<QueueEntry>();
+							}
+							int faultid = (p.ioPt.CALLSTACK+p.stat.toString()+p.tarNodeIp).hashCode();
+							q.not_tested_fault_id.add(faultid);
+							if(faults.on_recovery) {
+								q.on_recovery_mutates.add(new_q);
+							}
+							
 							mutates.add(new_q);
 						}
 					}
@@ -182,7 +209,9 @@ public class Mutation {
 			}
 		}
 		Stat.log("Got "+mutates.size()+" mutations.");
-		return mutates;
+
+		q.mutates = mutates;
+		q.favored_mutates = q.mutates;
 	}
 	
 	public static List<QueueEntry> mutateFaultSequence_backup(QueueEntry q) {
