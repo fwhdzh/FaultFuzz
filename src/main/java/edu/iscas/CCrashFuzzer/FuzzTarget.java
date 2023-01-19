@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.fastjson.JSONObject;
+
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
@@ -136,6 +138,9 @@ public class FuzzTarget extends AbstractFuzzTarget{
 							args[0] = alive;
 							args[1] = String.valueOf(conf.AFL_PORT);
 							args[2] = AflCommand.STABLE.toString();
+
+							logInfo.add(Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args)));
+
 							try {
 								AflCli.main(args);
 							} catch (AflException e) {
