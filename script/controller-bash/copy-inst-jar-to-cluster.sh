@@ -1,0 +1,10 @@
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+inst_jar_host=/home/fengwenhan/code/instrframe/Phosphor/target/Phosphor-0.0.5-SNAPSHOT.jar
+inst_jar_node=/home/gaoyu
+
+docker cp $inst_jar_host C1ZK1:$inst_jar_node
+docker cp $inst_jar_host C1ZK2:$inst_jar_node
+docker cp $inst_jar_host C1ZK3:$inst_jar_node 
+docker cp $inst_jar_host C1ZK4:$inst_jar_node
+docker cp $inst_jar_host C1ZK5:$inst_jar_node
