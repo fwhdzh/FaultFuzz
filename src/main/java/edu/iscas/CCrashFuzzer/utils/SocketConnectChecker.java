@@ -20,7 +20,7 @@ public class SocketConnectChecker {
 
     private void work() throws UnknownHostException, IOException {
 
-        String serverIp = "172.40.0.6";
+        String serverIp = "172.30.0.6";
         int serverPort = 12081;
         String command = "STABLE";
 
@@ -47,7 +47,7 @@ public class SocketConnectChecker {
         // Stream.of(AflCommand.values()).map(AflCommand::name).collect(Collectors.toList());
         // Stat.log(JSONObject.toJSONString(acdList));
         String[] args = new String[3];
-        args[0] = "172.40.0.6";
+        args[0] = "172.30.0.6";
         args[1] = String.valueOf(12081);
         args[2] = AflCommand.HEARTBEAT.toString();
         try {

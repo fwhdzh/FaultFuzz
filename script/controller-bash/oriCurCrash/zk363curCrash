@@ -1,42 +1,42 @@
 fault point=880136672
 event=CRASH
 pos=BEFORE
-nodeIp=172.40.0.2
+nodeIp=172.30.0.2
 waitTime=95311
 end
 fault point=444246995
 event=CRASH
 pos=BEFORE
-nodeIp=172.40.0.6
+nodeIp=172.30.0.6
 waitTime=3551
 end
 fault point=2012838404
 event=REBOOT
 pos=BEFORE
-nodeIp=172.40.0.6
+nodeIp=172.30.0.6
 waitTime=10062
 end
 fault point=521018003
 event=CRASH
 pos=BEFORE
-nodeIp=172.40.0.5
+nodeIp=172.30.0.5
 waitTime=21
 end
 fault point=-485062619
 event=REBOOT
 pos=BEFORE
-nodeIp=172.40.0.2
+nodeIp=172.30.0.2
 waitTime=22
 end
 fault point=1582675607
 event=CRASH
 pos=BEFORE
-nodeIp=172.40.0.6
+nodeIp=172.30.0.6
 waitTime=24
 end
 fault point=-2087984069
 event=REBOOT
 pos=BEFORE
-nodeIp=172.40.0.5
+nodeIp=172.30.0.5
 waitTime=5
 end

@@ -3,23 +3,23 @@ function start {
         nodeName=""
         daemonName=""
         case $1 in
-           172.40.0.2)
+           172.30.0.2)
               nodeName="C1ZK1"
               daemonName=""
               ;;
-           172.40.0.3)
+           172.30.0.3)
               nodeName="C1ZK2"
               daemonName=""
               ;;
-           172.40.0.4)
+           172.30.0.4)
               nodeName="C1ZK3"
               daemonName=""
               ;;
-           172.40.0.5)
+           172.30.0.5)
               nodeName="C1ZK4"
               daemonName=""
               ;;
-           172.40.0.6)
+           172.30.0.6)
               nodeName="C1ZK5"
               daemonName=""
               ;;
