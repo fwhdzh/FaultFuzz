@@ -9,6 +9,8 @@
         <module name="CCrashFuzzer" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="8" />
+    <bytecodeTargetLevel>
+      <module name="CCrashFuzzer" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

@@ -92,7 +92,7 @@ public class Fuzzer {
 		Stat.log("***********************Perform inital runs to collect IO traces*****************************");
 	    long start = System.currentTimeMillis();
 		String testID = "init";
-		target.run_target(FaultSequence.getEmptyIns(), conf, "init", conf.hangMinutes*60);
+		target.run_target(FaultSequence.getEmptyIns(), conf, "init", conf.hangSeconds);
 		FuzzInfo.total_execs++;
 		FuzzInfo.exec_us += target.a_exec_seconds;
 		HashMap<Integer, Integer> faultsToTests = FuzzInfo.timeToFaulsToTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
@@ -228,7 +228,8 @@ public class Fuzzer {
 		int rst = -1;
         long start = System.currentTimeMillis();
         
-        long waitTime = q.exec_s == 0L? conf.hangMinutes*60:q.exec_s*3;
+//        long waitTime = q.exec_s == 0L? conf.hangSeconds*2:q.exec_s*3;
+        long waitTime = conf.hangSeconds > q.exec_s*3? conf.hangSeconds : q.exec_s*3;	
         String testID = String.valueOf(FuzzInfo.total_execs+1)+"_"+q.faultSeq.seq.size()+"f";
 		rst = target.run_target(q.faultSeq, conf, testID, waitTime);
 		q.fname = testID;
@@ -244,7 +245,7 @@ public class Fuzzer {
         save_if_interesting(q, rst, q.fname, seedQ);
         
         if(rst == 2) {//test again for hang cases with a larger timeout
-        	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangMinutes*60);
+        	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangSeconds*60);
         	if(Conf.MANUAL) {
             	Scanner scan = new Scanner(System.in);
             	scan.nextLine();
@@ -252,7 +253,7 @@ public class Fuzzer {
         	q.faultSeq.reset();
         	int lastRst = rst;
         	start = System.currentTimeMillis();
-    		rst = target.run_target(q.faultSeq, conf, testID+"-retry", conf.hangMinutes*60);
+    		rst = target.run_target(q.faultSeq, conf, testID+"-retry", conf.hangSeconds*2);
     		q.fname = testID+"-retry";
     		FuzzInfo.total_execs++;
     		FuzzInfo.exec_us += target.a_exec_seconds;
@@ -512,22 +513,23 @@ public class Fuzzer {
         };
         observer.start();
         
-        if(candidate_queue.isEmpty() && FuzzInfo.fuzzedFiles.isEmpty()) {
-        	perform_first_run();//now we only support one workload as input, in the future, we should 
-            //support loading a series workloads as the initial input.
-        } else {
-        	Stat.log("***********************Recover from last test!*****************************");
-        	Stat.log("**-----------------------Queue size:"+candidate_queue.size()+"-----------------------**");
-        	Stat.log("**-----------------------Fuzzed size:"+FuzzInfo.fuzzedFiles.size()+"-----------------------**");
-        	loadGlobalInfo();
-        	Stat.log("**-----------------------Cost testing time:"+FileUtil.parseSecondsToStringTime(FuzzInfo.last_used_seconds)+"-----------------------**");
-        	Stat.log("**-----------------------Total target execution time:"+FileUtil.parseSecondsToStringTime(FuzzInfo.exec_us)+"-----------------------**");
-        	Stat.log("**-----------------------Total target execution number:"+FuzzInfo.total_execs+"-----------------------**");
-        	Stat.log("**-----------------------Total bitmap size:"+FuzzInfo.total_bitmap_size+"-----------------------**");
-        	Stat.log("**-----------------------Total bitmap entries:"+FuzzInfo.total_bitmap_entries+"-----------------------**");
-        	Stat.log("**-----------------------Virgin covered blocks:"+CoverageCollector.coveredBlocks(coverage.virgin_bits)+"-----------------------**");
-        	Stat.log("****************************************************************************");
-        }
+        perform_first_run();
+//        if(candidate_queue.isEmpty() && FuzzInfo.fuzzedFiles.isEmpty()) {
+//        	perform_first_run();//now we only support one workload as input, in the future, we should 
+//            //support loading a series workloads as the initial input.
+//        } else {
+//        	Stat.log("***********************Recover from last test!*****************************");
+//        	Stat.log("**-----------------------Queue size:"+candidate_queue.size()+"-----------------------**");
+//        	Stat.log("**-----------------------Fuzzed size:"+FuzzInfo.fuzzedFiles.size()+"-----------------------**");
+//        	loadGlobalInfo();
+//        	Stat.log("**-----------------------Cost testing time:"+FileUtil.parseSecondsToStringTime(FuzzInfo.last_used_seconds)+"-----------------------**");
+//        	Stat.log("**-----------------------Total target execution time:"+FileUtil.parseSecondsToStringTime(FuzzInfo.exec_us)+"-----------------------**");
+//        	Stat.log("**-----------------------Total target execution number:"+FuzzInfo.total_execs+"-----------------------**");
+//        	Stat.log("**-----------------------Total bitmap size:"+FuzzInfo.total_bitmap_size+"-----------------------**");
+//        	Stat.log("**-----------------------Total bitmap entries:"+FuzzInfo.total_bitmap_entries+"-----------------------**");
+//        	Stat.log("**-----------------------Virgin covered blocks:"+CoverageCollector.coveredBlocks(coverage.virgin_bits)+"-----------------------**");
+//        	Stat.log("****************************************************************************");
+//        }
         
         if(Conf.MANUAL) {
         	Scanner scan = new Scanner(System.in);
