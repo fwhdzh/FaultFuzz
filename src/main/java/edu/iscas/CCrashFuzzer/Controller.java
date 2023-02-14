@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
@@ -176,6 +177,7 @@ public class Controller {
 				int ioID = inStream.readInt();
 				String reportNodeIp = inStream.readUTF();
 				String cliID = inStream.readUTF()+" for ioID "+ioID+", ";
+				Stat.log("recieve cliID: " + cliID);
 				//System.out.println("ClientHandler-" +id+ ": msg is :"+mess);
 				synchronized(faultSequence) {
 					int curFault = faultSequence.curFault.get();
