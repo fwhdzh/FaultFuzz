@@ -5,7 +5,7 @@
     <property name="sun.boot.library.path" value="D:\Java\jdk1.8.0_171\jre\bin"/>
     <property name="java.vm.version" value="25.171-b11"/>
     <property name="java.vm.vendor" value="Oracle Corporation"/>
-    <property name="maven.multiModuleProjectDirectory" value="D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer"/>
+    <property name="maven.multiModuleProjectDirectory" value="G:\cloudcrashfuzzer\CCrashFuzzer"/>
     <property name="java.vendor.url" value="http://java.oracle.com/"/>
     <property name="path.separator" value=";"/>
     <property name="guice.disable.misplaced.annotation.check" value="true"/>
@@ -16,7 +16,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="sun.os.patch.level" value=""/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="user.dir" value="D:\eclipse\workspace\cloudcrashfuzzer\CCrashFuzzer"/>
+    <property name="user.dir" value="G:\cloudcrashfuzzer\CCrashFuzzer"/>
     <property name="java.runtime.version" value="1.8.0_171-b11"/>
     <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"/>
     <property name="java.endorsed.dirs" value="D:\Java\jdk1.8.0_171\jre\lib\endorsed"/>
@@ -27,9 +27,9 @@
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="user.variant" value=""/>
     <property name="os.name" value="Windows 10"/>
-    <property name="classworlds.conf" value="D:\Yu Gao&apos;s WorkSpace\eclipse-workspace\.metadata\.plugins\org.eclipse.m2e.launching\launches\m2conf1775526847616017025.tmp"/>
+    <property name="classworlds.conf" value="D:\Yu Gao&apos;s WorkSpace\eclipse-workspace\.metadata\.plugins\org.eclipse.m2e.launching\launches\m2conf6811338444275987676.tmp"/>
     <property name="sun.jnu.encoding" value="GBK"/>
-    <property name="java.library.path" value="D:\Java\jdk1.8.0_171\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;D:/Java/jre1.8.0_171/bin/server;D:/Java/jre1.8.0_171/bin;D:/Java/jre1.8.0_171/lib/amd64;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;D:\Java\jdk1.8.0_171\bin;D:\Java\jdk1.8.0_171\jre\bin;C:\WINDOWS\System32\OpenSSH\;D:\maven\apache-maven-3.5.4\bin;D:\maven\apache-maven-3.5.4\bin;D:\eclipse\workspace\apache-cassandra-3.11.10\bin;C:\Program Files (x86)\NetSarang\Xftp 7\;C:\Program Files (x86)\NetSarang\Xshell 7\;D:\Program Files\Git\cmd;C:\Program Files\dotnet\;C:\Users\Yu Gao\AppData\Local\Microsoft\WindowsApps;D:\Microsoft VS Code\bin;C:\Users\Yu Gao\AppData\Local\Programs\MiKTeX\miktex\bin\x64\;D:\eclipse\java-2018-092\eclipse;;."/>
+    <property name="java.library.path" value="D:\Java\jdk1.8.0_171\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;D:/Java/jre1.8.0_171/bin/server;D:/Java/jre1.8.0_171/bin;D:/Java/jre1.8.0_171/lib/amd64;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;D:\Java\jdk1.8.0_171\bin;D:\Java\jdk1.8.0_171\jre\bin;C:\WINDOWS\System32\OpenSSH\;D:\maven\apache-maven-3.5.4\bin;D:\maven\apache-maven-3.5.4\bin;D:\eclipse\workspace\apache-cassandra-3.11.10\bin;C:\Program Files (x86)\NetSarang\Xftp 7\;C:\Program Files (x86)\NetSarang\Xshell 7\;D:\Program Files\Git\cmd;C:\Program Files\dotnet\;D:\Program Files\nodejs\;C:\Program Files\Docker\Docker\resources\bin;C:\Users\Yu Gao\AppData\Local\Microsoft\WindowsApps;D:\Microsoft VS Code\bin;C:\Users\Yu Gao\AppData\Local\Programs\MiKTeX\miktex\bin\x64\;D:\Program Files\JetBrains\IntelliJ IDEA 2022.2.3\bin;C:\Users\Yu Gao\AppData\Roaming\npm;D:\eclipse\java-2018-092\eclipse;;."/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.class.version" value="52.0"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>

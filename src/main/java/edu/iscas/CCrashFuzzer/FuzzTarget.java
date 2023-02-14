@@ -42,12 +42,12 @@ public class FuzzTarget extends AbstractFuzzTarget{
     //1 triggered, bug
 	//2 triggered, hang
 	//-1 not triggered
-	public int runATest(FaultSequence seq, Conf conf, String testID, long waitSeconds) {
+	public int runATest(FaultSequence seq, final Conf conf, String testID, long waitSeconds) {
 		int ret = 0;
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
-		Controller controller = new Controller(new Cluster(conf), conf.CONTROLLER_PORT, conf);
+		final Controller controller = new Controller(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 //        controller.prepareFaultSeq(FaultSequence.getEmptyIns());//keep curCrash null
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(controller.cluster.prepareCluster());
@@ -125,7 +125,7 @@ public class FuzzTarget extends AbstractFuzzTarget{
 			logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
 			List<Thread> waitRecoveryTds = new ArrayList<Thread>();
 			for(MaxDownNodes subCluster:controller.currentCluster) {
-				for(String alive:subCluster.aliveGroup) {
+				for(final String alive:subCluster.aliveGroup) {
 					Thread t = new Thread() {
 
 						@Override
@@ -162,7 +162,7 @@ public class FuzzTarget extends AbstractFuzzTarget{
 			logInfo.add(Stat.log("Command to save run-time traces ..."));
 			List<Thread> saveTraceThs = new ArrayList<Thread>();
 			for(MaxDownNodes subCluster:controller.currentCluster) {
-				for(String alive:subCluster.aliveGroup) {
+				for(final String alive:subCluster.aliveGroup) {
 					Thread t = new Thread() {
 
 						@Override

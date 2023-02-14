@@ -91,7 +91,7 @@ public class Fuzzer_old {
 		Stat.log("***********************Perform inital runs to collect IO traces*****************************");
 	    long start = System.currentTimeMillis();
 		String testID = "init";
-		target.run_target(FaultSequence.getEmptyIns(), conf, "init", conf.hangMinutes*60);
+		target.run_target(FaultSequence.getEmptyIns(), conf, "init", conf.hangSeconds*60);
 		FuzzInfo.total_execs++;
 		FuzzInfo.exec_us += target.a_exec_seconds;
 		HashMap<Integer, Integer> faultsToTests = FuzzInfo.timeToFaulsToTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
@@ -293,7 +293,7 @@ public class Fuzzer_old {
 		String fname = stat.saveTestCase();
 		int rst = -1;
         long start = System.currentTimeMillis();
-        long waitTime = q.exec_s == 0L? conf.hangMinutes*60:q.exec_s*3;
+        long waitTime = q.exec_s == 0L? conf.hangSeconds*60:q.exec_s*3;
         String testID = String.valueOf(FuzzInfo.total_execs+1)+"_"+q.faultSeq.seq.size()+"f";
 		rst = target.run_target(q.faultSeq, conf, testID, waitTime);
 		q.fname = testID;
@@ -306,7 +306,7 @@ public class Fuzzer_old {
         save_if_interesting(q, rst, q.fname, seedQ);
         
         if(rst == -1 || rst == 2) {//test again for not triggered cases and hang cases with a larger timeout
-        	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangMinutes*60);
+        	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangSeconds*60);
         	if(Conf.MANUAL) {
             	Scanner scan = new Scanner(System.in);
             	scan.nextLine();
@@ -314,7 +314,7 @@ public class Fuzzer_old {
         	q.faultSeq.reset();
         	int lastRst = rst;
         	start = System.currentTimeMillis();
-    		rst = target.run_target(q.faultSeq, conf, testID+"-retry", conf.hangMinutes*60);
+    		rst = target.run_target(q.faultSeq, conf, testID+"-retry", conf.hangSeconds*60);
     		q.fname = testID+"-retry";
     		FuzzInfo.total_execs++;
     		FuzzInfo.exec_us += target.a_exec_seconds;

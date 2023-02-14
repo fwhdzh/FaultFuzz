@@ -37,7 +37,7 @@ public class Conf {
 	public String FAULT_CONFIG;
 	public List<MaxDownNodes> maxDownGroup;
 	public long maxTestMinutes = Long.MAX_VALUE;
-	public long hangMinutes = 10;
+	public long hangSeconds = 10;
 	public static int MAP_SIZE = 10000;
 	public long similarBehaviorWindow = 1000;//timestamp value millisecond
 	public int AFL_PORT;
@@ -57,9 +57,14 @@ public class Conf {
     	InputStream in = new BufferedInputStream(new FileInputStream(FAV_TRIGGER_CONFIG));
         Properties p = new Properties();
         p.load(in);
+        
+        String workdir = System.getProperty("user.dir").trim()+"/";
 
         String workload = p.getProperty(ConfOption.WORKLOAD.toString());
         if(workload != null) {
+            if(!workload.startsWith("/")) {
+            	workload = workdir + workload;
+            }
         	File f = new File(workload);
             if(f.exists()) {
             	WORKLOAD = f;
@@ -70,6 +75,9 @@ public class Conf {
 
         String curCrashFile = p.getProperty(ConfOption.CUR_CRASH_FILE.toString());
         if(curCrashFile != null) {
+            if(!curCrashFile.startsWith("/")) {
+            	curCrashFile = workdir + curCrashFile;
+            }
         	File f = new File(curCrashFile);
         	CUR_CRASH_FILE = f;
         }
@@ -101,7 +109,7 @@ public class Conf {
         
         String hangTMOut = p.getProperty(ConfOption.HANG_TMOUT.toString());
         if(hangTMOut != null) {
-        	hangMinutes = FileUtil.parseStringTimeToSeconds(hangTMOut)/60;
+        	hangSeconds = FileUtil.parseStringTimeToSeconds(hangTMOut);
         }
 
         String faultConfig = p.getProperty(ConfOption.FAULT_CSTR.toString());
@@ -129,6 +137,9 @@ public class Conf {
 
         String pretreatment = p.getProperty(ConfOption.PRETREATMENT.toString());
         if(pretreatment != null) {
+            if(!pretreatment.startsWith("/")) {
+            	pretreatment = workdir + pretreatment;
+            }
         	File f = new File(pretreatment);
             if(f.exists()) {
             	PRETREATMENT = f;
@@ -137,6 +148,9 @@ public class Conf {
 
         String checker = p.getProperty(ConfOption.CHECKER.toString());
         if(checker != null) {
+            if(!checker.startsWith("/")) {
+            	checker = workdir + checker;
+            }
         	File f = new File(checker);
             if(f.exists()) {
             	CHECKER = f;
@@ -145,6 +159,9 @@ public class Conf {
 
         String monitor = p.getProperty(ConfOption.MONITOR.toString());
         if(monitor != null) {
+            if(!monitor.startsWith("/")) {
+            	monitor = workdir + monitor;
+            }
             File f = new File(monitor);
             if(f.exists()) {
                 MONITOR = f;
@@ -153,6 +170,9 @@ public class Conf {
         
         String root = p.getProperty(ConfOption.ROOT_DIR.toString());
         if(root != null) {
+            if(!root.startsWith("/")) {
+            	root = workdir + root;
+            }
         	if(root.trim().endsWith("/")) {
                 FileUtil.root = root.trim();
         	} else {
@@ -163,6 +183,9 @@ public class Conf {
 
         String updateCurCrash = p.getProperty(ConfOption.UPDATE_CRASH.toString());
         if(updateCurCrash != null) {
+            if(!updateCurCrash.startsWith("/")) {
+            	updateCurCrash = workdir + updateCurCrash;
+            }
             File f = new File(updateCurCrash);
             if(f.exists()) {
                 UPDATE_CRASH = f;
@@ -171,6 +194,9 @@ public class Conf {
 
         String checkCrash = p.getProperty(ConfOption.CRASH.toString());
         if(checkCrash != null) {
+            if(!checkCrash.startsWith("/")) {
+            	checkCrash = workdir + checkCrash;
+            }
         	File f = new File(checkCrash);
             if(f.exists()) {
             	CRASH = f;
@@ -181,6 +207,9 @@ public class Conf {
 
         String checkRestart = p.getProperty(ConfOption.RESTART.toString());
         if(checkRestart != null) {
+            if(!checkRestart.startsWith("/")) {
+            	checkRestart = workdir + checkRestart;
+            }
         	File f = new File(checkRestart);
             if(f.exists()) {
             	RESTART = f;
@@ -189,6 +218,9 @@ public class Conf {
 
         String report = p.getProperty(ConfOption.BUG_REPORT.toString());
         if(report != null) {
+            if(!report.startsWith("/")) {
+            	report = workdir + report;
+            }
         	File f = new File(report);
         	if (!f.getParentFile().exists()) {
 	            f.getParentFile().mkdirs();
@@ -233,8 +265,8 @@ public class Conf {
         System.out.println("Restart node script: "+(RESTART==null?"":RESTART.getAbsolutePath()));
         System.out.println("Monitor script: "+(MONITOR==null?"":MONITOR.getAbsolutePath()));
         System.out.println("Max test time: "+FileUtil.parseSecondsToStringTime(this.maxTestMinutes*60));
-        System.out.println("Hang timeout: "+FileUtil.parseSecondsToStringTime(this.hangMinutes*60));
-        System.out.println("Similar points window: "+this.similarBehaviorWindow+"ms");
+        System.out.println("Hang timeout: "+FileUtil.parseSecondsToStringTime(this.hangSeconds));
+//        System.out.println("Similar points window: "+this.similarBehaviorWindow+"ms");
         System.out.println("Max fault number: "+this.MAX_FAULTS);
         System.out.println("Fault constraints: ");
         for(MaxDownNodes group:maxDownGroup) {
