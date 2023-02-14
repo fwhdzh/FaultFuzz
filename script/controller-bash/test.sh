@@ -1,0 +1,1 @@
+ls /data/fengwenhan/data/crashfuzz_ctrl/tmp/init

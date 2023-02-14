@@ -268,8 +268,12 @@ public class FuzzTarget extends AbstractFuzzTarget{
 			ret = checkBug(seq, conf);
 			logInfo.add(Stat.log("Exit normally, stop controller ..."));
 		}
+
+		RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
 		
 		controller.stopController();
+
+		RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
 		return ret;
 	}
 

@@ -1,0 +1,9 @@
+fault point=-24228849
+event=CRASH
+pos=BEFORE
+nodeIp=172.30.0.4
+ioID=-60815931
+ioCallStack=[java.io.FileOutputStream.writeBytes$$PHOSPHORTAGGED(FileOutputStream.java), java.io.FileOutputStream.write(FileOutputStream.java:326), java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:82), java.io.BufferedOutputStream.flush(BufferedOutputStream.java:140), java.io.FilterOutputStream.flush(FilterOutputStream.java:140), java.io.FilterOutputStream.close(FilterOutputStream.java:158), org.apache.zookeeper.server.persistence.FileSnap.serialize(FileSnap.java:262), org.apache.zookeeper.server.persistence.FileTxnSnapLog.save(FileTxnSnapLog.java:472), org.apache.zookeeper.server.persistence.FileTxnSnapLog.restore(FileTxnSnapLog.java:291), org.apache.zookeeper.server.ZKDatabase.loadDataBase(ZKDatabase.java:285), org.apache.zookeeper.server.quorum.QuorumPeer.loadDataBase(QuorumPeer.java:1094), org.apache.zookeeper.server.quorum.QuorumPeer.start(QuorumPeer.java:1079), org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(QuorumPeerMain.java:227), org.apache.zookeeper.server.quorum.QuorumPeerMain.initializeAndRun(QuorumPeerMain.java:136), org.apache.zookeeper.server.quorum.QuorumPeerMain.main(QuorumPeerMain.java:90)]
+path=/home/gaoyu/evaluation/zk-3.6.3/zkData/version-2/snapshot.0
+ioAppearIdx=3
+end

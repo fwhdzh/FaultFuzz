@@ -21,6 +21,10 @@ docker cp C1ZK5:/home/gaoyu/evaluation/zk-3.6.3/logs $1/monitor/C1ZK5
 docker cp C1ZK5:/home/gaoyu/evaluation/zk-3.6.3/zkData  $1/monitor/C1ZK5
 
 mkdir $1/fav-rst
+
+docker exec -t C1ZK1 /bin/bash -ic "ls /home/gaoyu/zk363-fav-rst"
+docker exec -t C1ZK1 /bin/bash -ic "ls /home/gaoyu"
+
 docker cp C1ZK1:/home/gaoyu/zk363-fav-rst $1/fav-rst/
 mv $1/fav-rst/zk363-fav-rst/* $1/fav-rst/
 rm -r $1/fav-rst/zk363-fav-rst
@@ -55,6 +59,8 @@ docker cp C1ZK4:/home/gaoyu/fuzzcov $1/cov/C1ZK4
 
 mkdir $1/cov/C1ZK5
 docker cp C1ZK5:/home/gaoyu/fuzzcov $1/cov/C1ZK5
+
+ls $1
 
 <<'COMMENT'
 mkdir $1/jacoco
