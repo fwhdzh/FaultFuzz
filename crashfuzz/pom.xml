@@ -22,9 +22,9 @@
   </modules> -->
 
     <parent>
-      <groupId>edu.gmu.swe.phosphor</groupId>
-      <artifactId>phosphor-parent</artifactId>
-      <version>0.0.5-SNAPSHOT</version>
+  <groupId>edu.iscas</groupId>
+  <artifactId>CCrashFuzzer-parent</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
     </parent>
 
   <build>

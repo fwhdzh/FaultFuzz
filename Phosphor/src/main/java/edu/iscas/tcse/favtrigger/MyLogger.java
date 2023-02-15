@@ -18,6 +18,5 @@ public class MyLogger {
 
     public void test() {
         AflCli c = new AflCli();
-        System.out.println(AflCli.t);
     }
 }
