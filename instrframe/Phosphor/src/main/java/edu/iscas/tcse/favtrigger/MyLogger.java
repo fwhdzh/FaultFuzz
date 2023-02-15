@@ -3,6 +3,10 @@ package edu.iscas.tcse.favtrigger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+// import edu.iscas.CCrashFuzzer.AbstractFuzzTarget;
+import edu.iscas.CCrashFuzzer.AflCli;
+
+
 public class MyLogger {
 	public static String log(String s) {
 	    Date day = new Date();
@@ -11,4 +15,9 @@ public class MyLogger {
         System.out.println(rst);
         return rst;
 	}
+
+    public void test() {
+        AflCli c = new AflCli();
+        System.out.println(AflCli.t);
+    }
 }

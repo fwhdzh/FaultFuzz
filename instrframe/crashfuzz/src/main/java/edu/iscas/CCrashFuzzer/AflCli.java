@@ -14,6 +14,8 @@ import com.alibaba.fastjson.JSONObject;
 
 public class AflCli {
 
+	public static int t = 2;
+
 	public static void main(String[] args) throws AflException{
 		// TODO Auto-generated method stub
 		if (args.length < 3) {

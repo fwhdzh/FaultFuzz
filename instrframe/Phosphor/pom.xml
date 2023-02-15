@@ -204,5 +204,15 @@
             <artifactId>java-string-similarity</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <!-- <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-junit47</artifactId>
+            <version>${testing.surefire.version}</version>
+        </dependency> -->
+        <dependency>
+            <groupId>edu.iscas</groupId>
+            <artifactId>CCrashFuzzer</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>
