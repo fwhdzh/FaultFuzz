@@ -1,0 +1,27 @@
+fault point=1105678529
+event=CRASH
+pos=BEFORE
+nodeIp=172.30.0.3
+ioID=841385667
+ioCallStack=[org.apache.zookeeper.server.quorum.QuorumPacket.deserialize(QuorumPacket.java:85), org.apache.jute.BinaryInputArchive.readRecord(BinaryInputArchive.java:134), org.apache.zookeeper.server.quorum.Learner.readPacket(Learner.java:219), org.apache.zookeeper.server.quorum.Learner.registerWithLeader(Learner.java:491), org.apache.zookeeper.server.quorum.Follower.followLeader(Follower.java:89), org.apache.zookeeper.server.quorum.QuorumPeer.run(QuorumPeer.java:1467)]
+path=FAVMSG:READ172.30.0.6&896031362
+ioAppearIdx=1
+end
+fault point=1578606923
+event=CRASH
+pos=BEFORE
+nodeIp=172.30.0.2
+ioID=1895091256
+ioCallStack=[java.io.FileOutputStream.<init>(FileOutputStream.java:213), java.io.FileOutputStream.<init>(FileOutputStream.java:162), org.apache.zookeeper.common.AtomicFileOutputStream.<init>(AtomicFileOutputStream.java:59), org.apache.zookeeper.common.AtomicFileWritingIdiom.<init>(AtomicFileWritingIdiom.java:64), org.apache.zookeeper.common.AtomicFileWritingIdiom.<init>(AtomicFileWritingIdiom.java:54), org.apache.zookeeper.server.quorum.QuorumPeer.writeLongToFile(QuorumPeer.java:2139), org.apache.zookeeper.server.quorum.QuorumPeer.setAcceptedEpoch(QuorumPeer.java:2168), org.apache.zookeeper.server.quorum.Learner.registerWithLeader(Learner.java:500), org.apache.zookeeper.server.quorum.Follower.followLeader(Follower.java:89), org.apache.zookeeper.server.quorum.QuorumPeer.run(QuorumPeer.java:1467)]
+path=CREALC:/home/gaoyu/evaluation/zk-3.6.3/zkData/version-2/acceptedEpoch.tmp
+ioAppearIdx=3
+end
+fault point=-396644693
+event=REBOOT
+pos=BEFORE
+nodeIp=172.30.0.3
+ioID=-1712306963
+ioCallStack=[java.io.FileOutputStream.<init>(FileOutputStream.java:213), java.io.FileOutputStream.<init>(FileOutputStream.java:162), org.apache.zookeeper.common.AtomicFileOutputStream.<init>(AtomicFileOutputStream.java:59), org.apache.zookeeper.common.AtomicFileWritingIdiom.<init>(AtomicFileWritingIdiom.java:64), org.apache.zookeeper.common.AtomicFileWritingIdiom.<init>(AtomicFileWritingIdiom.java:54), org.apache.zookeeper.server.quorum.QuorumPeer.writeLongToFile(QuorumPeer.java:2139), org.apache.zookeeper.server.quorum.QuorumPeer.setAcceptedEpoch(QuorumPeer.java:2168), org.apache.zookeeper.server.quorum.Leader.getEpochToPropose(Leader.java:1414), org.apache.zookeeper.server.quorum.LearnerHandler.run(LearnerHandler.java:518)]
+path=CREALC:/home/gaoyu/evaluation/zk-3.6.3/zkData/version-2/acceptedEpoch.tmp
+ioAppearIdx=2
+end
