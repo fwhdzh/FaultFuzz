@@ -5,7 +5,7 @@
   <groupId>edu.iscas</groupId>
   <artifactId>CCrashFuzzer</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
   <name>CCrashFuzzer</name>
   <url>http://maven.apache.org</url>
@@ -16,7 +16,11 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
- 
+
+  <modules>
+    <module>instrframe</module>
+  </modules>
+
   <build>
     <plugins>
       <plugin>

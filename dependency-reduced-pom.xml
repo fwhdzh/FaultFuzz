@@ -3,6 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.iscas</groupId>
   <artifactId>CCrashFuzzer</artifactId>
+  <packaging>pom</packaging>
   <name>CCrashFuzzer</name>
   <version>0.0.1-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
@@ -33,6 +34,9 @@
       </plugin>
     </plugins>
   </build>
+  <modules>
+    <module>instrframe</module>
+  </modules>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>

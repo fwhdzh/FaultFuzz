@@ -1,0 +1,107 @@
+public static void loadCurrentCrashPoint(String cur_crash_path) {
+import org.json.JSONArray;
+import org.json.JSONObject;   
+   
+    	try {
+    		//BufferedReader br = new BufferedReader(new FileReader("/home/gaoyu/FAVD/FAVTrigger/fav-crashes/30106.json"));
+    		File file = new File(cur_crash_path);
+			if(!file.exists()) {
+				return;
+			}
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String str = null;
+	        String data = "";
+	        while((str = br.readLine()) != null) {
+	            data = data+str+"\n";
+	        }
+	    	JSONObject content = new JSONObject(data);
+
+    		String crash_ID = content.getString("crash point");
+    		JSONObject crash_before = content.getJSONObject("crash before");
+    		long timestamp = crash_before.getLong(EntryLabel.TIMESTAMP.toString());
+    		long threadId = crash_before.getLong(EntryLabel.THREADID.toString());
+    		int threadOjbId = crash_before.getInt(EntryLabel.THREADOBJ.toString());
+    		String path = crash_before.getString(EntryLabel.PATH.toString());
+    		JSONArray callstackJA = crash_before.getJSONArray(EntryLabel.CALLSTACK.toString());
+    		List<String> callstack = new ArrayList<String>();
+    		for(int i = 0; i < callstackJA.length(); i++) {
+    			callstack.add(callstackJA.getString(i));
+    		}
+    		FAVEntry entry = new FAVEntry();
+    		entry.CALLSTACK = callstack;
+    		entry.PATH = path;
+    		entry.TIMESTAMP = timestamp;
+    		entry.THREADID = threadId;
+    		entry.THREADOBJ = threadOjbId;
+
+    		CUR_CRASH_POINT = new CrashPoint();
+    		CUR_CRASH_POINT.CRASH_POINT = entry;
+    		CUR_CRASH_POINT.CRASH_ID = crash_ID;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
+    
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+    public static void loadProcCrashPoints(int procId, File crashPointsFile, List<CrashPoint> crashPoints2) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(crashPointsFile));
+			String str = null;
+	        String data = "";
+	        while((str = br.readLine()) != null) {
+	            data = data+str+"\n";
+	        }
+	    	Gson gson = new GsonBuilder().serializeNulls().disableHtmlEscaping().setPrettyPrinting().create();
+	    	JsonArray content = gson.fromJson(data, JsonArray.class);
+
+	    	for(int k = 0; k < content.size(); k++) {
+	    		JsonObject o = content.get(k).getAsJsonObject();
+	    		int crash_ID = o.get("crash point").getAsInt();
+	    		JsonObject crash_before = o.getAsJsonObject("crash before");
+	    		long timestamp = crash_before.get(EntryLabel.TIMESTAMP.toString()).getAsLong();
+	    		long threadId = crash_before.get(EntryLabel.THREADID.toString()).getAsLong();
+	    		int threadOjbId = crash_before.get(EntryLabel.THREADOBJ.toString()).getAsInt();
+	    		String path = crash_before.get(EntryLabel.PATH.toString()).getAsString();
+	    		JsonArray callstackJA = crash_before.getAsJsonArray(EntryLabel.CALLSTACK.toString());
+	    		List<String> callstack = new ArrayList<String>();
+	    		for(int i = 0; i < callstackJA.size(); i++) {
+	    			callstack.add(callstackJA.get(i).getAsString());
+	    		}
+	    		FAVEntry entry = new FAVEntry();
+	    		entry.CALLSTACK = callstack;
+	    		entry.PATH = path;
+	    		entry.TIMESTAMP = timestamp;
+	    		entry.THREADID = threadId;
+	    		entry.THREADOBJ = threadOjbId;
+
+	    		CrashPoint point = new CrashPoint();
+	    		point.CRASH_ID = procId+":"+crash_ID;
+	    		point.CRASH_POINT = entry;
+
+	    		crashPoints2.add(point);
+	    	}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
+    
+    
+    <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.6</version>
+        </dependency>
+        <dependency>
+    	    <groupId>org.json</groupId>
+    	    <artifactId>json</artifactId>
+    	    <version>20190722</version>
+	    </dependency>
