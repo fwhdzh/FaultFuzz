@@ -7,11 +7,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPos;
-import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultStat;
+// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPos;
+// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultStat;
+// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPoint;
 
-import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPoint;
+import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
+import edu.iscas.CCrashFuzzer.IOPoint;
+
 
 public class CurrentFaultSequence {
 	public static FaultSequence faultSeq;
@@ -20,7 +27,9 @@ public class CurrentFaultSequence {
             faultSeq = new FaultSequence();
             faultSeq.seq = new ArrayList<FaultPoint>();
             faultSeq.curAppear = 0;
-            faultSeq.curFault = -1;
+            // faultSeq.curFault = -1;
+			AtomicInteger curFaultNum = new AtomicInteger(-1);
+			faultSeq.curFault = curFaultNum;
 
     		File file = new File(cur_crash_path);
 			if(!file.exists()) {
@@ -65,7 +74,9 @@ public class CurrentFaultSequence {
             	}
 	    	}
             if(faultSeq.seq.size()>0) {
-            	faultSeq.curFault = 0;
+            	// faultSeq.curFault = 0;
+				AtomicInteger ai2 = new AtomicInteger(0);
+				faultSeq.curFault = ai2;
             }
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

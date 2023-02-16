@@ -9,7 +9,8 @@ import edu.columbia.cs.psl.phosphor.struct.LazyByteArrayObjTags;
 import edu.iscas.tcse.favtrigger.taint.FAVTaint;
 import edu.iscas.tcse.favtrigger.tracing.RecordTaint;
 import edu.iscas.tcse.favtrigger.triggering.WaitToExec;
-import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPos;
+// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPos;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 
 public class JRERunMode {
 	public static enum JREType {

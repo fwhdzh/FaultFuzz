@@ -38,6 +38,8 @@ public class FaultSequence {
     public boolean on_recovery;
 	public int adjacent_new_covs; // for the last injected fault, the adjacent new covs of IO points in
 	                              // similarBehaviorWindow
+								
+	public int curAppear;
 	public int getFaultSeqID() {
 		String s = "";
 		for(FaultPoint p:seq) {

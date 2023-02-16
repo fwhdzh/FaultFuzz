@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.instrumenter.TriggerEvent;
@@ -35,14 +36,14 @@ public class WaitToExec { //for docker
     }
 
     public static void handleCrashPoint(long procID, String nodeIP, FAVEntry entry, List<String> callstack, String path) {
-    	if(CurrentFaultSequence.faultSeq == null || CurrentFaultSequence.faultSeq.curFault == -1 || CurrentFaultSequence.faultSeq.curFault >= CurrentFaultSequence.faultSeq.seq.size()) {
+    	if(CurrentFaultSequence.faultSeq == null || CurrentFaultSequence.faultSeq.curFault.get() == -1 || CurrentFaultSequence.faultSeq.curFault.get() >= CurrentFaultSequence.faultSeq.seq.size()) {
     		//no faults to inject
 //    		CrashTriggerMain.log(procID+" WaitToExec No faults to inject:"+CurrentFaultSequence.faultSeq.curFault
 //    				+", "+CurrentFaultSequence.faultSeq.seq.size());
     		return;
     	}
     	Integer ioID = null;
-    	int i = CurrentFaultSequence.faultSeq.curFault;
+    	int i = CurrentFaultSequence.faultSeq.curFault.get();
     	for(; i<CurrentFaultSequence.faultSeq.seq.size(); i++) {
     		if(currentIOID(callstack) == CurrentFaultSequence.faultSeq.seq.get(i).ioPt.ioID) {
     			ioID = CurrentFaultSequence.faultSeq.seq.get(i).ioPt.ioID;
@@ -79,7 +80,7 @@ public class WaitToExec { //for docker
                 //System.out.println(procID+"!!!!!WaitToExec Send msg to controller:"+procInfo);
 
                 fuzzCommand = inStream.readUTF();
-                CurrentFaultSequence.faultSeq.curFault = inStream.readInt();
+                CurrentFaultSequence.faultSeq.curFault = new AtomicInteger(inStream.readInt());
                 int curAppearIdx = inStream.readInt();
                 //System.out.println(procID+"!!!!!WaitToExec Read msg from controller:"+controllerResponse);
 
