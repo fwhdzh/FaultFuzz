@@ -126,56 +126,56 @@ public class FuzzTarget extends AbstractFuzzTarget{
 			//wait recovery process finish
 			logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
 
-			List<Thread> checkConnectionTds = new ArrayList<Thread>();
-			for(MaxDownNodes subCluster:controller.currentCluster) {
-				for(String alive:subCluster.aliveGroup) {
-					Thread t = new Thread() {
+			// List<Thread> checkConnectionTds = new ArrayList<Thread>();
+			// for(MaxDownNodes subCluster:controller.currentCluster) {
+			// 	for(String alive:subCluster.aliveGroup) {
+			// 		Thread t = new Thread() {
 
-						@Override
-						public void run() {
-							// TODO Auto-generated method stub
-							super.run();
+			// 			@Override
+			// 			public void run() {
+			// 				// TODO Auto-generated method stub
+			// 				super.run();
 
-							boolean connectionSuccFlag = false;
-							while (!connectionSuccFlag) {
-								String[] args = new String[3];
-								args[0] = alive;
-								args[1] = String.valueOf(conf.AFL_PORT);
-								args[2] = AflCommand.HEARTBEAT.toString();
+			// 				boolean connectionSuccFlag = false;
+			// 				while (!connectionSuccFlag) {
+			// 					String[] args = new String[3];
+			// 					args[0] = alive;
+			// 					args[1] = String.valueOf(conf.AFL_PORT);
+			// 					args[2] = AflCommand.HEARTBEAT.toString();
 	
-								logInfo.add(Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args)));
+			// 					logInfo.add(Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args)));
 	
-								connectionSuccFlag = true;
-								try {
-									AflCli.main(args);
-								} catch (AflException e) {
-									// TODO Auto-generated catch block
-									Stat.log(e.getMessage());
-									e.printStackTrace();
-									connectionSuccFlag = false;
-								} catch (Exception e) {
-									Stat.log(e.getMessage());
-									e.printStackTrace();
-									connectionSuccFlag = false;
-								}
-							}
+			// 					connectionSuccFlag = true;
+			// 					try {
+			// 						AflCli.main(args);
+			// 					} catch (AflException e) {
+			// 						// TODO Auto-generated catch block
+			// 						Stat.log(e.getMessage());
+			// 						e.printStackTrace();
+			// 						connectionSuccFlag = false;
+			// 					} catch (Exception e) {
+			// 						Stat.log(e.getMessage());
+			// 						e.printStackTrace();
+			// 						connectionSuccFlag = false;
+			// 					}
+			// 				}
 							
-						}
+			// 			}
 						
-					};
-					t.start();
-					checkConnectionTds.add(t);
-				}
-			}
-			for(Thread t:checkConnectionTds) {
-				try {
-					t.join(600000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			logInfo.add(Stat.log("Finish check connections"));
+			// 		};
+			// 		t.start();
+			// 		checkConnectionTds.add(t);
+			// 	}
+			// }
+			// for(Thread t:checkConnectionTds) {
+			// 	try {
+			// 		t.join(600000);
+			// 	} catch (InterruptedException e) {
+			// 		// TODO Auto-generated catch block
+			// 		e.printStackTrace();
+			// 	}
+			// }
+			// logInfo.add(Stat.log("Finish check connections"));
 
 			List<Thread> waitRecoveryTds = new ArrayList<Thread>();
 			for(MaxDownNodes subCluster:controller.currentCluster) {

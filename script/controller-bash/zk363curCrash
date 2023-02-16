@@ -1,18 +1,27 @@
-fault point=-1778890903
+fault point=285253538
+event=CRASH
+pos=BEFORE
+nodeIp=172.30.0.6
+ioID=-324985441
+ioCallStack=[java.io.FileOutputStream.<init>(FileOutputStream.java:213), java.io.FileOutputStream.<init>(FileOutputStream.java:162), org.apache.zookeeper.common.AtomicFileOutputStream.<init>(AtomicFileOutputStream.java:59), org.apache.zookeeper.common.AtomicFileWritingIdiom.<init>(AtomicFileWritingIdiom.java:64), org.apache.zookeeper.common.AtomicFileWritingIdiom.<init>(AtomicFileWritingIdiom.java:54), org.apache.zookeeper.server.quorum.QuorumPeer.writeLongToFile(QuorumPeer.java:2139), org.apache.zookeeper.server.quorum.QuorumPeer.loadDataBase(QuorumPeer.java:1111), org.apache.zookeeper.server.quorum.QuorumPeer.start(QuorumPeer.java:1079), org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(QuorumPeerMain.java:227), org.apache.zookeeper.server.quorum.QuorumPeerMain.initializeAndRun(QuorumPeerMain.java:136), org.apache.zookeeper.server.quorum.QuorumPeerMain.main(QuorumPeerMain.java:90)]
+path=CREALC:/home/gaoyu/evaluation/zk-3.6.3/zkData/version-2/currentEpoch.tmp
+ioAppearIdx=4
+end
+fault point=1809098479
 event=CRASH
 pos=BEFORE
 nodeIp=172.30.0.4
-ioID=-874651173
-ioCallStack=[org.apache.zookeeper.server.quorum.QuorumPacket.deserialize(QuorumPacket.java:85), org.apache.jute.BinaryInputArchive.readRecord(BinaryInputArchive.java:134), org.apache.zookeeper.server.quorum.LearnerHandler.run(LearnerHandler.java:611)]
-path=FAVMSG:READ172.30.0.4&1361513001
-ioAppearIdx=2
+ioID=1733621683
+ioCallStack=[org.apache.zookeeper.data.ACL.serialize(ACL.java:50), org.apache.zookeeper.server.ReferenceCountedACLCache.serialize(ReferenceCountedACLCache.java:152), org.apache.zookeeper.server.DataTree.serializeAcls(DataTree.java:1359), org.apache.zookeeper.server.DataTree.serialize(DataTree.java:1372), org.apache.zookeeper.server.util.SerializeUtils.serializeSnapshot(SerializeUtils.java:171), org.apache.zookeeper.server.ZKDatabase.serializeSnapshot(ZKDatabase.java:631), org.apache.zookeeper.server.quorum.LearnerHandler.run(LearnerHandler.java:576)]
+path=FAVMSG:172.30.0.5&657100262
+ioAppearIdx=1
 end
-fault point=-158409316
+fault point=-1409681059
 event=REBOOT
 pos=BEFORE
-nodeIp=172.30.0.4
-ioID=-1450029339
-ioCallStack=[java.io.FileOutputStream.<init>(FileOutputStream.java:213), java.io.FileOutputStream.<init>(FileOutputStream.java:162), org.apache.zookeeper.common.AtomicFileOutputStream.<init>(AtomicFileOutputStream.java:59), org.apache.zookeeper.common.AtomicFileWritingIdiom.<init>(AtomicFileWritingIdiom.java:64), org.apache.zookeeper.common.AtomicFileWritingIdiom.<init>(AtomicFileWritingIdiom.java:54), org.apache.zookeeper.server.quorum.QuorumPeer.writeLongToFile(QuorumPeer.java:2139), org.apache.zookeeper.server.quorum.QuorumPeer.loadDataBase(QuorumPeer.java:1139), org.apache.zookeeper.server.quorum.QuorumPeer.start(QuorumPeer.java:1079), org.apache.zookeeper.server.quorum.QuorumPeerMain.runFromConfig(QuorumPeerMain.java:227), org.apache.zookeeper.server.quorum.QuorumPeerMain.initializeAndRun(QuorumPeerMain.java:136), org.apache.zookeeper.server.quorum.QuorumPeerMain.main(QuorumPeerMain.java:90)]
-path=CREALC:/home/gaoyu/evaluation/zk-3.6.3/zkData/version-2/acceptedEpoch.tmp
-ioAppearIdx=7
+nodeIp=172.30.0.6
+ioID=-1304302171
+ioCallStack=[org.apache.zookeeper.server.quorum.QuorumPacket.deserialize(QuorumPacket.java:85), org.apache.jute.BinaryInputArchive.readRecord(BinaryInputArchive.java:134), org.apache.zookeeper.server.quorum.Learner.readPacket(Learner.java:219), org.apache.zookeeper.server.quorum.Follower.followLeader(Follower.java:125), org.apache.zookeeper.server.quorum.QuorumPeer.run(QuorumPeer.java:1467)]
+path=FAVMSG:READ172.30.0.4&1861803965
+ioAppearIdx=1
 end
