@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
@@ -31,10 +32,10 @@ public class Fuzzer {
     CoverageCollector coverage;
     public static boolean running = false;
     
-    public static QueueEntry queue,     /* Fuzzing queue (linked list)      */
-                              queue_cur, /* Current offset within the queue  */
-                              queue_top, /* Top of the list                  */
-                              q_prev100; /* Previous 100 marker              */
+    // public static QueueEntry queue,     /* Fuzzing queue (linked list)      */
+    //                           queue_cur, /* Current offset within the queue  */
+    //                           queue_top, /* Top of the list                  */
+    //                           q_prev100; /* Previous 100 marker              */
     public static List<QueueEntry> candidate_queue;
     public static List<QueueEntry> fuzzed_queue;
     
@@ -374,8 +375,24 @@ public class Fuzzer {
 		return true;
 	}
 	
-	/* Append new test case to the queue. */
+	public void recodeQueueWithFWHString(QueueEntry q) {
+		recodeQueueWithFWHString("/data/fengwenhan/data/crashfuzz_fwh/QueueEntry.txt", q);
+	}
 
+	public void recodeQueueWithFWHString(String filepath, QueueEntry q) {
+		FileOutputStream out;
+		try {
+			out = new FileOutputStream(filepath, true);
+			out.write(q.toFWHString().getBytes());
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+            e.printStackTrace();
+        } 
+	}
+
+	/* Append new test case to the queue. */
 	public void add_to_queue(QueueEntry q, String fname) {
 		//after test, the retrieved ioSeq could be different from the original q.ioSeq
 		//the actual faultSeq could also be different from the original q.faultSeq
@@ -406,36 +423,39 @@ public class Fuzzer {
 		    max_depth = q.depth;
 		}
 		
-		if (queue_top != null) {
+		// if (queue_top != null) {
 
-		    queue_top.next = q;
-		    queue_top = q;
+		//     queue_top.next = q;
+		//     queue_top = q;
 
-		  } else {
-		      q_prev100 = queue = queue_top = q;
-		  }
+		//   } else {
+		//       q_prev100 = queue = queue_top = q;
+		//   }
 
 		  queued_paths++;
 
 //		  cycles_wo_finds = 0;
 
 		  /* Set next_100 pointer for every 100th element (index 0, 100, etc) to allow faster iteration. */
-		  if ((queued_paths - 1) % 100 == 0 && queued_paths > 1) {
+		//   if ((queued_paths - 1) % 100 == 0 && queued_paths > 1) {
 
-		    q_prev100.next_100 = q;
-		    q_prev100 = q;
+		//     q_prev100.next_100 = q;
+		//     q_prev100 = q;
 
-		  }
+		//   }
 
 //		  last_path_time = get_cur_time();
 		
-		if(queue_cur == null) {
-			queue_cur = q;
-		} else {
-			q.next = queue_cur;
-			queue_cur = q;
-		}
+		// if(queue_cur == null) {
+		// 	queue_cur = q;
+		// } else {
+		// 	q.next = queue_cur;
+		// 	queue_cur = q;
+		// }
+
 		candidate_queue.add(q);
+
+		recodeQueueWithFWHString(q);
 	}
 	
 	/* When we bump into a new path, we call this to see if the path appears
