@@ -58,9 +58,9 @@ public class BruteFuzzer {
 	long handicap;
 	long depth;
 
-   long queued_paths,              /* Total number of queued testcases */
-           cur_depth,                 /* Current path depth               */
-           max_depth;                 /* Max path depth                   */
+//    long queued_paths,              /* Total number of queued testcases */
+//            cur_depth,                 /* Current path depth               */
+//            max_depth;                 /* Max path depth                   */
    
    int queue_cycle;
    
@@ -347,7 +347,7 @@ public class BruteFuzzer {
 		
 		q.calibrate();
 		
-		q.depth = this.cur_depth + 1;
+		// q.depth = this.cur_depth + 1;
 		q.handicap = 0;
 		q.was_fuzzed = false;
 		q.fuzzed_time = 0;

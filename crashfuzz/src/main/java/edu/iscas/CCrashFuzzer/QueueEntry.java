@@ -49,7 +49,7 @@ public class QueueEntry {
 
 	public long exec_s; /* Execution time (seconds) */
 	public int handicap; /* Number of queue cycles behind */
-	public long depth; /* Path depth */
+	// public long depth; /* Path depth */
 
 	public String toFWHString() {
 		String result = "transform QueueEntry to FWHString fail";

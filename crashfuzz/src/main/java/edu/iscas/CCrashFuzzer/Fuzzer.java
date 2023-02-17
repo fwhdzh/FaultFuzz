@@ -44,9 +44,9 @@ public class Fuzzer {
 	long handicap;
 	long depth;
 
-   long queued_paths,              /* Total number of queued testcases */
-           cur_depth,                 /* Current path depth               */
-           max_depth;                 /* Max path depth                   */
+//    long queued_paths,              /* Total number of queued testcases */
+//            cur_depth,                 /* Current path depth               */
+//            max_depth;                 /* Max path depth                   */
    
    int queue_cycle;
    
@@ -414,16 +414,16 @@ public class Fuzzer {
 		
 		q.calibrate();
 		
-		q.depth = this.cur_depth + 1;
+		// q.depth = this.cur_depth + 1;
 		q.handicap = 0;
 		q.was_fuzzed = false;
 		q.fuzzed_time = 0;
 		  
-		if(q.depth > max_depth) {
-		    max_depth = q.depth;
-		}
+		// if(q.depth > max_depth) {
+		//     max_depth = q.depth;
+		// }
 		
-		  queued_paths++;
+		//   queued_paths++;
 
 		candidate_queue.add(q);
 
