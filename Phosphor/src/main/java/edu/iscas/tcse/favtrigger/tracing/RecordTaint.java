@@ -420,8 +420,8 @@ public class RecordTaint {
 		}
 	}
 	public static void recordTaintEntry(long timestamp, FileOutputStream out, String path, byte b, Taint taint, String md5) throws IOException {
-		System.out.println("invoke recordTaintEntry");
-		MyLogger.log("invoke recordTaintEntry");
+		// System.out.println("invoke recordTaintEntry");
+		// MyLogger.log("invoke recordTaintEntry");
 		//if(out == null || taint == null || path == null) {
 	    if(out == null || path == null) {
 			return;
@@ -522,57 +522,57 @@ public class RecordTaint {
 		}
 	}
 
-	public static void recordTaint(FileOutputStream out, Taint t) throws IOException {
-		if(out == null || t == null || t.isEmpty()) {
-			return;
-		}
-		/*
-		if(out.getFD()==FileDescriptor.out || out.getFD()==FileDescriptor.err) {
-			return;
-		}
-		*/
-		out.write(t.toString().getBytes());
-		printLine(out);
-	}
+	// public static void recordTaint(FileOutputStream out, Taint t) throws IOException {
+	// 	if(out == null || t == null || t.isEmpty()) {
+	// 		return;
+	// 	}
+	// 	/*
+	// 	if(out.getFD()==FileDescriptor.out || out.getFD()==FileDescriptor.err) {
+	// 		return;
+	// 	}
+	// 	*/
+	// 	out.write(t.toString().getBytes());
+	// 	printLine(out);
+	// }
 
-	public static void recordTaints(FileOutputStream out, Taint[] taints, int off, int len) throws IOException {
-		if(out == null || taints == null) {
-			return;
-		}
+	// public static void recordTaints(FileOutputStream out, Taint[] taints, int off, int len) throws IOException {
+	// 	if(out == null || taints == null) {
+	// 		return;
+	// 	}
 
-		String callstack = getCallStack(Thread.currentThread()).toString();
-		int old_length = taints.length;
-		if(len > 0) {
-			Taint[] actualTaints = new Taint[len];
-			for(int i = off; i < off+len && i < old_length; i++) {
-				actualTaints[i-off] = taints[i];
-			}
+	// 	String callstack = getCallStack(Thread.currentThread()).toString();
+	// 	int old_length = taints.length;
+	// 	if(len > 0) {
+	// 		Taint[] actualTaints = new Taint[len];
+	// 		for(int i = off; i < off+len && i < old_length; i++) {
+	// 			actualTaints[i-off] = taints[i];
+	// 		}
 
-			Taint rst = Taint.combineTaintArray(actualTaints);
-			if(rst != null && !rst.isEmpty()) {
-				out.write(rst.toString().getBytes());
-				printLine(out);
-				out.write(callstack.getBytes());
-				printLine(out);
-				printLine(out);
-			}
-		}
-		out.close();
-		/*
-		//some taints may be same in one write, we only need to record unique taints
-		Set<Taint> set = new HashSet<Taint>();
-		for(int i = off; i < len; i++) {
-			if(taints[i] != null && !taints[i].isEmpty()) {
-        		set.add(taints[i]);
-    		}
-		}
+	// 		Taint rst = Taint.combineTaintArray(actualTaints);
+	// 		if(rst != null && !rst.isEmpty()) {
+	// 			out.write(rst.toString().getBytes());
+	// 			printLine(out);
+	// 			out.write(callstack.getBytes());
+	// 			printLine(out);
+	// 			printLine(out);
+	// 		}
+	// 	}
+	// 	out.close();
+	// 	/*
+	// 	//some taints may be same in one write, we only need to record unique taints
+	// 	Set<Taint> set = new HashSet<Taint>();
+	// 	for(int i = off; i < len; i++) {
+	// 		if(taints[i] != null && !taints[i].isEmpty()) {
+    //     		set.add(taints[i]);
+    // 		}
+	// 	}
 
-		for(Taint t:set) {
-			out.write(t.toString().getBytes());
-			printLine(out);
-		}
-		*/
-	}
+	// 	for(Taint t:set) {
+	// 		out.write(t.toString().getBytes());
+	// 		printLine(out);
+	// 	}
+	// 	*/
+	// }
 
 	public static Vector<String> transJavaForMappedTasks(Vector<String> old){
 	    old.remove(0);
