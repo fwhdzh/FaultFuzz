@@ -51,9 +51,6 @@ public class QueueEntry {
 	public int handicap; /* Number of queue cycles behind */
 	public long depth; /* Path depth */
 
-	// public QueueEntry next; /* Next element, if any */
-	// public QueueEntry next_100; /* 100 elements ahead */
-
 	public String toFWHString() {
 		String result = "transform QueueEntry to FWHString fail";
 		// result = JSONObject.toJSONString(this);

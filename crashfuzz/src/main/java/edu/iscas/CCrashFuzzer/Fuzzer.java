@@ -423,35 +423,7 @@ public class Fuzzer {
 		    max_depth = q.depth;
 		}
 		
-		// if (queue_top != null) {
-
-		//     queue_top.next = q;
-		//     queue_top = q;
-
-		//   } else {
-		//       q_prev100 = queue = queue_top = q;
-		//   }
-
 		  queued_paths++;
-
-//		  cycles_wo_finds = 0;
-
-		  /* Set next_100 pointer for every 100th element (index 0, 100, etc) to allow faster iteration. */
-		//   if ((queued_paths - 1) % 100 == 0 && queued_paths > 1) {
-
-		//     q_prev100.next_100 = q;
-		//     q_prev100 = q;
-
-		//   }
-
-//		  last_path_time = get_cur_time();
-		
-		// if(queue_cur == null) {
-		// 	queue_cur = q;
-		// } else {
-		// 	q.next = queue_cur;
-		// 	queue_cur = q;
-		// }
 
 		candidate_queue.add(q);
 
