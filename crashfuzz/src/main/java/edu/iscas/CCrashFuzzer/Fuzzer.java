@@ -384,6 +384,7 @@ public class Fuzzer {
 		try {
 			out = new FileOutputStream(filepath, true);
 			out.write(q.toFWHString().getBytes());
+			out.write("\n".getBytes());
 			out.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

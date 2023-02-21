@@ -1,10 +1,11 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class FaultSequence {
+public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 	public static FaultSequence empty;
 	static {
 		empty = new FaultSequence();
@@ -40,6 +41,12 @@ public class FaultSequence {
 	                              // similarBehaviorWindow
 								
 	public int curAppear;
+
+	@Override
+    public Iterator<FaultPoint> iterator() {
+        return seq.iterator();
+    }
+
 	public int getFaultSeqID() {
 		String s = "";
 		for(FaultPoint p:seq) {

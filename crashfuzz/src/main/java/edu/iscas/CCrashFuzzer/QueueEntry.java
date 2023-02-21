@@ -41,10 +41,10 @@ public class QueueEntry {
 	public Set<Integer> not_tested_fault_id;
 	public boolean has_new_cov; /* Triggers new coverage? */
 	public boolean favored; // gy for mutate favored /* Currently favored? */
-	public boolean fs_redundant; /* Marked as redundant in the fs? */
+	// public boolean fs_redundant; /* Marked as redundant in the fs? */
 
 	public int bitmap_size; /* Number of bits set in bitmap */
-	public int exec_cksum; /* Checksum of the execution trace */
+	// public int exec_cksum; /* Checksum of the execution trace */
 	public int new_cov_contribution;
 
 	public long exec_s; /* Execution time (seconds) */
@@ -53,13 +53,13 @@ public class QueueEntry {
 
 	public String toFWHString() {
 		String result = "transform QueueEntry to FWHString fail";
-		// result = JSONObject.toJSONString(this);
-		result += "faultSeq:\n";
-		result += JSONObject.toJSONString(this.faultSeq);
-		result += "\n";
-		result += "ioSeq:\n";
-		result += JSONObject.toJSONString(this.ioSeq);
-		result += "\n";
+		result = JSONObject.toJSONString(this);
+		// result += "faultSeq:\n";
+		// result += JSONObject.toJSONString(this.faultSeq);
+		// result += "\n";
+		// result += "ioSeq:\n";
+		// result += JSONObject.toJSONString(this.ioSeq);
+		// result += "\n";
 		return result;
 	}
 

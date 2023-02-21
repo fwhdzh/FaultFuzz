@@ -1,18 +1,18 @@
-fault point=318471679
+fault point=1576593629
 event=CRASH
 pos=BEFORE
-nodeIp=172.30.0.4
-ioID=-874532970
-ioCallStack=[org.apache.zookeeper.server.quorum.QuorumPacket.deserialize(QuorumPacket.java:85), org.apache.jute.BinaryInputArchive.readRecord(BinaryInputArchive.java:134), org.apache.zookeeper.server.quorum.LearnerHandler.run(LearnerHandler.java:650)]
-path=FAVMSG:READ172.30.0.2&859191414
-ioAppearIdx=33
+nodeIp=172.30.0.5
+ioID=682928532
+ioCallStack=[org.apache.zookeeper.server.DataNode.deserialize(DataNode.java:175), org.apache.jute.BinaryInputArchive.readRecord(BinaryInputArchive.java:134), org.apache.zookeeper.server.DataTree.deserialize(DataTree.java:1384), org.apache.zookeeper.server.util.SerializeUtils.deserializeSnapshot(SerializeUtils.java:161), org.apache.zookeeper.server.ZKDatabase.deserializeSnapshot(ZKDatabase.java:620), org.apache.zookeeper.server.quorum.Learner.syncWithLeader(Learner.java:559), org.apache.zookeeper.server.quorum.Follower.followLeader(Follower.java:107), org.apache.zookeeper.server.quorum.QuorumPeer.run(QuorumPeer.java:1467)]
+path=FAVMSG:READ172.30.0.4&654952605
+ioAppearIdx=3
 end
-fault point=-1777376186
-event=CRASH
+fault point=-906200251
+event=REBOOT
 pos=BEFORE
-nodeIp=172.30.0.2
-ioID=-8343373
-ioCallStack=[org.apache.zookeeper.server.quorum.QuorumPacket.deserialize(QuorumPacket.java:85), org.apache.jute.BinaryInputArchive.readRecord(BinaryInputArchive.java:134), org.apache.zookeeper.server.quorum.Learner.readPacket(Learner.java:219), org.apache.zookeeper.server.quorum.Learner.syncWithLeader(Learner.java:546), org.apache.zookeeper.server.quorum.Follower.followLeader(Follower.java:107), org.apache.zookeeper.server.quorum.QuorumPeer.run(QuorumPeer.java:1467)]
-path=FAVMSG:READ172.30.0.6&702986434
-ioAppearIdx=5
+nodeIp=172.30.0.5
+ioID=-1886550613
+ioCallStack=[java.io.FileOutputStream.writeBytes$$PHOSPHORTAGGED(FileOutputStream.java), java.io.FileOutputStream.write(FileOutputStream.java:326), java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:82), java.io.BufferedOutputStream.flush(BufferedOutputStream.java:140), org.apache.zookeeper.server.persistence.FileTxnLog.commit(FileTxnLog.java:392), org.apache.zookeeper.server.persistence.FileTxnSnapLog.commit(FileTxnSnapLog.java:590), org.apache.zookeeper.server.ZKDatabase.commit(ZKDatabase.java:657), org.apache.zookeeper.server.SyncRequestProcessor.flush(SyncRequestProcessor.java:236), org.apache.zookeeper.server.SyncRequestProcessor.run(SyncRequestProcessor.java:169)]
+path=/home/gaoyu/evaluation/zk-3.6.3/zkData/version-2/log.100000001
+ioAppearIdx=8
 end
