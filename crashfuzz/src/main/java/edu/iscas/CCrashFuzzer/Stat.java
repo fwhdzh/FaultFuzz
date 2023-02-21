@@ -42,6 +42,19 @@ public class Stat {
 			e.printStackTrace();
 		}
 	}
+
+	public static String log(long i) {
+		String info = Long.toString(i);
+		String result = log(info);
+        return result;
+	}
+
+	public static String log(int i) {
+		String info = Integer.toString(i);
+		String result = log(info);
+        return result;
+	}
+
 	public static String log(String s) {
 	    Date day = new Date();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");

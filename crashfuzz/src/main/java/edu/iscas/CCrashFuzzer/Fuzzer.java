@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -16,6 +18,9 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
@@ -460,6 +465,49 @@ public class Fuzzer {
 		return 0;
 		
 	}
+
+	public void recordFuzzInfoWithFWHString() {
+		recordFuzzInfoWithFWHString("/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt");
+	}
+
+	public void recordFuzzInfoWithFWHString(String filepath) {
+		String message = FuzzInfo.toFWHString();
+		FileOutputStream out;
+		try {
+			out = new FileOutputStream(filepath, false);
+			out.write(message.getBytes());
+			out.write("\n".getBytes());
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+            e.printStackTrace();
+        } 
+	}
+
+	public void recoveryFuzzInfoWithFWHString() {
+		// Stat.log("begin recoveryFuzzInfoWithFWHString()");
+		recoveryFuzzInfoWithFWHString("/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt");
+	}
+
+	public void recoveryFuzzInfoWithFWHString(String filepath) {
+		// Stat.log("begin recoveryFuzzInfoWithFWHString(String)");
+		// Stat.log(filepath);
+		// Path path = new Path(filepath);
+		File file = new File(filepath);
+		List<String> oriList;
+		try {
+			oriList = Files.readAllLines(file.toPath());
+			String s = oriList.get(0);
+			// Stat.log(s);
+			FWHFuzzInfo fwhFuzzInfo = JSON.parseObject(s, FWHFuzzInfo.class);
+			// Stat.log(fwhFuzzInfo.exec_us);
+			Stat.log(JSONObject.toJSONString(fwhFuzzInfo));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	public void start() {
 	    int seek_to;
@@ -475,6 +523,12 @@ public class Fuzzer {
         RecoveryManager recover = new RecoveryManager();
         recover.loadQueue(candidate_queue, FileUtil.root_queue, conf);
         recover.loadFuzzed(FuzzInfo.fuzzedFiles, FileUtil.root_fuzzed, conf);
+
+		Stat.log("Recovery message: ");
+		Stat.log(candidate_queue.size());
+		Stat.log(FuzzInfo.fuzzedFiles.size());
+		recordFuzzInfoWithFWHString();
+
         
         boolean hasFaultSequence = true;
         FuzzInfo.startTime = System.currentTimeMillis();
@@ -554,6 +608,10 @@ public class Fuzzer {
 //        	fuzzed_queue.add(q);
         	
         	hasFaultSequence = !candidate_queue.isEmpty();
+
+			recordFuzzInfoWithFWHString();
+			Stat.log("recoveryFuzzInfoWithFWHString...");
+			recoveryFuzzInfoWithFWHString();
         }
         
         System.out.println(FuzzInfo.generateClientReport());

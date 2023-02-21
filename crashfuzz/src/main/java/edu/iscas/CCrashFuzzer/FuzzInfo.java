@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class FuzzInfo {
@@ -202,5 +205,13 @@ public class FuzzInfo {
 		}
 		rst += "*************************************END*****************************************\n";
 		return rst;
+	}
+
+	public static String toFWHString() {
+		String result = "transform FuzzInfo to FWHString fail";
+		// FuzzInfo fuzzInfo = new FuzzInfo();
+		FWHFuzzInfo fwhFuzzInfo = new FWHFuzzInfo();
+		result = JSONObject.toJSONString(fwhFuzzInfo);
+		return result;
 	}
 }
