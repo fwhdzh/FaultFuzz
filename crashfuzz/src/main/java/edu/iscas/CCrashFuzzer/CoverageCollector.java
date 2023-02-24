@@ -18,7 +18,7 @@ public class CoverageCollector {
 	// static byte[] virgin_crash;
 	public static byte[] trace_bits;//store covered bits in a run
 	
-    public int actualSize(){
+    public static int actualSize(){
 		// return Conf.MAP_SIZE / 8 + (Conf.MAP_SIZE % 8 == 0 ? 0 : 1);
 //		return Conf.MAP_SIZE;
     	return _get_map_size();
@@ -107,7 +107,7 @@ public class CoverageCollector {
 	   -B option, to focus a separate fuzzing session on a particular
 	   interesting input without rediscovering all the others. */
 
-	public void write_bitmap(byte[] bytes, String fname) {
+	public static void write_bitmap(byte[] bytes, String fname) {
 		FileOutputStream out;
 		try {
 			File f = new File(fname);
@@ -126,7 +126,7 @@ public class CoverageCollector {
 		}
 	}
 	
-	public byte[] load_a_bitmap(String fname) {
+	public static byte[] load_a_bitmap(String fname) {
 		byte[] map = new byte[actualSize()];
 		File coverFile = new File(fname);
 		try {
