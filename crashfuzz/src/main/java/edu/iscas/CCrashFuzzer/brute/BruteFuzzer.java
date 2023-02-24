@@ -174,7 +174,7 @@ public class BruteFuzzer {
 		//save current test case to file
 		//run_target
 		//save_if_interesting
-		String fname = stat.saveTestCase();
+		// String fname = stat.saveTestCase();
 		int rst = -1;
         long start = System.currentTimeMillis();
         

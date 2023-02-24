@@ -13,10 +13,10 @@ public class Stat {
 	public String saveInitStat() {
 		return null;
 	}
-	//return file name that stores the test case
-	public String saveTestCase() {
-		return null;
-	}
+	// //return file name that stores the test case
+	// public String saveTestCase() {
+	// 	return null;
+	// }
 	public static void markBug(String dir) {
 		File f = new File(dir+Stat.bug);
 		try {

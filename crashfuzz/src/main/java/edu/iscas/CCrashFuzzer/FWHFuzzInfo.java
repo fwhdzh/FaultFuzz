@@ -66,4 +66,31 @@ public class FWHFuzzInfo {
         lastNewHangTime = FuzzInfo.lastNewHangTime;
         lastNewHangFaults = FuzzInfo.lastNewHangFaults;
     }
+
+    public void copyToFuzzInfo() {
+        FuzzInfo.reportWindow = reportWindow;
+        FuzzInfo.startTime = startTime;
+        FuzzInfo.last_used_seconds = last_used_seconds;
+        FuzzInfo.total_execs = total_execs;
+        FuzzInfo.exec_us = exec_us;
+        FuzzInfo.total_skipped = total_skipped;
+        FuzzInfo.total_nontrigger = total_nontrigger;
+        FuzzInfo.total_bugs = total_bugs;
+        FuzzInfo.total_hangs = total_hangs;
+        FuzzInfo.testedUniqueCases = testedUniqueCases;
+        FuzzInfo.fuzzedFiles = fuzzedFiles;
+        FuzzInfo.total_bitmap_size = total_bitmap_size;
+        FuzzInfo.total_bitmap_entries = total_bitmap_entries;
+        FuzzInfo.timeToFaulsToTestsNum = timeToFaulsToTestsNum;
+        FuzzInfo.timeToTotalCovs = timeToTotalCovs;
+        FuzzInfo.lastNewCovTime = lastNewCovTime;
+        FuzzInfo.lastNewCovFaults = lastNewCovFaults;
+        FuzzInfo.timeToFaulsToNewCovTestsNum = timeToFaulsToNewCovTestsNum;
+        FuzzInfo.timeToFaulsBugsNum = timeToFaulsBugsNum;
+        FuzzInfo.lastNewBugTime = lastNewBugTime;
+        FuzzInfo.lastNewBugFaults = lastNewBugFaults;
+        FuzzInfo.timeToFaulsHangsNum = timeToFaulsHangsNum;
+        FuzzInfo.lastNewHangTime = lastNewHangTime;
+        FuzzInfo.lastNewHangFaults = lastNewHangFaults;
+    }
 }

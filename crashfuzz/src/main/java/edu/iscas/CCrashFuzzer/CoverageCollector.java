@@ -14,8 +14,8 @@ import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class CoverageCollector {
 	public static byte[] virgin_bits;    /* Bits we haven't seen in crashes  */
-	static byte[] virgin_tmout;
-	static byte[] virgin_crash;
+	// static byte[] virgin_tmout;
+	// static byte[] virgin_crash;
 	public static byte[] trace_bits;//store covered bits in a run
 	
     public int actualSize(){
@@ -141,6 +141,11 @@ public class CoverageCollector {
 		return map;
 	}
 	
+
+	public void read_bitmap_fwh(String fname) {
+		
+	}
+
 	/* Read bitmap from file. This is for the -B option again. */
 
 	public void read_bitmap(String fname) {

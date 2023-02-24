@@ -42,6 +42,8 @@ public class Conf {
 	public long similarBehaviorWindow = 1000;//timestamp value millisecond
 	public int AFL_PORT;
 	public int MAX_FAULTS = Integer.MAX_VALUE;
+    
+    public boolean RECOVERY_MODE = false;
 	
 	public static class MaxDownNodes{
 		public int maxDown;
