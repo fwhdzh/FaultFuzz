@@ -333,7 +333,7 @@ public class Fuzzer {
 		q.exec_s = target.a_exec_seconds;
 	}
 
-	private void mutateInSaveIfInterestring(QueueEntry q, String testID, QueueEntry seedQ) {
+	private void addToQueueAndMutateInSaveIfInterestring(QueueEntry q, String testID, QueueEntry seedQ) {
 		add_to_queue(q, testID);
 		if(q.recovery_io_id == null || q.recovery_io_id.isEmpty()) {
 			q.recovery_io_id = new HashSet<Integer>();
@@ -422,7 +422,7 @@ public class Fuzzer {
 		updateQInSaveIfInterestring(q, faultMode, testID, seedQ);
 		int nb = coverage.has_new_bits();
 		if ((faultMode == 0) && (nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH)) {
-			mutateInSaveIfInterestring(q, testID, seedQ);
+			addToQueueAndMutateInSaveIfInterestring(q, testID, seedQ);
 		}
 
 		updateFuzzInfoInSaveIfInterestring(q, faultMode, testID, seedQ, target);
