@@ -638,11 +638,11 @@ public class Fuzzer {
         } 
 	}
 
-	public void recoveryFuzzInfo() {
-		recoveryFuzzInfo(conf.RECOVERY_FUZZINFO_PATH);
+	public void recoverFuzzInfo() {
+		recoverFuzzInfo(conf.RECOVERY_FUZZINFO_PATH);
 	}
 
-	public void recoveryFuzzInfo(String filepath) {
+	public void recoverFuzzInfo(String filepath) {
 		File file = new File(filepath);
 		List<String> oriList;
 		try {
@@ -676,11 +676,11 @@ public class Fuzzer {
         }
 	}
 
-	public void recoveryCandidateQueue() {
-		recoveryCandidateQueue(conf.RECOVERY_CANDIDATEQUEUE_PATH);
+	public void recoverCandidateQueue() {
+		recoverCandidateQueue(conf.RECOVERY_CANDIDATEQUEUE_PATH);
 	}
 
-	public void recoveryCandidateQueue(String filepath) {
+	public void recoverCandidateQueue(String filepath) {
 		File file = new File(filepath);
 		List<String> oriList;
 		try {
@@ -713,11 +713,11 @@ public class Fuzzer {
         }
 	}
 
-	public void recoveryTestedFaultId() {
-		recoveryTestedFaultId(conf.RECOVERY_TESTEDFAULTID_PATH);
+	public void recoverTestedFaultId() {
+		recoverTestedFaultId(conf.RECOVERY_TESTEDFAULTID_PATH);
 	}
 
-	public void recoveryTestedFaultId(String filepath) {
+	public void recoverTestedFaultId(String filepath) {
 		File file = new File(filepath);
 		List<String> oriList;
 		try {
@@ -739,11 +739,11 @@ public class Fuzzer {
 		CoverageCollector.write_bitmap(CoverageCollector.virgin_bits, filepath);
 	}
 
-	public void recoveryVirginBits() {
-		recoveryVirginBits(conf.RECOVERY_VIRGINBITS_PATH);
+	public void recoverVirginBits() {
+		recoverVirginBits(conf.RECOVERY_VIRGINBITS_PATH);
 	}
 
-	public void recoveryVirginBits(String filepath) {
+	public void recoverVirginBits(String filepath) {
 		byte[] b = CoverageCollector.load_a_bitmap(filepath);
 		CoverageCollector.virgin_bits = b;
 	}
@@ -818,13 +818,13 @@ public class Fuzzer {
 
 	public void recovery() {
 		Stat.log("recoveryFuzzInfo...");
-		recoveryFuzzInfo();
+		recoverFuzzInfo();
 		Stat.log("recoveryCandidateQueue...");
-		recoveryCandidateQueue();
+		recoverCandidateQueue();
 		Stat.log("recoveryTestedFaultId...");
-		recoveryTestedFaultId();
+		recoverTestedFaultId();
 		Stat.log("recoveryVirginBits...");
-		recoveryVirginBits();
+		recoverVirginBits();
 	}
 
 	public void performOtherRun() {
