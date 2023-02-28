@@ -40,6 +40,8 @@ public class FuzzTarget extends AbstractFuzzTarget{
 		return rst;
 	}
 
+	
+
 	//0 triggered, no bug
     //1 triggered, bug
 	//2 triggered, hang
@@ -269,11 +271,11 @@ public class FuzzTarget extends AbstractFuzzTarget{
 			logInfo.add(Stat.log("Exit normally, stop controller ..."));
 		}
 
-		RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
+		// RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
 		
 		controller.stopController();
 
-		RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
+		// RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
 		return ret;
 	}
 
