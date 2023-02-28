@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FWHFuzzInfo {
+public class FuzzInfoRecord {
     public int reportWindow = 30; //30 minutes
 	
     public long startTime = System.currentTimeMillis();
@@ -40,7 +40,7 @@ public class FWHFuzzInfo {
     public long lastNewHangTime = 0;
     public int lastNewHangFaults = 0;
 
-    public FWHFuzzInfo() {
+    public FuzzInfoRecord() {
         reportWindow = FuzzInfo.reportWindow;
         startTime = FuzzInfo.startTime;
         last_used_seconds = FuzzInfo.last_used_seconds;

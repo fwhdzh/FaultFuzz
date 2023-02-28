@@ -51,8 +51,8 @@ public class QueueEntry {
 	public int handicap; /* Number of queue cycles behind */
 	// public long depth; /* Path depth */
 
-	public String toFWHString() {
-		String result = "transform QueueEntry to FWHString fail";
+	public String toJSONString() {
+		String result = "transform QueueEntry to JSONString fail";
 		result = JSONObject.toJSONString(this);
 		// result += "faultSeq:\n";
 		// result += JSONObject.toJSONString(this.faultSeq);

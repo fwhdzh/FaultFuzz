@@ -43,7 +43,17 @@ public class Conf {
 	public int AFL_PORT;
 	public int MAX_FAULTS = Integer.MAX_VALUE;
     
+    /*
+     * Some functions have not been tested fully.
+     * So, these configurations will not be provided to users for the time being
+     */
     public boolean RECOVERY_MODE = false;
+    // public String RECOVERY_ROOT_PATH = "/data/fengwenhan/data/crashfuzz_fwh";
+    public String RECOVERY_FUZZINFO_PATH = "/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt";
+    public String RECOVERY_CANDIDATEQUEUE_PATH = "/data/fengwenhan/data/crashfuzz_fwh/CandidateQueue.txt";
+    public String RECOVERY_TESTEDFAULTID_PATH = "/data/fengwenhan/data/crashfuzz_fwh/TestedFaultId.txt";
+    public String RECOVERY_VIRGINBITS_PATH = "/data/fengwenhan/data/crashfuzz_fwh/VirginBits.txt";
+
 	
 	public static class MaxDownNodes{
 		public int maxDown;

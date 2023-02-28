@@ -248,7 +248,7 @@ public class Fuzzer {
 		
 		
         // save_if_interesting(q, rst, q.fname, seedQ);
-		save_if_interesting_fwh(q, rst, testID, seedQ, target);
+		save_if_interesting_rewrite(q, rst, testID, seedQ, target);
         
         if(rst == 2) {//test again for hang cases with a larger timeout
         	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangSeconds*60);
@@ -278,7 +278,7 @@ public class Fuzzer {
             } 
 
             // save_if_interesting(q, rst, q.fname, seedQ);
-			save_if_interesting_fwh(q, rst, q.fname, seedQ, target);
+			save_if_interesting_rewrite(q, rst, q.fname, seedQ, target);
             
 
 			
@@ -416,7 +416,7 @@ public class Fuzzer {
 		}
 	}
 
-	public boolean save_if_interesting_fwh(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, FuzzTarget target) {
+	public boolean save_if_interesting_rewrite(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, FuzzTarget target) {
 		boolean result = true;
 		coverage.read_bitmap(FileUtil.root_tmp+testID+"/"+FileUtil.coverageDir);
 		updateQInSaveIfInterestring(q, faultMode, testID, seedQ);
@@ -531,23 +531,7 @@ public class Fuzzer {
 		return true;
 	}
 	
-	public void recodeQueueWithFWHString(QueueEntry q) {
-		recodeQueueWithFWHString("/data/fengwenhan/data/crashfuzz_fwh/QueueEntry.txt", q);
-	}
-
-	public void recodeQueueWithFWHString(String filepath, QueueEntry q) {
-		FileOutputStream out;
-		try {
-			out = new FileOutputStream(filepath, true);
-			out.write(q.toFWHString().getBytes());
-			out.write("\n".getBytes());
-			out.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-            e.printStackTrace();
-        } 
-	}
+	
 
 	/* Append new test case to the queue. */
 	public void add_to_queue(QueueEntry q, String fname) {
@@ -584,7 +568,7 @@ public class Fuzzer {
 
 		candidate_queue.add(q);
 
-		recodeQueueWithFWHString(q);
+		// recordQueue(q);
 	}
 	
 	/* When we bump into a new path, we call this to see if the path appears
@@ -617,12 +601,30 @@ public class Fuzzer {
 		
 	}
 
-	public void recordFuzzInfoWithFWHString() {
-		recordFuzzInfoWithFWHString("/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt");
+	// public void recordQueue(QueueEntry q) {
+	// 	recordQueue("/data/fengwenhan/data/crashfuzz_fwh/QueueEntry.txt", q);
+	// }
+
+	// public void recordQueue(String filepath, QueueEntry q) {
+	// 	FileOutputStream out;
+	// 	try {
+	// 		out = new FileOutputStream(filepath, true);
+	// 		out.write(q.toJSONString().getBytes());
+	// 		out.write("\n".getBytes());
+	// 		out.close();
+	// 	} catch (FileNotFoundException e) {
+	// 		e.printStackTrace();
+	// 	} catch (IOException e) {
+    //         e.printStackTrace();
+    //     } 
+	// }
+
+	public void recordFuzzInfo() {
+		recordFuzzInfo(conf.RECOVERY_FUZZINFO_PATH);
 	}
 
-	public void recordFuzzInfoWithFWHString(String filepath) {
-		String message = FuzzInfo.toFWHString();
+	public void recordFuzzInfo(String filepath) {
+		String message = FuzzInfo.toJSONString();
 		FileOutputStream out;
 		try {
 			out = new FileOutputStream(filepath, false);
@@ -636,25 +638,19 @@ public class Fuzzer {
         } 
 	}
 
-	public void recoveryFuzzInfoWithFWHString() {
-		// Stat.log("begin recoveryFuzzInfoWithFWHString()");
-		recoveryFuzzInfoWithFWHString("/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt");
+	public void recoveryFuzzInfo() {
+		recoveryFuzzInfo(conf.RECOVERY_FUZZINFO_PATH);
 	}
 
-	public void recoveryFuzzInfoWithFWHString(String filepath) {
-		// Stat.log("begin recoveryFuzzInfoWithFWHString(String)");
-		// Stat.log(filepath);
-		// Path path = new Path(filepath);
+	public void recoveryFuzzInfo(String filepath) {
 		File file = new File(filepath);
 		List<String> oriList;
 		try {
 			oriList = Files.readAllLines(file.toPath());
 			String s = oriList.get(0);
-			// Stat.log(s);
-			FWHFuzzInfo fwhFuzzInfo = JSON.parseObject(s, FWHFuzzInfo.class);
-			Stat.log(JSONObject.toJSONString(fwhFuzzInfo));
-			fwhFuzzInfo.copyToFuzzInfo();
-			// Stat.log(fwhFuzzInfo.exec_us);
+			FuzzInfoRecord record = JSON.parseObject(s, FuzzInfoRecord.class);
+			Stat.log(JSONObject.toJSONString(record));
+			record.copyToFuzzInfo();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -662,11 +658,10 @@ public class Fuzzer {
 	}
 
 	public void recordCandidateQueue() {
-		recordCandidateQueue("/data/fengwenhan/data/crashfuzz_fwh/CandidateQueue.txt");
+		recordCandidateQueue(conf.RECOVERY_CANDIDATEQUEUE_PATH);
 	}
 
 	public void recordCandidateQueue(String filepath) {
-		// String message = FuzzInfo.toFWHString();
 		String message = JSONObject.toJSONString(candidate_queue);
 		FileOutputStream out;
 		try {
@@ -682,8 +677,7 @@ public class Fuzzer {
 	}
 
 	public void recoveryCandidateQueue() {
-		// Stat.log("begin recoveryFuzzInfoWithFWHString()");
-		recoveryCandidateQueue("/data/fengwenhan/data/crashfuzz_fwh/CandidateQueue.txt");
+		recoveryCandidateQueue(conf.RECOVERY_CANDIDATEQUEUE_PATH);
 	}
 
 	public void recoveryCandidateQueue(String filepath) {
@@ -701,11 +695,10 @@ public class Fuzzer {
 	}
 
 	public void recordTestedFaultId() {
-		recordTestedFaultId("/data/fengwenhan/data/crashfuzz_fwh/TestedFaultId.txt");
+		recordTestedFaultId(conf.RECOVERY_TESTEDFAULTID_PATH);
 	}
 
 	public void recordTestedFaultId(String filepath) {
-		// String message = FuzzInfo.toFWHString();
 		String message = JSONObject.toJSONString(QueueManagerNew.tested_fault_id);
 		FileOutputStream out;
 		try {
@@ -721,8 +714,7 @@ public class Fuzzer {
 	}
 
 	public void recoveryTestedFaultId() {
-		// Stat.log("begin recoveryFuzzInfoWithFWHString()");
-		recoveryTestedFaultId("/data/fengwenhan/data/crashfuzz_fwh/TestedFaultId.txt");
+		recoveryTestedFaultId(conf.RECOVERY_TESTEDFAULTID_PATH);
 	}
 
 	public void recoveryTestedFaultId(String filepath) {
@@ -740,28 +732,26 @@ public class Fuzzer {
 	}
 
 	public void recordVirginBits() {
-		recordVirginBits("/data/fengwenhan/data/crashfuzz_fwh/VirginBits.txt");
+		recordVirginBits(conf.RECOVERY_VIRGINBITS_PATH);
 	}
 
 	public void recordVirginBits(String filepath) {
-		// String message = FuzzInfo.toFWHString();
-		coverage.write_bitmap(CoverageCollector.virgin_bits, filepath);
+		CoverageCollector.write_bitmap(CoverageCollector.virgin_bits, filepath);
 	}
 
 	public void recoveryVirginBits() {
-		// Stat.log("begin recoveryFuzzInfoWithFWHString()");
-		recoveryVirginBits("/data/fengwenhan/data/crashfuzz_fwh/VirginBits.txt");
+		recoveryVirginBits(conf.RECOVERY_VIRGINBITS_PATH);
 	}
 
 	public void recoveryVirginBits(String filepath) {
-		byte[] b = coverage.load_a_bitmap(filepath);
+		byte[] b = CoverageCollector.load_a_bitmap(filepath);
 		CoverageCollector.virgin_bits = b;
 	}
 	
 	public void start() {
         FuzzInfo.total_execs = 0;
 
-        // remove by fwh
+        // remove by fengwenhan
         // RecoveryManager recover = new RecoveryManager();
         // recover.loadQueue(candidate_queue, FileUtil.root_queue, conf);
         // recover.loadFuzzed(FuzzInfo.fuzzedFiles, FileUtil.root_fuzzed, conf);
@@ -827,8 +817,8 @@ public class Fuzzer {
     }
 
 	public void recovery() {
-		Stat.log("recoveryFuzzInfoWithFWHString...");
-		recoveryFuzzInfoWithFWHString();
+		Stat.log("recoveryFuzzInfo...");
+		recoveryFuzzInfo();
 		Stat.log("recoveryCandidateQueue...");
 		recoveryCandidateQueue();
 		Stat.log("recoveryTestedFaultId...");
@@ -870,7 +860,7 @@ public class Fuzzer {
         	
         	hasFaultSequence = !candidate_queue.isEmpty();
 
-			recordFuzzInfoWithFWHString();
+			recordFuzzInfo();
 			recordCandidateQueue();
 			recordTestedFaultId();
 			recordVirginBits();

@@ -207,11 +207,11 @@ public class FuzzInfo {
 		return rst;
 	}
 
-	public static String toFWHString() {
-		String result = "transform FuzzInfo to FWHString fail";
+	public static String toJSONString() {
+		String result = "transform FuzzInfo to JSONString fail";
 		// FuzzInfo fuzzInfo = new FuzzInfo();
-		FWHFuzzInfo fwhFuzzInfo = new FWHFuzzInfo();
-		result = JSONObject.toJSONString(fwhFuzzInfo);
+		FuzzInfoRecord record = new FuzzInfoRecord();
+		result = JSONObject.toJSONString(record);
 		return result;
 	}
 }
