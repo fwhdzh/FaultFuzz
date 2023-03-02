@@ -22,7 +22,8 @@ public class TraceReader {
 	private File traceDir;
 	//store records for every process file
 	public int total = 0;
-	public static List<IOPoint> ioPoints = new ArrayList<IOPoint>();
+	// public static List<IOPoint> ioPoints = new ArrayList<IOPoint>();
+	public List<IOPoint> ioPoints = new ArrayList<IOPoint>();
 
 	public ConcurrentHashMap<Integer, AtomicInteger> uniqueEntryToAppearIdx = new ConcurrentHashMap<Integer, AtomicInteger>();
 
