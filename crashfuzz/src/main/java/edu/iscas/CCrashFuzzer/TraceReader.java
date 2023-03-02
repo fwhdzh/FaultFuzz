@@ -107,7 +107,7 @@ public class TraceReader {
 		END
 	}
 	
-	public static class ReadTraceThread extends Thread {
+	public class ReadTraceThread extends Thread {
 		private final File procFile;
 		private final CountDownLatch mDoneSignal;
 		private TraceReader reader;
