@@ -83,7 +83,8 @@ public class Mutation {
 			//no I/O points to inject a new fault
 			//or current I/O points do not match with the fault sequence
 			q.mutates = mutates;
-			q.favored_mutates = q.mutates;
+			// q.favored_mutates = q.mutates;
+			q.favored_mutates = new ArrayList<QueueEntry>(mutates);
 			return;
 		}
 
@@ -211,7 +212,8 @@ public class Mutation {
 		Stat.log("Got "+mutates.size()+" mutations.");
 
 		q.mutates = mutates;
-		q.favored_mutates = q.mutates;
+		// q.favored_mutates = q.mutates;
+		q.favored_mutates = new ArrayList<QueueEntry>(mutates);
 	}
 	
 	public static List<QueueEntry> mutateFaultSequence_backup(QueueEntry q) {
