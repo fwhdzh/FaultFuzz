@@ -168,4 +168,22 @@ public class QueueEntry {
 			perf_score = FuzzConf.HAVOC_MAX_MULT * 100;
 		return perf_score;
 	}
+
+	public String getIoSeqToIDString() {
+		String result = "";
+		for (IOPoint p: ioSeq) {
+			result = result + p.ioID + ", ";
+			// result = result + p.ioID + ": " + p.TIMESTAMP+ ", ";
+		}
+		return result;
+	} 
+
+	public String getIoSeqToPathString() {
+		String result = "";
+		for (IOPoint p: ioSeq) {
+			result = result + p.PATH + ", ";
+			// result = result + p.ioID + ": " + p.TIMESTAMP+ ", ";
+		}
+		return result;
+	} 
 }
