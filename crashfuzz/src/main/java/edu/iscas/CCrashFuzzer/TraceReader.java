@@ -40,6 +40,28 @@ public class TraceReader {
 		this.traceDir = file;
 	}
 
+	public void fixWROrderInSameTimeStamp(List<IOPoint> ioPoints) {
+		for (int i = 0; i < ioPoints.size(); i++) {
+			IOPoint p = ioPoints.get(i);
+			String path = p.PATH;
+			if (path.contains("FAVMSG:READ")) {
+				String msgId = path.split("&")[1];
+				for (int j = (i+1); j < ioPoints.size(); j++) {
+					IOPoint wp = ioPoints.get(j);
+					if (wp.TIMESTAMP > p.TIMESTAMP) {
+						break;
+					}
+					if (wp.PATH.contains("FAVMSG") && wp.PATH.endsWith(msgId)) {
+						Stat.log("transform index with " + i + ": [" + p.PATH + "], and " + j + ": [" + wp.PATH + "]");
+						ioPoints.set(i, wp);
+						ioPoints.set(j, p);
+						break;
+					}
+				} 
+			}
+		}
+	}
+
 	public void readTraces() {
 		if(traceDir==null || !traceDir.exists() || !traceDir.isDirectory()) {
 			return;
