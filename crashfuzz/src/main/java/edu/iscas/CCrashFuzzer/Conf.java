@@ -49,10 +49,20 @@ public class Conf {
      */
     public boolean RECOVERY_MODE = false;
     // public String RECOVERY_ROOT_PATH = "/data/fengwenhan/data/crashfuzz_fwh";
-    public String RECOVERY_FUZZINFO_PATH = "/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt";
-    public String RECOVERY_CANDIDATEQUEUE_PATH = "/data/fengwenhan/data/crashfuzz_fwh/CandidateQueue.txt";
-    public String RECOVERY_TESTEDFAULTID_PATH = "/data/fengwenhan/data/crashfuzz_fwh/TestedFaultId.txt";
-    public String RECOVERY_VIRGINBITS_PATH = "/data/fengwenhan/data/crashfuzz_fwh/VirginBits.txt";
+    // public String RECOVERY_FUZZINFO_PATH = "/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt";
+    // public String RECOVERY_CANDIDATEQUEUE_PATH = "/data/fengwenhan/data/crashfuzz_fwh/CandidateQueue.txt";
+    // public String RECOVERY_TESTEDFAULTID_PATH = "/data/fengwenhan/data/crashfuzz_fwh/TestedFaultId.txt";
+    // public String RECOVERY_VIRGINBITS_PATH = "/data/fengwenhan/data/crashfuzz_fwh/VirginBits.txt";
+    public String RECOVERY_FUZZINFO_PATH;
+    public String RECOVERY_CANDIDATEQUEUE_PATH;
+    public String RECOVERY_TESTEDFAULTID_PATH;
+    public String RECOVERY_VIRGINBITS_PATH;
+
+    // public boolean REPLAY_MODE = true;
+    // public String REPLAY_QUEUEENTRY_PATH = "/data/fengwenhan/data/crashfuzz_fwh/replay/QueueEntry.txt";
+    // // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_backup_6_full_workload/queue/6_2f";
+    // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_ctrl/queue/6_1f";
+    // public long REPLAY_HANG_TIME = 40;
 
 	
 	public static class MaxDownNodes{
@@ -260,6 +270,22 @@ public class Conf {
         	}
         }
 
+        String recoveryMode = p.getProperty(ConfOption.RECOVERY_MODE.toString());
+        if(recoveryMode != null) {
+        	RECOVERY_MODE = Boolean.parseBoolean(recoveryMode);
+        }
+
+        String recoveryDir = p.getProperty(ConfOption.RECOVERY_DIR.toString());
+        if(recoveryDir != null) {
+            if(!recoveryDir.startsWith("/")) {
+            	recoveryDir = workdir + recoveryDir;
+            }
+        	RECOVERY_FUZZINFO_PATH = recoveryDir + "/FuzzInfo.txt";
+            RECOVERY_CANDIDATEQUEUE_PATH = recoveryDir + "/CandidateQueue.txt";
+            RECOVERY_TESTEDFAULTID_PATH = recoveryDir + "/TestedFaultId.txt";
+            RECOVERY_VIRGINBITS_PATH = recoveryDir + "/VirginBits.txt";
+        }
+
         if(RESTART == null || CRASH == null || WORKLOAD == null || CUR_CRASH_FILE == null || PRETREATMENT == null) {
         	throw new IOException();
         }
@@ -284,6 +310,13 @@ public class Conf {
         for(MaxDownNodes group:maxDownGroup) {
         	System.out.println("For nodes "+group.aliveGroup+", allowed max down nodes at same time is:"+group.maxDown);
         }
+
+        System.out.println("Recovery mode: " + RECOVERY_MODE);
+        System.out.println("Recovery fuzzinfo path: " + (RECOVERY_MODE ? RECOVERY_FUZZINFO_PATH : ""));
+        System.out.println("Recovery candidate queue path: " + (RECOVERY_MODE ? RECOVERY_CANDIDATEQUEUE_PATH : ""));
+        System.out.println("Recovery tested fault id path: " + (RECOVERY_MODE ? RECOVERY_TESTEDFAULTID_PATH : ""));
+        System.out.println("Recovery virgin bits path: " + (RECOVERY_MODE ? RECOVERY_VIRGINBITS_PATH : ""));
+
         System.out.println("=======================================================================");
     }
 }

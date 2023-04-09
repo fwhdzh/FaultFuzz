@@ -19,5 +19,10 @@ public enum ConfOption {
 	AFL_PORT,  // the port used for crashfuzzer controller to contact with the system to save coverage map and io traces
 	WINDOW_SIZE, //do not use for now
 	MAX_FAULTS, //if it is configured, it defines the max number of the injected faults in a test.
-	ROOT_DIR
+	ROOT_DIR,
+
+	RECOVERY_MODE,
+	RECOVERY_DIR,
+	// REPLAY_MODE,
+
 }
