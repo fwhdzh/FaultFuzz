@@ -85,6 +85,7 @@ public class AflCli {
 
 	public static enum AflCommand {
 		HEARTBEAT, // check connection
+		NOTREPLAY, // stop replay and do normal execution from now
 		SAVE, STABLE, // command
 		FINISH, // succ response
 		TMOUT, // timeout response

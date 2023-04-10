@@ -4,10 +4,15 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.alibaba.fastjson.JSONObject;
+
+import edu.iscas.CCrashFuzzer.DeterministicController.DeterministicCilentHandler;
+import edu.iscas.CCrashFuzzer.DeterministicController.FaultPointBlocked;
 import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.instrumenter.TriggerEvent;
 import edu.columbia.cs.psl.phosphor.Configuration;
@@ -28,11 +33,131 @@ public class WaitToExec { //for docker
         entry.CALLSTACK = callstack;
         entry.ip = crashNode;
 
-        handleCrashPoint(procID, crashNode, entry, callstack, path);
+		if (Configuration.REPLAY_MODE) {
+			handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
+		} else {
+			handleCrashPoint(procID, crashNode, entry, callstack, path);
+		}
     }
 
     public static int currentIOID(List<String> callstack) {
     	return callstack.toString().hashCode();
+    }
+
+
+    public static void handleCrashPointInDeplayMode(long procID, String nodeIP, FAVEntry entry, List<String> callstack, String path) {
+
+		Integer ioID = currentIOID(callstack);
+		MyLogger.log("WaitToExec arrives: " + ioID.intValue());
+
+		// if (CurrentFaultSequence.faultSeq == null 
+		// 		|| CurrentFaultSequence.faultSeq.curFault.get() == -1
+		// 		|| CurrentFaultSequence.faultSeq.curFault.get() >= CurrentFaultSequence.faultSeq.seq.size()) {
+		// 	// no faults to inject
+		// 	return;
+		// }
+
+		String procInfo = "", fuzzCommand = "";
+		try {
+
+			Random rand = new Random();
+			int id = rand.nextInt();
+			String cliId = "" + nodeIP + ":" + id;
+			String threadInfo  = "" + Thread.currentThread().getId() + ":" + Thread.currentThread().getName();
+
+			String info = "";
+			info = info + "WaitToExec write ioID: " + ioID.intValue() + "\n";
+			info = info + "WaitToExec write nodeIP: " + nodeIP + "\n";
+			info = info + "WaitToExec write cliId" + cliId + "\n";
+			info = info + "WaitToExec write nodeIP path is " + path + "\n";
+			info = info + "thread id " + threadInfo + "\n";
+			MyLogger.log(info);
+
+			if (!Configuration.REPLAY_NOW) {
+				return;
+			} 
+
+			// System.out.println(procID+" meet current crash point!");
+			String[] secs = Configuration.CONTROLLER_SOCKET.split(":");
+			Socket socket = new Socket(secs[0].trim(), Integer.parseInt(secs[1].trim()));
+			// System.out.println(procID+" remote controller
+			// address:"+socket.getRemoteSocketAddress());
+			DataInputStream inStream = new DataInputStream(socket.getInputStream());
+			DataOutputStream outStream = new DataOutputStream(socket.getOutputStream());
+			// ObjectOutputStream objOut = new ObjectOutputStream(outStream);
+
+			// byte messageBytes[] = new byte[1024];
+       		// ByteBuffer messageBuffer = ByteBuffer.wrap(messageBytes);
+			// String info = "";
+			// messageBuffer.putInt(ioID.intValue());
+			// messageBuffer.put(nodeIP.getBytes());
+			// messageBuffer.put(messageBytes)
+
+			
+			
+
+			outStream.writeInt(ioID.intValue());
+			// MyLogger.log("WaitToExec write ioID: " + ioID.intValue());
+			outStream.writeUTF(nodeIP);
+			// MyLogger.log("WaitToExec write nodeIP: " + nodeIP);
+			
+
+			outStream.writeUTF(cliId);
+			// MyLogger.log("WaitToExec write cliId" + cliId);
+			outStream.writeUTF(path);
+			// MyLogger.log("WaitToExec write nodeIP path is " + path);
+			
+			outStream.writeUTF(threadInfo);
+
+ 			// MyLogger.log("thread id " + threadInfo);
+			outStream.flush();
+			// System.out.println(procID+"!!!!!WaitToExec Send msg to
+			// controller:"+procInfo);
+			
+			
+
+			fuzzCommand = inStream.readUTF();
+			CurrentFaultSequence.faultSeq.curFault = new AtomicInteger(inStream.readInt());
+			int curAppearIdx = inStream.readInt();
+			// System.out.println(procID+"!!!!!WaitToExec Read msg from
+			// controller:"+controllerResponse);
+
+			inStream.close();
+			outStream.close();
+			// objOut.close();
+			socket.close();
+
+			String suffix = " [" + id + "] For io " + ioID + ", received curFault index is "
+					+ CurrentFaultSequence.faultSeq.curFault
+					+ ", curAppearIdx is " + curAppearIdx + ", my fault size is "
+					+ CurrentFaultSequence.faultSeq.seq.size();
+			if (fuzzCommand.equals(TriggerEvent.CONTI.toString())
+					|| fuzzCommand.equals(TriggerEvent.REBOOT.toString())) {
+				MyLogger.log(nodeIP + ":" + procID + " System WaitToExec received keep exec command!" + fuzzCommand
+						+ suffix);
+				return;
+			} else if (fuzzCommand.equals(TriggerEvent.CRASH.toString())) {
+				MyLogger.log(nodeIP + ":" + procID + " System WaitToExec received crash command!" + fuzzCommand
+						+ suffix);
+				// crashCurNode();
+				while (true) {
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			} else {
+				MyLogger.log(nodeIP + ":" + procID + " System WaitToExec received abnormal message: " + fuzzCommand
+						+ suffix);
+			}
+		} catch (Exception e) {
+			MyLogger.log(nodeIP + ":" + procID + " [ERROR] System WaitToExec got exception:" + e.getMessage());
+			e.printStackTrace();
+		}
+		MyLogger.log(nodeIP + ":" + procID + " [ERROR] System WaitToExec failed to trigger a current crash fault!!!" + ", ioId: " + ioID + ", "
+				+ fuzzCommand + ", " + callstack);
     }
 
     public static void handleCrashPoint(long procID, String nodeIP, FAVEntry entry, List<String> callstack, String path) {
@@ -72,10 +197,13 @@ public class WaitToExec { //for docker
 //                objOut.writeObject(entry);
 //                objOut.flush();
                 outStream.writeInt(ioID.intValue());
+				MyLogger.log("WaitToExec write ioID" + ioID.intValue());
                 outStream.writeUTF(nodeIP);
+				MyLogger.log("WaitToExec write nodeIP" + nodeIP);
                 Random rand = new Random();
                 int id = rand.nextInt();
                 outStream.writeUTF(nodeIP+":"+id);
+				MyLogger.log("WaitToExec write nodeIP + id" + nodeIP + ":" + id);
                 outStream.flush();
                 //System.out.println(procID+"!!!!!WaitToExec Send msg to controller:"+procInfo);
 

@@ -4,7 +4,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
 
-import edu.iscas.tcse.favtrigger.instrumenter.cov.AflCli.AflCommand;
+import edu.columbia.cs.psl.phosphor.Configuration;
+// import edu.iscas.tcse.favtrigger.instrumenter.cov.AflCli.AflCommand;
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
+import edu.iscas.tcse.favtrigger.MyLogger;;
 
 public class AflCliHandler extends Thread {
     final Socket serverClient;
@@ -42,7 +45,11 @@ public class AflCliHandler extends Thread {
 		      }
 	      } else if (clientMessage.equals(AflCommand.HEARTBEAT.toString())) {
 				// serverMessage = AflCommand.HEATBEAT.toString();
-		  } else {
+		  } else if (clientMessage.equals(AflCommand.NOTREPLAY.toString())) {
+				MyLogger.log("Recieve command NOTREPLAY");
+				Configuration.REPLAY_NOW = false;
+		  }
+		  else {
 	    	  serverMessage = "Illegal command: "+clientMessage;
 	      }
 

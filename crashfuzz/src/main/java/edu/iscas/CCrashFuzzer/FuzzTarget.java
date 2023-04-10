@@ -279,6 +279,8 @@ public class FuzzTarget extends AbstractFuzzTarget{
 		return ret;
 	}
 
+	
+
 	private int checkBug(FaultSequence seq, Conf conf) {
 		// TODO Auto-generated method stub
 		boolean phosError = false;

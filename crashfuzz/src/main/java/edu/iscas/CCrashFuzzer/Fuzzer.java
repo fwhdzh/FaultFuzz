@@ -568,7 +568,11 @@ public class Fuzzer {
 
 		candidate_queue.add(q);
 
-		// recordQueue(q);
+		if (checkQueueEntrySuitedToReplay(q)) {
+			Stat.log("begin to record queue for replay!");
+			recordQueue(q);
+		}
+		
 	}
 	
 	/* When we bump into a new path, we call this to see if the path appears
@@ -601,23 +605,34 @@ public class Fuzzer {
 		
 	}
 
-	// public void recordQueue(QueueEntry q) {
-	// 	recordQueue("/data/fengwenhan/data/crashfuzz_fwh/QueueEntry.txt", q);
-	// }
+	public boolean checkQueueEntrySuitedToReplay(QueueEntry q) {
+		boolean result = true;
+		if (q.faultSeq.seq.size() <= 0) {
+			return false;
+		}
+		if (q.ioSeq.indexOf(q.faultSeq.seq.get(0).ioPt) < 1) {
+			return false;
+		}
+		return result;
+	}
 
-	// public void recordQueue(String filepath, QueueEntry q) {
-	// 	FileOutputStream out;
-	// 	try {
-	// 		out = new FileOutputStream(filepath, true);
-	// 		out.write(q.toJSONString().getBytes());
-	// 		out.write("\n".getBytes());
-	// 		out.close();
-	// 	} catch (FileNotFoundException e) {
-	// 		e.printStackTrace();
-	// 	} catch (IOException e) {
-    //         e.printStackTrace();
-    //     } 
-	// }
+	public void recordQueue(QueueEntry q) {
+		recordQueue("/data/fengwenhan/data/crashfuzz_fwh/QueueEntry.txt", q);
+	}
+
+	public void recordQueue(String filepath, QueueEntry q) {
+		FileOutputStream out;
+		try {
+			out = new FileOutputStream(filepath, false);
+			out.write(q.toJSONString().getBytes());
+			out.write("\n".getBytes());
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+            e.printStackTrace();
+        } 
+	}
 
 	public void recordFuzzInfo() {
 		recordFuzzInfo(conf.RECOVERY_FUZZINFO_PATH);
@@ -805,16 +820,71 @@ public class Fuzzer {
 //        	Stat.log("**-----------------------Virgin covered blocks:"+CoverageCollector.coveredBlocks(coverage.virgin_bits)+"-----------------------**");
 //        	Stat.log("****************************************************************************");
 //        }
-		if (!conf.RECOVERY_MODE) {
-			perform_first_run();
+
+		if (conf.REPLAY_MODE) {
+			replay();
 		} else {
-			recovery();
+			if (!conf.RECOVERY_MODE) {
+				perform_first_run();
+			} else {
+				recovery();
+			}
+			performOtherRun();
 		}
-        
-        performOtherRun();
+
+		
         
         System.out.println(FuzzInfo.generateClientReport());
     }
+
+	public QueueEntry retriveReplayQueueEntryFromJSONFilePath(String filepath) {
+		QueueEntry result = null;
+		File file = new File(filepath);
+		List<String> oriList;
+		try {
+			oriList = Files.readAllLines(file.toPath());
+			String s = oriList.get(0);
+			QueueEntry entry = JSON.parseObject(s, QueueEntry.class);
+			// Stat.log(JSONObject.toJSONString(entry));
+			result = entry;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	public QueueEntry retriveReplayQueueEntryFromRSTFolder(String filepath) {
+		TraceReader tr = new TraceReader(filepath + "/fav-rst");
+        tr.readTraces();
+		tr.fixWROrderInSameTimeStamp(tr.ioPoints);
+        QueueEntry e = new QueueEntry();
+        e.ioSeq = tr.ioPoints;
+        FaultSequence faultSeq = FileUtil.loadCurrentCrashPoint(filepath + "/zk363curCrash");
+		if (faultSeq == null) {
+			faultSeq = new FaultSequence();
+			// faultSeq.seq.add(null);
+		}
+		e.faultSeq = faultSeq;
+		return e;
+	}
+
+	
+
+	
+
+	public void replay(String filepath) {
+		// QueueEntry entry = retriveReplayQueueEntryFromJSONFilePath(filepath);
+		// QueueEntry entry = retriveReplayQueueEntryFromRSTFolder("/data/fengwenhan/data/crashfuzz_ctrl/queue/10_2f");
+		QueueEntry entry = retriveReplayQueueEntryFromRSTFolder(conf.REPLAY_TRACE_PATH);
+		ReplayTarget rt = new ReplayTarget();
+		// rt.replayATest(entry, conf, "replay", conf.hangSeconds);
+		rt.replayATest(entry, conf, "replay", conf.REPLAY_HANG_TIME);
+	}
+
+	public void replay() {
+		replay(conf.REPLAY_QUEUEENTRY_PATH);
+	}
 
 	public void recovery() {
 		Stat.log("recoveryFuzzInfo...");

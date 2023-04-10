@@ -1,0 +1,577 @@
+package edu.iscas.CCrashFuzzer;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
+import edu.iscas.CCrashFuzzer.AflCli.AflException;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
+import edu.iscas.CCrashFuzzer.utils.FileUtil;
+
+public class DeterministicController extends Controller {
+
+	public Set<DeterministicCilentHandler> deterministicClients;
+
+	public List<FaultPointBlocked> faultPointList;
+	public AtomicInteger index;
+	public AtomicInteger fIndex;
+
+	public QueueEntry entry;
+
+	public boolean arriveAllFaultPoint;
+
+	public List<FaultPointBlocked> arriveFPBList;
+	public List<FaultPointBlocked> actualFPBList;
+	public int counter;
+
+	public DeterministicController(Cluster cluster, int port, Conf favconfig) {
+		super(cluster, port, favconfig);
+
+		deterministicClients = Collections.synchronizedSet(new HashSet<DeterministicCilentHandler>());
+		faultPointList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
+		index = new AtomicInteger(0);
+		fIndex = new AtomicInteger(0);
+		arriveAllFaultPoint = false;
+		arriveFPBList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
+		actualFPBList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
+		counter = 0;
+	}
+
+	public static class FaultPointBlocked {
+		public int ioID;
+		public String reportNodeIp;
+		public String cliId;
+		public String path;
+		public DeterministicCilentHandler cilentHander;
+
+		public FaultPointBlocked(int ioID, String reportNodeIp, String cliId, String path,
+				DeterministicCilentHandler cilentHander) {
+			this.ioID = ioID;
+			this.reportNodeIp = reportNodeIp;
+			this.cliId = cliId;
+			this.path = path;
+			this.cilentHander = cilentHander;
+		}
+
+		public FaultPointBlocked(int ioID, String reportNodeIp, String path) {
+			this.ioID = ioID;
+			this.reportNodeIp = reportNodeIp;
+			this.path = path;
+		}
+
+		public static void recordFPBList(List<FaultPointBlocked> fpbList, String filepath) {
+			String message = JSONObject.toJSONString(fpbList);
+			FileOutputStream out;
+			try {
+				out = new FileOutputStream(filepath, false);
+				out.write(message.getBytes());
+				out.write("\n".getBytes());
+				out.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	
+		public static List<FaultPointBlocked> recoverFPBList(String filepath) {
+			List<FaultPointBlocked> result = new ArrayList<>();
+			File file = new File(filepath);
+			List<String> oriList;
+			try {
+				oriList = Files.readAllLines(file.toPath());
+				String s = oriList.get(0);
+				List<FaultPointBlocked> c = JSON.parseArray(s, FaultPointBlocked.class);
+				Stat.log(JSONObject.toJSONString(c));
+				result = c;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return result;
+		}
+
+		public static boolean equalInPathPreFix(String path1, String path2) {
+			// return path1.split("&")[0].equals(path2.split("&")[0]);
+			boolean result = false;
+			List<String> sList1 = extractInformationFromPath(path1);
+			List<String> sList2 = extractInformationFromPath(path2);
+			if (sList1.size() != sList2.size()) {
+				return false;
+			}
+			switch (sList1.get(0)) {
+				case "not msg":
+					result = sList1.get(1).equals(sList2.get(1));
+					break;
+				case "write":
+				case "read":
+					if (!sList1.get(1).equals(sList2.get(1))) {
+						result = false;
+						break;
+					}
+					String nodeMsgIndex1 = sList1.get(2).split("#")[1];
+					String nodeMsgIndex2 = sList2.get(2).split("#")[1];
+					result = nodeMsgIndex1.equals(nodeMsgIndex2);
+					break;
+			}
+			return result;
+		}
+
+		public boolean equalInPathInDeterministicControl(String path) {
+			// return this.path.equals(path);
+			// return this.path.split("&")[0].equals(path.split("&")[0]);
+			return equalInPathPreFix(this.path, path);
+		}
+
+		public boolean equalInDeterministicControl(FaultPointBlocked b) {
+			if ((this.ioID == b.ioID)
+					&& (this.reportNodeIp.equals(b.reportNodeIp))
+					&& (equalInPathInDeterministicControl(b.path))) {
+				return true;
+			}
+			return false;
+		}
+
+	}
+
+	public void prepareQueueEntry(QueueEntry entry) {
+		this.entry = entry;
+		entry.faultSeq.reset();
+		updataCurCrashPointFile(entry.faultSeq);
+		Stat.log("Current fault sequence was prepared.");
+	}
+
+	public void updataCurCrashPointFile(FaultSequence faultSequence) {
+		if (faultSequence == null || faultSequence.isEmpty()) {
+			File file = favconfig.CUR_CRASH_FILE;
+			if (file.exists()) {
+				file.delete();
+				if (favconfig.UPDATE_CRASH != null) {
+					String path = favconfig.UPDATE_CRASH.getAbsolutePath();
+					String workingDir = path.substring(0, path.lastIndexOf("/"));
+					RunCommand.run(path, workingDir);
+				}
+			}
+		} else {
+			FileUtil.genereteFaultSequenceFile(faultSequence, favconfig.CUR_CRASH_FILE);
+
+			if (favconfig.UPDATE_CRASH != null) {
+				String path = favconfig.UPDATE_CRASH.getAbsolutePath();
+				String workingDir = path.substring(0, path.lastIndexOf("/"));
+				RunCommand.run(path, workingDir);
+			}
+		}
+	}
+
+	@Override
+	public void startController() {
+		running = true;
+		counter = 0;
+		serverThread = new Thread() {
+
+			@Override
+			public void run() {
+
+				// TODO Auto-generated method stub
+				try {
+					Stat.log("Controller port:" + CONTROLLER_PORT);
+					serverSocket = new ServerSocket(CONTROLLER_PORT);
+					Stat.log("Controller started ...");
+
+					while (running) {
+						while (deterministicClients.size() > maxClients) {
+							Thread.currentThread().sleep(500);
+						}
+						Socket socket = serverSocket.accept(); // server accept the client connection request
+						counter++;
+						String s = "Accept a socket!";
+						s = s + "assign the socket to DeterministicCilentHandler id :" + counter;
+						Stat.log(s);
+						// System.out.println("a client "+counter+" was
+						// connected"+socket.getRemoteSocketAddress());
+						DeterministicCilentHandler sct = new DeterministicCilentHandler(socket, counter); // send the request to a separate thread
+						sct.start();
+						deterministicClients.add(sct);
+					}
+					serverSocket.close();
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					Stat.log("recieve total socket count: " + counter);
+					Stat.log("faultPointList size is : " + faultPointList.size());
+					Stat.log("actualFPBList size is : " + actualFPBList.size());
+					Stat.log("The left FPBS are : ");
+					String s = "";
+					for (FaultPointBlocked fpb : faultPointList) {
+						s = s + JSONObject.toJSONString(fpb) + "\n";
+					}
+					Stat.log(s);
+				}
+			}
+		};
+		serverThread.start();
+
+		ListScanner scanThread = new ListScanner();
+		scanThread.start();
+
+	}
+
+	public void continueAllFPB() throws IOException, AflException, AbortFaultException {
+		for (FaultPointBlocked fpb : faultPointList) {
+			fpb.cilentHander.doOperationToCluster(fpb);
+		}
+	}
+
+	public class DeterministicCilentHandler extends Thread {
+		final Socket socket;
+		final int id;
+
+		public DeterministicCilentHandler(Socket socket, int id) {
+			this.socket = socket;
+			this.id = id;
+		}
+
+		@Override
+		public void run() {
+			try {
+				Stat.log("DeterministicCilentHandler start...");
+				DataInputStream inStream = new DataInputStream(socket.getInputStream());
+				// DataOutputStream outStream = new DataOutputStream(socket.getOutputStream());
+				// ObjectInputStream objIn = new ObjectInputStream(inStream);
+
+				int ioID = inStream.readInt();
+				// Stat.log("DeterministicCilentHandler read ioID: " + ioID);
+				String reportNodeIp = inStream.readUTF();
+				// Stat.log("DeterministicCilentHandler read reportNodeIp: " + reportNodeIp);
+				String cliID = inStream.readUTF();
+				// Stat.log("recieve cliID: " + cliID + " for ioID " + ioID + ", ");
+				String path = inStream.readUTF();
+				String threadInfo = inStream.readUTF();
+				// Stat.log("recieve path: " + path);
+				String info = "";
+				info = info + "DeterministicCilentHandler read ioID: " + ioID + "\n";
+				info = info + "DeterministicCilentHandler read reportNodeIp: " + reportNodeIp + "\n";
+				info = info + "recieve cliID: " + cliID + " for ioID " + ioID + ", " + "\n";
+				info = info + "recieve path: " + path + "\n";
+				info = info + "recieve threadInfo: " + threadInfo + "\n";
+				Stat.log(info);
+				FaultPointBlocked b = new FaultPointBlocked(ioID, reportNodeIp, cliID, path, this);
+				faultPointList.add(b);
+				arriveFPBList.add(b);
+				// addOrReplaceFPBtoList(b);
+				Stat.log("For now, faultPointList size is " + faultPointList.size());
+				Stat.log("add a element to faultPointList");
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		public int addOrReplaceFPBtoList(FaultPointBlocked b) {
+			int result = -1;
+			for (int i = 0; i < faultPointList.size(); i++) {
+				FaultPointBlocked lb = faultPointList.get(i);
+				if (lb.equalInDeterministicControl(b)) {
+					faultPointList.set(i, b);
+					result = i;
+					break;
+				}
+			}
+			if (result == -1) {
+				faultPointList.add(b);
+			}
+			return result;
+		}
+
+		public void replyToNode(DataOutputStream outStream, String command, int curFault, int curAppear)
+				throws IOException {
+			outStream.writeUTF(command);
+			outStream.writeInt(curFault);
+			outStream.writeInt(curAppear);
+			closeTheSocketConnection();
+		}
+
+		public void closeTheSocketConnection() throws IOException {
+			socket.getOutputStream().flush();
+			// socket.getInputStream().close();
+			// socket.getOutputStream().close();
+			socket.close();
+
+			deterministicClients.remove(this);
+		}
+
+		// public void addToFaultPointList(int ioID, String reportNodeIp) {
+		// FaultPointBlocked b = new FaultPointBlocked(ioID, reportNodeIp, this);
+		// faultPointList.add(b);
+		// }
+
+		public void doOperationToCluster(FaultPoint p) throws IOException, AflException, AbortFaultException {
+			DataOutputStream outStream = new DataOutputStream(socket.getOutputStream());
+			if (p.stat.equals(FaultStat.CRASH)) {
+				replyToNode(outStream, "CRASH", index.get(), p.curAppear);
+				String[] args = new String[3];
+				args[0] = p.actualNodeIp;
+				args[1] = String.valueOf(favconfig.AFL_PORT);
+				args[2] = AflCommand.SAVE.toString();
+				AflCli.main(args);
+				rst.add(Stat.log("Prepare to crash node " + p.actualNodeIp));
+				List<String> crashRst = cluster.killNode(p.actualNodeIp, p.actualNodeIp);
+				rst.addAll(crashRst);
+				rst.add(Stat.log("node " + p.actualNodeIp + " was killed!"));
+				Mutation.buildClusterStatus(currentCluster, p.actualNodeIp, FaultStat.CRASH);
+			} else if (p.stat.equals(FaultStat.REBOOT)) {
+				if (Mutation.isAliveNode(currentCluster, p.actualNodeIp)) {
+					throw new AbortFaultException("Restarting an alive node " + p.actualNodeIp + "!!!");
+				}
+				// Restart the node
+				List<String> restartRst = cluster.restartNode(p.actualNodeIp);
+				rst.addAll(restartRst);
+				rst.add(Stat.log("node " + p.actualNodeIp + " was restarted!"));
+				outStream = new DataOutputStream(socket.getOutputStream());
+				replyToNode(outStream, "REBOOT", fIndex.get(), p.curAppear);
+				Mutation.buildClusterStatus(currentCluster, p.actualNodeIp, FaultStat.REBOOT);
+			} else {
+				replyToNode(outStream, "CONTI", fIndex.get(), p.curAppear);
+			}
+		}
+
+		public void doOperationToCluster(IOPoint p) throws IOException, AflException, AbortFaultException {
+			DataOutputStream outStream = new DataOutputStream(socket.getOutputStream());
+			replyToNode(outStream, "CONTI", fIndex.get(), 0);
+			Stat.log("reply CONTI for " + p.ioID + " to node " + p.ip + ", path: " + p.PATH);
+		}
+
+		public void doOperationToCluster(FaultPointBlocked b) throws IOException, AflException, AbortFaultException {
+			DataOutputStream outStream = new DataOutputStream(socket.getOutputStream());
+			replyToNode(outStream, "CONTI", fIndex.get(), 0);
+			Stat.log("reply CONTI for " + b.ioID + " to node " + b.reportNodeIp + ", path: " + b.path);
+		}
+
+		// public String getStringOfStat(FaultPoint p) {
+		// 	String result = "result";
+		// 	switch (p.stat) {
+		// 		case CRASH:
+		// 			result = "CRASH";
+		// 			break;
+		// 		case REBOOT:
+		// 			result = "REBOOT";
+		// 			break;
+		// 		case NO:
+		// 			result = "NO";
+		// 			break;
+		// 		default:
+		// 			result = "Not in Enum";
+		// 			break;
+		// 	}
+		// 	return result;
+		// }
+
+	}
+
+	public class ListScanner extends Thread {
+
+		public long scanInternal = 10;
+		public long maxTime = 30000;
+
+		public int result = -1;
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			super.run();
+			Stat.log("ListScanner start...");
+			Stat.log("ioList size is: " + entry.ioSeq.size());
+			Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
+			Stat.log("ListScanner next to wait: " + entry.ioSeq.get(index.get()).ioID + ", path: "
+					+ entry.ioSeq.get(index.get()).PATH);
+			int extraWriteMsgHandleCount = 0;
+			try {
+				// boolean timeOut = false;
+				// while (!timeOut && index.get() < entry.ioSeq.size()) {
+				while (index.get() < entry.ioSeq.size()) {
+					IOPoint p = entry.ioSeq.get(index.get());
+					Stat.log("ListScanner next index to check:  " + index.get());
+					Stat.log("ListScanner next to wait: " + p.ioID + ", from " + p.ip + ", path: " + p.PATH);
+					// long timeCount = 0;
+					FaultPointBlocked b = findAndRemoveFPBInList(p);
+					while (b == null) {
+						sleep(scanInternal);
+						b = findAndRemoveFPBInList(p);
+					}
+					Stat.log("Find FaultPointBlocked! For now, faultPointList size is " + faultPointList.size());
+
+					if (!arriveAllFaultPoint) {
+						updataIOAppearIdxInFaultSeq(entry.faultSeq, fIndex.get(), b.ioID);
+						FaultPoint fp = entry.faultSeq.seq.get(fIndex.get());
+						if (checkFaultPointMatchIOPoint(fp, p)) {
+							fp.actualNodeIp = p.ip;
+							Stat.log("A FaultPoint is found! The faultPoint is: " + fp.stat + ", ioID: " + fp.ioPt.ioID
+									+ ", ip: " + fp.ioPt.ip + ", path: " + fp.ioPt.PATH);
+							b.cilentHander.doOperationToCluster(fp);
+							int nf = fIndex.incrementAndGet();
+							Stat.log(
+									"Next faultPoint index: " + nf + ", faultPoint size: " + entry.faultSeq.seq.size());
+							if (nf >= entry.faultSeq.seq.size()) {
+								Stat.log("Arrive all FaultPoint!");
+								arriveAllFaultPoint = true;
+								// break;
+							} else {
+								Stat.log("Next faultPoint is: " + entry.faultSeq.seq.get(nf).stat + ", ioID: "
+										+ entry.faultSeq.seq.get(nf).ioPt.ioID + ", ip: "
+										+ entry.faultSeq.seq.get(nf).ioPt.ip + ", path: "
+										+ entry.faultSeq.seq.get(nf).ioPt.PATH);
+							}
+						} else {
+							b.cilentHander.doOperationToCluster(p);
+						}
+					} else {
+						b.cilentHander.doOperationToCluster(p);
+					}
+
+					index.getAndIncrement();
+					actualFPBList.add(b);
+				}
+				Stat.log("All of IOPoints have been replayed!");
+
+				// if (timeOut) {
+				// result = 1;
+				// }
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+
+		}
+
+		public void updataIOAppearIdxInFaultSeq(FaultSequence faultSequence, int curFault, int ioID) {
+			for (int i = curFault; i < faultSequence.seq.size(); i++) {
+				FaultPoint p = faultSequence.seq.get(i);
+				if (p.ioPt.ioID == ioID && p.curAppear < p.ioPt.appearIdx) {
+					// meet the a fault point, check appear indexes
+					p.curAppear++;
+				}
+			}
+		}
+
+		public boolean checkFaultPointMatchIOPoint(FaultPoint fp, IOPoint io) {
+			boolean result = false;
+			if (fp.ioPt.ioID == io.ioID && fp.ioPt.appearIdx == io.appearIdx) {
+				result = true;
+			}
+			return result;
+		}
+
+	}
+
+	public static List<String> extractInformationFromPath(String path) {
+		List<String> result = new ArrayList<>();
+		String type = "not msg";
+		if (path.startsWith("FAVMSG") && (!path.contains("READ"))) {
+			type = "write";
+		}
+		if (path.startsWith("FAVMSG:READ")) {
+			type = "read";
+		}
+		result.add(type);
+		if (type.equals("write")) {
+			String connectionNode = path.split("&")[0].split(":")[1];
+			result.add(connectionNode);
+			String msgId = path.split("&")[1];
+			result.add(msgId);
+		}
+		if (type.equals("read")) {
+			String sourIP = path.split("&")[0].split("READ")[1];
+			result.add(sourIP);
+			String msgId = path.split("&")[1];
+			result.add(msgId);
+		}
+		if (type.equals("not msg")) {
+			String ioInfo = path;
+			result.add(ioInfo);
+		}
+		return result;
+	}
+
+	public static List<String> tansformPathToStrList(String path, String reportIP) {
+		List<String> result = new ArrayList<>();
+		result = extractInformationFromPath(path);
+		if (result.get(0).equals("write")) {
+			result.add(1, reportIP);
+		}
+		if (result.get(0).equals("read")) {
+			result.add(2, reportIP);
+		}
+		return result;
+	}
+
+	public FaultPointBlocked findWriteMsgFPBInList(String sourIP, String destIP) {
+		FaultPointBlocked result = null;
+		for (int i = 0; i < faultPointList.size(); i++) {
+			FaultPointBlocked b = faultPointList.get(i);
+			List<String> pathList = tansformPathToStrList(b.path, b.reportNodeIp);
+			if (pathList.get(0).equals("write")) {
+				String bsour = pathList.get(1);
+				String bdest = pathList.get(2);
+				if (bdest.equals(destIP) && bsour.equals(sourIP)) {
+					Stat.log("Find A write msg which has waited, node: " + bsour + ", path: " + b.path);
+					result = b;
+					break;
+				}
+			}
+		}
+		return result;
+	}
+
+	public FaultPointBlocked findAndRemoveFPBInList(IOPoint p) {
+		FaultPointBlocked result = null;
+		for (int i = 0; i < faultPointList.size(); i++) {
+			FaultPointBlocked b = faultPointList.get(i);
+			if (checkReportInformationEqualToIOPoint(b, p)) {
+				result = b;
+				break;
+			}
+		}
+		if (result != null) {
+			faultPointList.remove(result);
+		}
+		return result;
+	}
+
+	public static boolean checkReportInformationEqualToIOPoint(FaultPointBlocked b, IOPoint i) {
+		boolean result = checkReportInformationEqualToIOPoint(b.ioID, b.reportNodeIp, b.path, i);
+		return result;
+	}
+
+	public static boolean checkReportInformationEqualToIOPoint(int ioID, String reportNodeIp, String path, IOPoint i) {
+		boolean result = false;
+		int nIOID = i.computeIoID();
+		String nip = i.ip;
+		String nPath = i.PATH;
+		if ((nIOID == ioID) && (nip.equals(reportNodeIp))
+			// && (nPath.equals(path))
+			// && (nPath.split("&")[0].equals(path.split("&")[0]))
+			&& (FaultPointBlocked.equalInPathPreFix(path, nPath))) {
+			result = true;
+		}
+		return result;
+	}
+
+}
