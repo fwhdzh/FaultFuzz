@@ -21,6 +21,23 @@ public class YarnInstrument {
         return FAVPathType.FAVMSG.toString()+":READ"+ip+"&"+msgid;
     }
 
+    public static String combineIpWithLogicClockMsg(String ip, String logicClockMsg) {
+        return FAVPathType.FAVMSG.toString()+":"+ip+"&"+logicClockMsg;
+    }
+
+    public static String combineIpWithLogicClockMsgForRead(String ip, String logicClockMsg) {
+        return FAVPathType.FAVMSG.toString()+":READ"+ip+"&"+logicClockMsg;
+    }
+
+    public static byte[] transformStrToByteArr(String s) {
+        return s.getBytes();
+    }
+
+    public static String transformByteArrToStr(byte[] bArr) {
+        String result = new String(bArr);
+        return result;
+    }
+
     public static String appendRead(String s) {
         return s+"*READ";
     }

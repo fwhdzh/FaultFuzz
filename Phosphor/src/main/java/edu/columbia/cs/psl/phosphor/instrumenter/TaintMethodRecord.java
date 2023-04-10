@@ -21,6 +21,7 @@ import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import edu.iscas.tcse.favtrigger.taint.FAVTaint;
 import edu.iscas.tcse.favtrigger.tracing.RecordTaint;
 import edu.iscas.tcse.favtrigger.instrumenter.AppRunMode;
+import edu.iscas.tcse.favtrigger.instrumenter.yarn.YarnInstrument;
 import edu.iscas.tcse.favtrigger.instrumenter.yarn.YarnRunMode;
 import edu.iscas.tcse.favtrigger.instrumenter.jdk.JRERunMode;
 import edu.iscas.tcse.favtrigger.instrumenter.mapred.MRRunMode;
@@ -99,6 +100,12 @@ public enum TaintMethodRecord implements MethodRecord {
     FAV_BUFFER_WAIT_MSGID(INVOKESTATIC, RecordTaint.class, "newByteBufferWaitMsgID", ByteBuffer.class, false, ByteBuffer.class),
     FAV_BYTES_WITHOUT_MSGID(INVOKESTATIC, RecordTaint.class, "restoreMsgBytes", int.class, false, byte[].class, LazyByteArrayObjTags.class, int.class, int.class, int.class, String.class, String.class, String.class, String.class, String.class, String.class),
     FAV_BUFFER_WITHOUT_MSGID(INVOKESTATIC, RecordTaint.class, "restoreReadByteBufferResult", TaintedIntWithObjTag.class, false, TaintedIntWithObjTag.class, ByteBuffer.class, LazyByteArrayObjTags.class, ByteBuffer.class, String.class, String.class, String.class, String.class, String.class, String.class),
+
+    FAV_NEW_LOGIC_CLOCK_MSGID(INVOKESTATIC, RecordTaint.class, "getLogicClockMsgStr", String.class, false, String.class),
+    FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG(INVOKESTATIC, YarnInstrument.class, "combineIpWithLogicClockMsg", String.class, false, String.class, String.class),
+    FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ(INVOKESTATIC, YarnInstrument.class, "combineIpWithLogicClockMsgForRead", String.class, false, String.class, String.class),
+    FAV_TRANSFORM_STRING_TO_BYTEARRAY(INVOKESTATIC, YarnInstrument.class, "transformStrToByteArr", byte[].class, false, String.class),
+    FAV_TRANSFORM_BYTEARRAY_TO_STRING(INVOKESTATIC, YarnInstrument.class, "transformByteArrToStr", String.class, false, byte[].class),
 
     //YarnRunMode
     FAV_YARN_RECORD_OR_TRIGGER(INVOKESTATIC, YarnRunMode.class, "recordYarnRpcOrTrigger", Void.TYPE, false, long.class, FileOutputStream.class, String.class, LazyByteArrayObjTags.class),

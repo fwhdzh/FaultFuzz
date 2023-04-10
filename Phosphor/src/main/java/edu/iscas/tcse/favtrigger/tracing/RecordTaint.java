@@ -8,7 +8,9 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
@@ -17,6 +19,7 @@ import edu.columbia.cs.psl.phosphor.runtime.Taint;
 import edu.columbia.cs.psl.phosphor.struct.LazyByteArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.LazyReferenceArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.TaintedIntWithObjTag;
+// import edu.columbia.cs.psl.phosphor.struct.harmony.util.HashMap;
 import edu.iscas.tcse.favtrigger.MyLogger;
 //import edu.iscas.tcse.favtrigger.instrumenter.SysTime;
 import edu.iscas.tcse.favtrigger.taint.FAVTaint;
@@ -114,17 +117,39 @@ public class RecordTaint {
 		}
 	}
 
-	public static int getMsgID() {
+	public static Random rand = null;
+
+	synchronized public static int getMsgID() {
 		if(Configuration.USE_MSGID || Configuration.YARN_RPC || Configuration.FOR_YARN
 		        || Configuration.FOR_MR || Configuration.MR_RPC || Configuration.FOR_HDFS
 				|| Configuration.FOR_HBASE || Configuration.HDFS_RPC || Configuration.HBASE_RPC
 				|| Configuration.FOR_ZK || Configuration.ZK_CLI) {
-            Random rand = new Random();
-	        int temp = rand.nextInt(Integer.MAX_VALUE);//exclusive Max_value
+			int temp = -1;
+            // Random rand = new Random();
+			// synchronized (rand) {
+				if (rand == null) {
+					rand = new Random(Configuration.TAINT_MSG_RAND_SEED);
+					
+				}
+				temp = rand.nextInt(Integer.MAX_VALUE);//exclusive Max_value
+			// }
 	        return temp;
 		} else {
 			return Integer.MAX_VALUE;
 		}
+	}
+
+	public static int totalMsgCount = 0;
+	// public static int[][] msgCountArr = new int[5][5];
+	public static Map<String, Integer> msgCountMap = new HashMap<>();
+
+	synchronized public static String getLogicClockMsgStr(String connectIP) {
+		String result = "";
+		totalMsgCount++;
+		msgCountMap.computeIfAbsent(connectIP, key -> 0);
+		msgCountMap.computeIfPresent(connectIP, (key, value) -> value+1 );
+		result = result + totalMsgCount + "#" + msgCountMap.get(connectIP);
+		return result;
 	}
 
 	private static final char[] HEXES = {
