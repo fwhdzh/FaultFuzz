@@ -1,22 +1,29 @@
 package edu.iscas.CCrashFuzzer.utils;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
 
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.IOPoint;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.RunCommand;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 
 public class FileUtil {
 	public static String fuzzer_id_file = "crashfuzz_proc_id";
@@ -432,6 +439,71 @@ public class FileUtil {
 			}
 		}
 	}
+
+	public static FaultSequence loadCurrentCrashPoint(String cur_crash_path) {
+		FaultSequence faultSeq = null;
+    	try {
+            faultSeq = new FaultSequence();
+            faultSeq.seq = new ArrayList<FaultPoint>();
+            faultSeq.curAppear = 0;
+            // faultSeq.curFault = -1;
+			AtomicInteger curFaultNum = new AtomicInteger(-1);
+			faultSeq.curFault = curFaultNum;
+
+    		File file = new File(cur_crash_path);
+			if(!file.exists()) {
+				return null;
+			}
+			FileReader fileReader;
+			fileReader = new FileReader(file);
+
+            BufferedReader br = new BufferedReader(fileReader);
+            String lineContent = null;
+            FaultPoint p = null;
+            while((lineContent = br.readLine()) != null){
+            	String content = lineContent.substring(lineContent.indexOf("=")+1, lineContent.length()).trim();
+            	if(lineContent.startsWith("fault point=")) {
+            		p = new FaultPoint();
+            		p.ioPt = new IOPoint();
+            	} else if (lineContent.startsWith("event=")) {
+            		if(content.trim().equals(FaultStat.CRASH.toString())) {
+            			p.stat = FaultStat.CRASH;
+            		} else if(content.trim().equals(FaultStat.REBOOT.toString())) {
+            			p.stat = FaultStat.REBOOT;
+            		}
+            	} else if (lineContent.startsWith("pos=")) {
+            		if(content.trim().equals(FaultPos.BEFORE.toString())) {
+            			p.pos = FaultPos.BEFORE;
+            		} else if(content.trim().equals(FaultPos.AFTER.toString())) {
+            			p.pos = FaultPos.AFTER;
+            		}
+            	} else if(lineContent.startsWith("nodeIp=")) {
+            		p.tarNodeIp = content.trim();
+            	} else if(lineContent.startsWith("ioID=")) {
+            		p.ioPt.ioID = Integer.parseInt(content.trim());
+            	} else if (lineContent.startsWith("ioCallStack=")) {
+            		List<String> callstack = new ArrayList<String>(Arrays.asList(content.substring(1, content.length()-1).split(", ")));
+            		p.ioPt.CALLSTACK = callstack;
+            	} else if (lineContent.startsWith("path=")) {
+            		p.ioPt.PATH = content.trim();
+            	} else if(lineContent.startsWith("ioAppearIdx=")) {
+            		p.ioPt.appearIdx = Integer.parseInt(content.trim());
+            	} else if(lineContent.equals("end")) {
+            		faultSeq.seq.add(p);
+            	}
+	    	}
+            if(faultSeq.seq.size()>0) {
+            	// faultSeq.curFault = 0;
+				AtomicInteger ai2 = new AtomicInteger(0);
+				faultSeq.curFault = ai2;
+            }
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return faultSeq;
+    }
 	
 	public static void copyFileToDir(String src, String des) {
         File sourceFile = new File(src);
