@@ -3,3 +3,5 @@
 .settings
 .vscode
 tmp
+CCrashFuzzer-parent.iml
+dependency-reduced-pom.xml
