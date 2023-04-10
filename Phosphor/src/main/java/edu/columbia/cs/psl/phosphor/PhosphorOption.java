@@ -669,6 +669,14 @@ public enum PhosphorOption {
                 Configuration.ignoredMethods.add(commandLine.getOptionValue(optionName));
             }
         }
+    },
+    SAVE_RESULT_INTERNAL(new PhosphorOptionBuilder(null, false, true).argType(int.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.SAVE_RESULT_INTERNAL = Integer.parseInt(commandLine.getOptionValue(optionName));
+            }
+        }
     };
 
     final String optionName;

@@ -116,6 +116,16 @@ public class Configuration {
     public static final Class TAINT_TAG_OBJ_ARRAY_CLASS = (Taint[].class); //favtrigger
     public static boolean FAVDEBUG = false;
 
+    // configurable
+    public static long SAVE_RESULT_INTERNAL = 10000;
+
+    // not configurable by user
+    public static long TAINT_MSG_RAND_SEED = 0;
+
+    // not stable for now
+    public static boolean REPLAY_MODE = true;
+    public static boolean REPLAY_NOW = true;
+
     private Configuration() {
         // Prevents this class from being instantiated
     }

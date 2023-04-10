@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import edu.columbia.cs.psl.phosphor.Configuration;
+import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.tracing.FAVEntry;
 import edu.iscas.tcse.favtrigger.tracing.RecordsHandler;
 
@@ -176,7 +178,8 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
     				deout.close();
     			}
 
-    			System.out.println("start output traces to file:"+RecordsHandler.traces.keySet().size());
+				MyLogger.log("start output traces to file:"+RecordsHandler.traces.keySet().size());
+    			// System.out.println("start output traces to file:"+RecordsHandler.traces.keySet().size());
                 for(String file:RecordsHandler.traces.keySet()) {
                     FileOutputStream out = RecordsHandler.outs.get(file);
                     if(out == null) {
@@ -196,7 +199,8 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
                         //e.printStackTrace();
                     }
                 }
-    			System.out.println("save_result end");
+				MyLogger.log("save_result end");
+    			// System.out.println("save_result end");
     		} catch (IOException e) {
     			// TODO Auto-generated catch block
     			e.printStackTrace();
@@ -314,7 +318,7 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
 				System.out.println("ALF save results periodically ....");
 				while(main_started){
 		            try {
-						Thread.currentThread().sleep(10000);
+						Thread.currentThread().sleep(Configuration.SAVE_RESULT_INTERNAL);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 //						e.printStackTrace();

@@ -43,10 +43,7 @@ public class Conf {
 	public int AFL_PORT;
 	public int MAX_FAULTS = Integer.MAX_VALUE;
     
-    /*
-     * Some functions have not been tested fully.
-     * So, these configurations will not be provided to users for the time being
-     */
+    
     public boolean RECOVERY_MODE = false;
     // public String RECOVERY_ROOT_PATH = "/data/fengwenhan/data/crashfuzz_fwh";
     // public String RECOVERY_FUZZINFO_PATH = "/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt";
@@ -58,11 +55,16 @@ public class Conf {
     public String RECOVERY_TESTEDFAULTID_PATH;
     public String RECOVERY_VIRGINBITS_PATH;
 
-    // public boolean REPLAY_MODE = true;
-    // public String REPLAY_QUEUEENTRY_PATH = "/data/fengwenhan/data/crashfuzz_fwh/replay/QueueEntry.txt";
-    // // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_backup_6_full_workload/queue/6_2f";
-    // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_ctrl/queue/6_1f";
-    // public long REPLAY_HANG_TIME = 40;
+    /*
+     * Some functions have not been tested fully.
+     * So, these configurations will not be provided to users for the time being
+     */
+    public boolean REPLAY_MODE = true;
+    public String REPLAY_QUEUEENTRY_PATH = "/data/fengwenhan/data/crashfuzz_fwh/replay/QueueEntry.txt";
+    // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_backup_6_full_workload/queue/6_2f";
+    public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_ctrl/queue/6_1f";
+    public long REPLAY_HANG_TIME = 40;
+    public String REPLAY_ACTUAL_FPB_LIST_PATH = "/data/fengwenhan/data/crashfuzz_fwh/actualFPBList.txt";
 
 	
 	public static class MaxDownNodes{
