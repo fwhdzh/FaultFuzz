@@ -11,8 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.alibaba.fastjson.JSONObject;
 
-import edu.iscas.CCrashFuzzer.DeterministicController.DeterministicCilentHandler;
-import edu.iscas.CCrashFuzzer.DeterministicController.FaultPointBlocked;
 import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.instrumenter.TriggerEvent;
 import edu.columbia.cs.psl.phosphor.Configuration;

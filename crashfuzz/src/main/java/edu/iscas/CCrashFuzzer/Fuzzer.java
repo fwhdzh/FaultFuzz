@@ -25,6 +25,7 @@ import com.alibaba.fastjson.JSONObject;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
+import edu.iscas.CCrashFuzzer.control.ReplayTarget;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class Fuzzer {
@@ -879,7 +880,10 @@ public class Fuzzer {
 		QueueEntry entry = retriveReplayQueueEntryFromRSTFolder(conf.REPLAY_TRACE_PATH);
 		ReplayTarget rt = new ReplayTarget();
 		// rt.replayATest(entry, conf, "replay", conf.hangSeconds);
-		rt.replayATest(entry, conf, "replay", conf.REPLAY_HANG_TIME);
+		// rt.replayATest(entry, conf, "replay", conf.REPLAY_HANG_TIME);
+		rt.beforeTarget(entry, conf, "replay", conf.REPLAY_HANG_TIME);
+		rt.doTarget();
+		int result = rt.afterTarget().result;
 	}
 
 	public void replay() {

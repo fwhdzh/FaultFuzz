@@ -38,7 +38,7 @@ public class Controller {
     public boolean injectionAborted;//cannot schedule current fault sequence any more
     public ArrayList<String> rst;
     public Conf favconfig;
-    List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
+    public List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
     public final int maxClients = 300;
 
     public Controller(Cluster cluster, int port, Conf favconfig) {

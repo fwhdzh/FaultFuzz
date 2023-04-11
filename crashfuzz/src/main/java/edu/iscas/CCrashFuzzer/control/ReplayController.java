@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.control;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -20,15 +20,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
+import edu.iscas.CCrashFuzzer.AflCli;
+import edu.iscas.CCrashFuzzer.Cluster;
+import edu.iscas.CCrashFuzzer.Conf;
+import edu.iscas.CCrashFuzzer.Controller;
+import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.IOPoint;
+import edu.iscas.CCrashFuzzer.Mutation;
+import edu.iscas.CCrashFuzzer.QueueEntry;
+import edu.iscas.CCrashFuzzer.RunCommand;
+import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
+import edu.iscas.CCrashFuzzer.Controller.AbortFaultException;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
-public class DeterministicController extends Controller {
+public class ReplayController extends Controller {
 
-	public Set<DeterministicCilentHandler> deterministicClients;
+	public Set<ReplayCilentHandler> replayClients;
 
 	public List<FaultPointBlocked> faultPointList;
 	public AtomicInteger index;
@@ -42,10 +53,10 @@ public class DeterministicController extends Controller {
 	public List<FaultPointBlocked> actualFPBList;
 	public int counter;
 
-	public DeterministicController(Cluster cluster, int port, Conf favconfig) {
+	public ReplayController(Cluster cluster, int port, Conf favconfig) {
 		super(cluster, port, favconfig);
 
-		deterministicClients = Collections.synchronizedSet(new HashSet<DeterministicCilentHandler>());
+		replayClients = Collections.synchronizedSet(new HashSet<ReplayCilentHandler>());
 		faultPointList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
 		index = new AtomicInteger(0);
 		fIndex = new AtomicInteger(0);
@@ -60,10 +71,10 @@ public class DeterministicController extends Controller {
 		public String reportNodeIp;
 		public String cliId;
 		public String path;
-		public DeterministicCilentHandler cilentHander;
+		public ReplayCilentHandler cilentHander;
 
 		public FaultPointBlocked(int ioID, String reportNodeIp, String cliId, String path,
-				DeterministicCilentHandler cilentHander) {
+				ReplayCilentHandler cilentHander) {
 			this.ioID = ioID;
 			this.reportNodeIp = reportNodeIp;
 			this.cliId = cliId;
@@ -196,19 +207,19 @@ public class DeterministicController extends Controller {
 					Stat.log("Controller started ...");
 
 					while (running) {
-						while (deterministicClients.size() > maxClients) {
+						while (replayClients.size() > maxClients) {
 							Thread.currentThread().sleep(500);
 						}
 						Socket socket = serverSocket.accept(); // server accept the client connection request
 						counter++;
 						String s = "Accept a socket!";
-						s = s + "assign the socket to DeterministicCilentHandler id :" + counter;
+						s = s + "assign the socket to ReplayCilentHandler id :" + counter;
 						Stat.log(s);
 						// System.out.println("a client "+counter+" was
 						// connected"+socket.getRemoteSocketAddress());
-						DeterministicCilentHandler sct = new DeterministicCilentHandler(socket, counter); // send the request to a separate thread
+						ReplayCilentHandler sct = new ReplayCilentHandler(socket, counter); // send the request to a separate thread
 						sct.start();
-						deterministicClients.add(sct);
+						replayClients.add(sct);
 					}
 					serverSocket.close();
 
@@ -239,11 +250,11 @@ public class DeterministicController extends Controller {
 		}
 	}
 
-	public class DeterministicCilentHandler extends Thread {
+	public class ReplayCilentHandler extends Thread {
 		final Socket socket;
 		final int id;
 
-		public DeterministicCilentHandler(Socket socket, int id) {
+		public ReplayCilentHandler(Socket socket, int id) {
 			this.socket = socket;
 			this.id = id;
 		}
@@ -251,23 +262,23 @@ public class DeterministicController extends Controller {
 		@Override
 		public void run() {
 			try {
-				Stat.log("DeterministicCilentHandler start...");
+				Stat.log("ReplayCilentHandler start...");
 				DataInputStream inStream = new DataInputStream(socket.getInputStream());
 				// DataOutputStream outStream = new DataOutputStream(socket.getOutputStream());
 				// ObjectInputStream objIn = new ObjectInputStream(inStream);
 
 				int ioID = inStream.readInt();
-				// Stat.log("DeterministicCilentHandler read ioID: " + ioID);
+				// Stat.log("ReplayCilentHandler read ioID: " + ioID);
 				String reportNodeIp = inStream.readUTF();
-				// Stat.log("DeterministicCilentHandler read reportNodeIp: " + reportNodeIp);
+				// Stat.log("ReplayCilentHandler read reportNodeIp: " + reportNodeIp);
 				String cliID = inStream.readUTF();
 				// Stat.log("recieve cliID: " + cliID + " for ioID " + ioID + ", ");
 				String path = inStream.readUTF();
 				String threadInfo = inStream.readUTF();
 				// Stat.log("recieve path: " + path);
 				String info = "";
-				info = info + "DeterministicCilentHandler read ioID: " + ioID + "\n";
-				info = info + "DeterministicCilentHandler read reportNodeIp: " + reportNodeIp + "\n";
+				info = info + "ReplayCilentHandler read ioID: " + ioID + "\n";
+				info = info + "ReplayCilentHandler read reportNodeIp: " + reportNodeIp + "\n";
 				info = info + "recieve cliID: " + cliID + " for ioID " + ioID + ", " + "\n";
 				info = info + "recieve path: " + path + "\n";
 				info = info + "recieve threadInfo: " + threadInfo + "\n";
@@ -315,7 +326,7 @@ public class DeterministicController extends Controller {
 			// socket.getOutputStream().close();
 			socket.close();
 
-			deterministicClients.remove(this);
+			replayClients.remove(this);
 		}
 
 		// public void addToFaultPointList(int ioID, String reportNodeIp) {
@@ -522,7 +533,7 @@ public class DeterministicController extends Controller {
 		return result;
 	}
 
-	public FaultPointBlocked findWriteMsgFPBInList(String sourIP, String destIP) {
+	private FaultPointBlocked findWriteMsgFPBInList(String sourIP, String destIP) {
 		FaultPointBlocked result = null;
 		for (int i = 0; i < faultPointList.size(); i++) {
 			FaultPointBlocked b = faultPointList.get(i);

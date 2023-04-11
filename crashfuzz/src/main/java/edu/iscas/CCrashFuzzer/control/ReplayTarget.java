@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.control;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,19 +11,67 @@ import java.util.List;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
+import edu.iscas.CCrashFuzzer.AflCli;
+import edu.iscas.CCrashFuzzer.Cluster;
+import edu.iscas.CCrashFuzzer.Conf;
+import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.Fuzzer;
+import edu.iscas.CCrashFuzzer.IOPoint;
+import edu.iscas.CCrashFuzzer.Monitor;
+import edu.iscas.CCrashFuzzer.QueueEntry;
+import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.Controller.AbortFaultException;
-import edu.iscas.CCrashFuzzer.DeterministicController.FaultPointBlocked;
+import edu.iscas.CCrashFuzzer.control.ReplayController.FaultPointBlocked;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
-public class ReplayTarget {
+public class ReplayTarget extends AbstractTarget{
     public ArrayList<String> logInfo;
 	public ArrayList<String> checkInfo;
 	public long a_exec_seconds;
 
-    public int replayATest(QueueEntry entry, final Conf conf, String testID, long waitSeconds) {
+	QueueEntry mEntry;
+	Conf mConf;
+	String mTestID;
+	long mWaitSeconds;
+
+	int mResult;
+
+	public static class ReplayResult {
+		public int result;
+	}
+
+	@Override
+	public void beforeTarget(Object data, Conf conf, Object... args) {
+		// TODO Auto-generated method stub
+		mEntry = (QueueEntry) data;
+		mConf = conf;
+		if (args.length == 2) {
+			mTestID = (String) args[0];
+			mWaitSeconds = (Long) args[1];
+		}
+		else {
+			throw new IllegalArgumentException("replay target args should be 2");
+		}
+	}
+
+	@Override
+	public void doTarget() {
+		// TODO Auto-generated method stub
+		mResult = replayATest(mEntry, mConf, mTestID, mWaitSeconds);
+	}
+
+	@Override
+	public ReplayResult afterTarget() {
+		// TODO Auto-generated method stub
+		ReplayResult replayRst = new ReplayResult();
+		replayRst.result = mResult;
+		return replayRst;
+	}
+
+    private int replayATest(QueueEntry entry, final Conf conf, String testID, long waitSeconds) {
 
         logInfo = new ArrayList<String>();
 		checkInfo = new ArrayList<String>();
@@ -39,7 +87,7 @@ public class ReplayTarget {
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
-		final DeterministicController dController = new DeterministicController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
+		final ReplayController dController = new ReplayController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 //        controller.prepareFaultSeq(FaultSequence.getEmptyIns());//keep curCrash null
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(dController.cluster.prepareCluster());
@@ -249,7 +297,7 @@ public class ReplayTarget {
         for (int i=0; i< meaningSize; i++) {
             FaultPointBlocked fpb = record.get(i);
             IOPoint p = iList.get(i);
-            boolean f = DeterministicController.checkReportInformationEqualToIOPoint(fpb, p);
+            boolean f = ReplayController.checkReportInformationEqualToIOPoint(fpb, p);
             if (!f) {
                 Stat.log("record and IOList differ from index: " + i);
             }
@@ -257,5 +305,7 @@ public class ReplayTarget {
         Stat.log("check where the differ of record and IOList end.");
         Stat.log("check whether there is a different msgId ");
     }
+
+	
 	
 }
