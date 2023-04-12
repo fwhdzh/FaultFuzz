@@ -10,7 +10,7 @@ import java.util.Arrays;
 import org.apache.commons.io.FileUtils;
 
 import edu.iscas.CCrashFuzzer.Conf;
-import edu.iscas.CCrashFuzzer.FuzzTarget;
+import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class BruteFuzzMain {
@@ -42,7 +42,7 @@ public class BruteFuzzMain {
 			allowRecovery = true;
 		}
 		
-		BruteFuzzer fuzzer = new BruteFuzzer(new FuzzTarget(), conf, allowRecovery);
+		BruteFuzzer fuzzer = new BruteFuzzer(new NormalTarget(), conf, allowRecovery);
 		fuzzer.start();
 	}
 }

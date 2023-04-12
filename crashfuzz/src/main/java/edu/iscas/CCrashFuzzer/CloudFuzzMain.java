@@ -9,6 +9,7 @@ import java.util.Arrays;
 
 import org.apache.commons.io.FileUtils;
 
+import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class CloudFuzzMain {
@@ -40,7 +41,7 @@ public class CloudFuzzMain {
 			allowRecovery = true;
 		}
 		
-		Fuzzer fuzzer = new Fuzzer(new FuzzTarget(), conf, allowRecovery);
+		Fuzzer fuzzer = new Fuzzer(new NormalTarget(), conf, allowRecovery);
 		fuzzer.start();
 	}
 }

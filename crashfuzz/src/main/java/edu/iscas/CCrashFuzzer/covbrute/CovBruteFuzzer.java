@@ -23,7 +23,6 @@ import edu.iscas.CCrashFuzzer.FuzzConf;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.FuzzInfo;
-import edu.iscas.CCrashFuzzer.FuzzTarget;
 import edu.iscas.CCrashFuzzer.Fuzzer;
 import edu.iscas.CCrashFuzzer.IOPoint;
 import edu.iscas.CCrashFuzzer.Monitor;
@@ -31,6 +30,7 @@ import edu.iscas.CCrashFuzzer.Mutation;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.QueueManagerNew;
 import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
+import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.RecoveryManager;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.TraceReader;
@@ -38,7 +38,7 @@ import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class CovBruteFuzzer {
 	public static int MAP_SIZE = 100;
-	private final FuzzTarget target;
+	private final NormalTarget target;
     private long totalSeedCases;
     private Conf conf;
     Monitor monitor;
@@ -77,7 +77,7 @@ public class CovBruteFuzzer {
       /* 05 */ FAULT_NOBITS
     };
     
-    public CovBruteFuzzer(FuzzTarget target, Conf conf, boolean recover) {
+    public CovBruteFuzzer(NormalTarget target, Conf conf, boolean recover) {
     	monitor = new Monitor(conf);
     	stat = new Stat();
     	this.target = target;

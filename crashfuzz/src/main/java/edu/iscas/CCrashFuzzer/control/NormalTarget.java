@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.control;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,12 +8,19 @@ import java.util.List;
 
 import com.alibaba.fastjson.JSONObject;
 
+import edu.iscas.CCrashFuzzer.AflCli;
+import edu.iscas.CCrashFuzzer.Cluster;
+import edu.iscas.CCrashFuzzer.Conf;
+import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.Fuzzer;
+import edu.iscas.CCrashFuzzer.Monitor;
+import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
-public class FuzzTarget extends AbstractFuzzTarget{
+public class NormalTarget extends AbstractNormalTarget{
 	public ArrayList<String> logInfo;
 	public ArrayList<String> checkInfo;
 	public long a_exec_seconds;
@@ -51,7 +58,7 @@ public class FuzzTarget extends AbstractFuzzTarget{
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
-		final Controller controller = new Controller(new Cluster(conf), conf.CONTROLLER_PORT, conf);
+		final NormalController controller = new NormalController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 //        controller.prepareFaultSeq(FaultSequence.getEmptyIns());//keep curCrash null
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(controller.cluster.prepareCluster());

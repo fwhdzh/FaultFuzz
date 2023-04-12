@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer.control;
+package edu.iscas.CCrashFuzzer.control.replay;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -23,7 +23,6 @@ import com.alibaba.fastjson.JSONObject;
 import edu.iscas.CCrashFuzzer.AflCli;
 import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
-import edu.iscas.CCrashFuzzer.Controller;
 import edu.iscas.CCrashFuzzer.FaultSequence;
 import edu.iscas.CCrashFuzzer.IOPoint;
 import edu.iscas.CCrashFuzzer.Mutation;
@@ -32,12 +31,23 @@ import edu.iscas.CCrashFuzzer.RunCommand;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
-import edu.iscas.CCrashFuzzer.Controller.AbortFaultException;
+import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
+import edu.iscas.CCrashFuzzer.control.AbstractController;
+import edu.iscas.CCrashFuzzer.control.NormalController;
+import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
+import edu.iscas.CCrashFuzzer.control.NormalController.ClientHandler;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
-public class ReplayController extends Controller {
+public class ReplayController 
+// extends NormalController 
+extends AbstractController
+{
+
+	public Thread serverThread;
+	public ServerSocket serverSocket;
+	public List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
 
 	public Set<ReplayCilentHandler> replayClients;
 
@@ -53,8 +63,12 @@ public class ReplayController extends Controller {
 	public List<FaultPointBlocked> actualFPBList;
 	public int counter;
 
+	public boolean finishFlag;
+
 	public ReplayController(Cluster cluster, int port, Conf favconfig) {
 		super(cluster, port, favconfig);
+
+		currentCluster = Mutation.cloneCluster(favconfig.maxDownGroup);
 
 		replayClients = Collections.synchronizedSet(new HashSet<ReplayCilentHandler>());
 		faultPointList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
@@ -64,6 +78,23 @@ public class ReplayController extends Controller {
 		arriveFPBList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
 		actualFPBList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
 		counter = 0;
+		finishFlag = false;
+	}
+
+	public static class ReplayControllerResult {
+		boolean allPointsAreReplayed = false;
+		boolean allFaultsAreReplayed = false;
+		List<FaultPointBlocked> actualFPBList;
+		List<MaxDownNodes> finalCluster;
+	}
+
+	public ReplayControllerResult collectReplayResult() {
+		ReplayControllerResult result = new ReplayControllerResult();
+		result.allPointsAreReplayed = index.get() >= entry.ioSeq.size();
+		result.allFaultsAreReplayed = arriveAllFaultPoint;
+		result.actualFPBList = actualFPBList;
+		result.finalCluster = currentCluster;
+		return result;
 	}
 
 	public static class FaultPointBlocked {
@@ -191,7 +222,7 @@ public class ReplayController extends Controller {
 		}
 	}
 
-	@Override
+	// @Override
 	public void startController() {
 		running = true;
 		counter = 0;
@@ -241,8 +272,37 @@ public class ReplayController extends Controller {
 
 		ListScanner scanThread = new ListScanner();
 		scanThread.start();
-
 	}
+
+	public void stopController() {
+		running = false;
+		try {
+			if(serverThread.isAlive()) {
+				serverThread.interrupt();
+			}
+			for(ReplayCilentHandler t: replayClients) {
+				if(t.isAlive()) {
+					t.interrupt();
+				}
+			}
+			if(serverSocket != null && !serverSocket.isClosed()) {
+				serverSocket.close();
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.err.println("exception when stopping controller ...");
+			e.printStackTrace();
+		}
+		File file = favconfig.CUR_CRASH_FILE;
+		if(file.exists()) {
+			System.out.println("Detete cur crash file.");
+			file.delete();
+		}
+		System.out.println("Controller was stopped.");
+
+		
+	}
+
 
 	public void continueAllFPB() throws IOException, AflException, AbortFaultException {
 		for (FaultPointBlocked fpb : faultPointList) {
@@ -461,6 +521,7 @@ public class ReplayController extends Controller {
 					actualFPBList.add(b);
 				}
 				Stat.log("All of IOPoints have been replayed!");
+				finishFlag = true;
 
 				// if (timeOut) {
 				// result = 1;

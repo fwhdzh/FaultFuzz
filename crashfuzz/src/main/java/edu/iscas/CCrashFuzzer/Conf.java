@@ -59,10 +59,10 @@ public class Conf {
      * Some functions have not been tested fully.
      * So, these configurations will not be provided to users for the time being
      */
-    public boolean REPLAY_MODE = false;
+    public boolean REPLAY_MODE = true;
     public String REPLAY_QUEUEENTRY_PATH = "/data/fengwenhan/data/crashfuzz_fwh/replay/QueueEntry.txt";
     // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_backup_6_full_workload/queue/6_2f";
-    public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_ctrl/queue/6_1f";
+    public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_ctrl/queue/3_1f";
     public long REPLAY_HANG_TIME = 40;
     public String REPLAY_ACTUAL_FPB_LIST_PATH = "/data/fengwenhan/data/crashfuzz_fwh/actualFPBList.txt";
 

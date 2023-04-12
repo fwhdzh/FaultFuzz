@@ -25,12 +25,13 @@ import com.alibaba.fastjson.JSONObject;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
-import edu.iscas.CCrashFuzzer.control.ReplayTarget;
+import edu.iscas.CCrashFuzzer.control.NormalTarget;
+import edu.iscas.CCrashFuzzer.control.replay.ReplayTarget;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class Fuzzer {
 	public static int MAP_SIZE = 100;
-	private final FuzzTarget target;
+	private final NormalTarget target;
     private long totalSeedCases;
     private Conf conf;
     Monitor monitor;
@@ -69,7 +70,7 @@ public class Fuzzer {
       /* 05 */ FAULT_NOBITS
     };
     
-    public Fuzzer(FuzzTarget target, Conf conf, boolean recover) {
+    public Fuzzer(NormalTarget target, Conf conf, boolean recover) {
     	monitor = new Monitor(conf);
     	stat = new Stat();
     	this.target = target;
@@ -422,7 +423,7 @@ public class Fuzzer {
 		totalSeedCases++;
 	}
 
-	private void updateFuzzInfoInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, FuzzTarget target) {
+	private void updateFuzzInfoInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, NormalTarget target) {
 
 		FuzzInfo.total_execs++;
 		FuzzInfo.exec_us += target.a_exec_seconds;
@@ -494,7 +495,7 @@ public class Fuzzer {
 		}
 	}
 
-	public boolean save_if_interesting_rewrite(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, FuzzTarget target) {
+	public boolean save_if_interesting_rewrite(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, NormalTarget target) {
 		boolean result = true;
 		coverage.read_bitmap(FileUtil.root_tmp+testID+"/"+FileUtil.coverageDir);
 		updateQInSaveIfInterestring(q, faultMode, testID, seedQ);
@@ -961,6 +962,7 @@ public class Fuzzer {
 		rt.beforeTarget(entry, conf, "replay", conf.REPLAY_HANG_TIME);
 		rt.doTarget();
 		int result = rt.afterTarget().result;
+		Stat.log("replay result: " + result);
 	}
 
 	public void replay() {

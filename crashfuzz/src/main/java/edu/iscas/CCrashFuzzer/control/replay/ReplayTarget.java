@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer.control;
+package edu.iscas.CCrashFuzzer.control.replay;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,8 +23,10 @@ import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
-import edu.iscas.CCrashFuzzer.Controller.AbortFaultException;
-import edu.iscas.CCrashFuzzer.control.ReplayController.FaultPointBlocked;
+import edu.iscas.CCrashFuzzer.control.AbstractTarget;
+import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
+import edu.iscas.CCrashFuzzer.control.replay.ReplayController.FaultPointBlocked;
+import edu.iscas.CCrashFuzzer.control.replay.ReplayController.ReplayControllerResult;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class ReplayTarget extends AbstractTarget{
@@ -32,12 +34,18 @@ public class ReplayTarget extends AbstractTarget{
 	public ArrayList<String> checkInfo;
 	public long a_exec_seconds;
 
+	Cluster cluster;
+
 	QueueEntry mEntry;
 	Conf mConf;
 	String mTestID;
 	long mWaitSeconds;
 
-	int mResult;
+	ReplayControllerResult rct;
+	boolean finishWorkload;
+
+	// int mResult;
+	ReplayResult mResult;
 
 	public static class ReplayResult {
 		public int result;
@@ -55,28 +63,32 @@ public class ReplayTarget extends AbstractTarget{
 		else {
 			throw new IllegalArgumentException("replay target args should be 2");
 		}
+
+		logInfo = new ArrayList<String>();
+		checkInfo = new ArrayList<String>();
+		a_exec_seconds = 0;
+
+		cluster = new Cluster(conf);
 	}
 
 	@Override
 	public void doTarget() {
-		// TODO Auto-generated method stub
-		mResult = replayATest(mEntry, mConf, mTestID, mWaitSeconds);
+		replayATest(mEntry, mConf, mTestID, mWaitSeconds);
 	}
 
 	@Override
 	public ReplayResult afterTarget() {
-		// TODO Auto-generated method stub
-		ReplayResult replayRst = new ReplayResult();
-		replayRst.result = mResult;
-		return replayRst;
+		sendNotReplayToCluster();
+		// For replay target, we should collect run-time information for all scenarios.
+		String runInfoPath = collectRuntimeInfo();
+		boolean findBug = checkIfABugExist(runInfoPath);
+		mResult = generateReplayResult(finishWorkload, rct.allPointsAreReplayed , findBug);
+		return mResult;
 	}
 
     private int replayATest(QueueEntry entry, final Conf conf, String testID, long waitSeconds) {
 
-        logInfo = new ArrayList<String>();
-		checkInfo = new ArrayList<String>();
-		a_exec_seconds = 0;
-		
+        
 		logInfo.add(Stat.log("=========================Going to conduct test "+testID+"("+waitSeconds+"s)========================="));
 		logInfo.add(Stat.log(""));
 		logInfo.add(Stat.log("Fault sequence info {"));
@@ -87,8 +99,8 @@ public class ReplayTarget extends AbstractTarget{
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
-		final ReplayController dController = new ReplayController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
-//        controller.prepareFaultSeq(FaultSequence.getEmptyIns());//keep curCrash null
+		final ReplayController dController = new ReplayController(cluster, conf.CONTROLLER_PORT, conf);
+		// final ReplayController dController = new ReplayController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(dController.cluster.prepareCluster());
 		logInfo.add(Stat.log("Prepare current fault sequence ..."));
@@ -123,113 +135,106 @@ public class ReplayTarget extends AbstractTarget{
 		runWorkload.start();
 		
 		int waitIdx = 0;
-		boolean addedController = false;
-		do {
-			if(dController.injectionAborted) {
-				ret = -1;
-				addedController = true;
-				logInfo.addAll(dController.rst);
-		    	logInfo.add(Stat.log("Exit abnormally since current fault sequence was aborted, stop controller ..."));
-        		break;
-			}
-		    try {
+
+		while ((runWorkload.isAlive() || dController.finishFlag == false) && waitIdx < waitSeconds) {
+			try {
                 Thread.sleep(1000);
                 waitIdx++;
-
 				Stat.log("waitIdx: " + waitIdx);
-
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-		    if(waitIdx > waitSeconds) {
-				if (!dController.arriveAllFaultPoint) {
-					logInfo.add("replay failed");
-				} else {
-					logInfo.add("replay success");
-					// logInfo.add(Stat.log("Command to ask all nodes to continue in a unreplay(normal) mode..."));
-					// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
-					// logInfo.add(Stat.log("Continue all the FPB in list ..."));
-					// try {
-					// 	dController.continueAllFPB();
-					// } catch (IOException | AflException | AbortFaultException e) {
-					// 	// TODO Auto-generated catch block
-					// 	e.printStackTrace();
-					// }
-				}
-				try {
-					dController.serverSocket.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				break;
-            	// if(!dController.faultInjected) {
-            	// 	logInfo.addAll(dController.rst);
-    		    // 	logInfo.add(Stat.log("Exit abnormally after waiting "+waitSeconds+" seconds, stop controller ..."));
-    		    // 	addedController = true;
-    		    // 	ret = -1;
-    		    // 	break;
-            	// } else if (dController.faultInjected && runWorkload.isAlive()) {
-            	// 	logInfo.addAll(dController.rst);
-            	// 	logInfo.add(Stat.log("FAV test has failed: the run did not finished in "+waitSeconds+" seconds."));
-            	// 	ret = 2;
-            	// 	addedController = true;
-            	// 	break;
-            	// }
-            }
-		} while(!dController.faultInjected || runWorkload.isAlive());
+		}
 
-		Stat.log("workload end");
-		Stat.log("Command to wait all nodes not replay ...");
-		executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
-		Stat.log("Finish waiting all nodes not replay ...");
+		dController.stopController();
 
-		a_exec_seconds = Fuzzer.getExecSeconds(start);
-		
-		if(!addedController) {
+
+		/*
+		 * Collect the result of replay controller and the result of workload
+		 */
+		rct = dController.collectReplayResult();
+		finishWorkload = !runWorkload.isAlive();
+		if (!rct.allPointsAreReplayed) {
 			logInfo.addAll(dController.rst);
 		}
+		a_exec_seconds = Fuzzer.getExecSeconds(start);
+		Stat.log("workload end");
 
-		List<FaultPointBlocked> arriveFPBList = dController.arriveFPBList;
+		return ret;
+	}
 
-		List<FaultPointBlocked> actualFPBList = dController.actualFPBList;
-		compareRecordAndEntry(actualFPBList, entry);
-		
-		FaultPointBlocked.recordFPBList(actualFPBList, conf.REPLAY_ACTUAL_FPB_LIST_PATH);
+	/*
+	 * Before we collect information from cluster, we should ask the cluster to exit replay mode first.
+	 */
+	private void sendNotReplayToCluster() {
+		Stat.log("Command to wait all nodes not replay ...");
+		executeCliCommandToCluster(rct.finalCluster, mConf, AflCommand.NOTREPLAY, 300000);
+		// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
+		Stat.log("Finish waiting all nodes not replay ...");
+	}
 
-		if(ret != -1) {// not need to wait not triggered cases
-			//wait recovery process finish
-			logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
-			executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.STABLE, 300000);
-			logInfo.add(Stat.log("Finish waiting recovery processes."));
-			logInfo.add(Stat.log("Command to save run-time traces ..."));
-			executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.SAVE, 600000);
-			logInfo.add(Stat.log("Finish saving run-time traces."));
-		}
+	
+	private String collectRuntimeInfo() {
+		String result = "";
+		logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
+		executeCliCommandToCluster(rct.finalCluster, mConf, AflCommand.STABLE, 300000);
+		logInfo.add(Stat.log("Finish waiting recovery processes."));
+		logInfo.add(Stat.log("Command to save run-time traces ..."));
+		executeCliCommandToCluster(rct.finalCluster, mConf, AflCommand.SAVE, 600000);
+		logInfo.add(Stat.log("Finish saving run-time traces."));
+		Monitor m = new Monitor(mConf);
+		String runInfoPath = m.getTmpReportDir(mTestID);
+		logInfo.add(Stat.log("Collecting run-time information ..."));
+		m.collectRunTimeInfo(runInfoPath);
+		FileUtil.copyFileToDir(mConf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
+		result = runInfoPath;
+		return result;
+	}
 
-		Monitor m = new Monitor(conf);
-		String runInfoPath = m.getTmpReportDir(testID);
-		if(ret != -1) {//no need to collect traces and logs for not triggered ones
-			logInfo.add(Stat.log("Collecting run-time information ..."));
-			m.collectRunTimeInfo(runInfoPath);
-			FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
-		}
-		
-		FaultSequence seq = entry.faultSeq;
 
-		if(ret == 0) {
+	private boolean checkIfABugExist(String runInfoPath) {
+		boolean result = false;
+		if (rct.allPointsAreReplayed) {
+			FaultSequence seq = mEntry.faultSeq;
 			logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
-			// replay target doesn't need to check
+			logInfo.addAll(cluster.runChecker(mConf, rct.finalCluster, runInfoPath+FileUtil.monitorDir));
 			// logInfo.addAll(dController.cluster.runChecker(conf, dController.currentCluster, runInfoPath+FileUtil.monitorDir));
-			// ret = checkBug(seq, conf);
+			int checkBugRst = checkBug(seq, mConf);
+			if (checkBugRst == 1) {
+				result = true;
+			}
 			logInfo.add(Stat.log("Exit normally, stop controller ..."));
 		}
+		return result;
+	}
 
-		// RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
-		dController.stopController();
-		// RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
-		return ret;
+	/**
+	 * 0: workload finish, replay finish. replay success
+	 * 1: workload finish, replay finish, and we find a bug.
+	 * 2: workload finish, replay not finish. replay failed
+	 * 3: workload not finish, replay finish. not possible
+	 * -1: workload not finish, replay not finish. we don't know whether the replay
+	 * could success since the time is not enough.
+	 * 
+	 * It is not accurate since the workload execution is relative to replay
+	 * execution. However, since we don't instrument
+	 * cilent side, we couldn't put them together.
+	 */
+	public ReplayResult generateReplayResult(boolean workloadFinish, boolean replayFinish, boolean findBug) {
+		ReplayResult result = new ReplayResult();
+		if (workloadFinish && replayFinish && findBug) {
+			result.result = 0;
+		} else if (workloadFinish && replayFinish && !findBug) {
+			result.result = 1;
+		} else if (workloadFinish && !replayFinish) {
+			result.result = 2;
+		} else if (!workloadFinish && replayFinish) {
+			result.result = 3;
+		} else if (!workloadFinish && !replayFinish) {
+			result.result = -1;
+		}
+		return result;
 	}
 
 	public void executeCliCommandToCluster(List<MaxDownNodes> cluster, final Conf conf, AflCommand command, long waitTime) {

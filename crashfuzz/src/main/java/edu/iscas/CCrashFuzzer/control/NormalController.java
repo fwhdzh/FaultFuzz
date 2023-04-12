@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.control;
 
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -18,6 +18,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import edu.iscas.CCrashFuzzer.AflCli;
+import edu.iscas.CCrashFuzzer.Cluster;
+import edu.iscas.CCrashFuzzer.Conf;
+import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.Mutation;
+import edu.iscas.CCrashFuzzer.RunCommand;
+import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
@@ -26,22 +33,24 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 //We do not trigger remote crash in this controller.
 //This controller aims to trigger local crashes for systems deployed as processes in the same machine
-public class Controller {
+public class NormalController {
 	public Cluster cluster;
 	public boolean running;
-	public Set<ClientHandler> clients;
 	public int CONTROLLER_PORT = 8888;
+	public ArrayList<String> rst;
+    public Conf favconfig;
+	public final int maxClients = 300;
+
+	public Set<ClientHandler> clients;
 	public FaultSequence faultSequence; //store current crash point ID to the crash before point
     public Thread serverThread;
     public ServerSocket serverSocket;
     public boolean faultInjected;
     public boolean injectionAborted;//cannot schedule current fault sequence any more
-    public ArrayList<String> rst;
-    public Conf favconfig;
     public List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
-    public final int maxClients = 300;
+    
 
-    public Controller(Cluster cluster, int port, Conf favconfig) {
+    public NormalController(Cluster cluster, int port, Conf favconfig) {
     	this.cluster = cluster;
     	this.running = false;
     	this.CONTROLLER_PORT = port;
@@ -119,11 +128,11 @@ public class Controller {
 		}
 		faultSequence = p;
 		faultSequence.reset();
-		updataCurCrashPointFile();
+		updataCurCrashPointFile(faultSequence);
 		Stat.log("Current fault sequence was prepared.");
 	}
 
-	public void updataCurCrashPointFile() {
+	public void updataCurCrashPointFile(FaultSequence faultSequence) {
 		if(faultSequence == null || faultSequence.isEmpty()) {
 			File file = favconfig.CUR_CRASH_FILE;
 			if(file.exists()) {
