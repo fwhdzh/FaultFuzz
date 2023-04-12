@@ -99,7 +99,80 @@ public class Fuzzer {
 		Stat.log("***********************Perform inital runs to collect IO traces*****************************");
 	    long start = System.currentTimeMillis();
 		String testID = "init";
-		target.run_target(FaultSequence.getEmptyIns(), conf, "init", conf.hangSeconds);
+		FaultSequence empty = FaultSequence.getEmptyIns();
+		target.run_target(empty, conf, "init", conf.hangSeconds);
+		FuzzInfo.total_execs++;
+		FuzzInfo.exec_us += target.a_exec_seconds;
+		updateTimeToFaulsToTestsNum(empty);
+
+		// HashMap<Integer, Integer> faultsToTests = FuzzInfo.timeToFaulsToTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
+		// faultsToTests.computeIfAbsent(0, key -> 0);
+		// faultsToTests.computeIfPresent(0, (key, value) -> value + 1);
+
+		String tmpRootDir = monitor.getTmpReportDir(testID);
+		// FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), tmpRootDir);
+
+		FileUtil.generateFAVLogInfo("", testID, target.logInfo, FaultSequence.getEmptyIns());
+		
+//		MyXMLReader.read_trace_map(monitor.getRootReport("init")+"cov/cov.xml");
+		coverage.read_bitmap(tmpRootDir+FileUtil.coverageDir);
+		int nb = coverage.has_new_bits();
+		FileUtil.writeMap(testID, coverage.trace_bits, FuzzInfo.getTotalCoverage(coverage.trace_bits), nb);
+		QueueEntry q = new QueueEntry();
+		// q.faultSeq = null;
+		q.faultSeq = empty;
+		q.fname = testID;
+		q.bitmap_size = coverage.coveredBlocks(coverage.trace_bits);
+		q.exec_s = target.a_exec_seconds;
+		if(nb>0) {
+			FuzzInfo.lastNewCovFaults = 0;
+
+			// HashMap<Integer, Integer> faultsToNewCovTests = FuzzInfo.timeToFaulsToNewCovTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
+			// faultsToNewCovTests.computeIfAbsent(0, key -> 0);
+			// faultsToNewCovTests.computeIfPresent(0, (key, value) -> value + 1);
+			updateTimeToFaulsToNewCovTestsNum(q);
+			
+			add_to_queue(q, testID);
+			if(q.recovery_io_id == null || q.recovery_io_id.isEmpty()) {
+				q.recovery_io_id = new HashSet<Integer>();
+			}
+			Mutation.mutateFaultSequence(q, conf);
+			
+			// q.handicap = 0;
+			// q.fuzzed_time = 0;
+			// q.was_fuzzed = false;
+
+			q.has_new_cov = true;
+			q.new_cov_contribution = nb;
+			
+			FileUtil.writePostTestInfo(q.fname, q.bitmap_size, q.exec_s);
+			FileUtil.copyToQueue(q.fname, conf);
+			totalSeedCases++;
+		}
+		FuzzInfo.total_bitmap_size += q.bitmap_size;
+		FuzzInfo.total_bitmap_entries++;
+		long usedSeconds = FuzzInfo.getUsedSeconds();
+		FileUtil.copyToTested(testID, usedSeconds, conf);
+		if(Conf.MANUAL) {
+			Scanner scan = new Scanner(System.in);
+        	scan.nextLine();
+		}
+		if(!Conf.DEBUG) {
+			FileUtil.delete(tmpRootDir);
+		}
+        recordGlobalInfo();
+	}
+
+		/* Perform dry run of all test cases to confirm that the app is working as
+	   expected. This is done only for the initial inputs, and only once. */
+
+	   public void perform_first_run_old() {
+		//for the first run
+		Stat.log("***********************Perform inital runs to collect IO traces*****************************");
+	    long start = System.currentTimeMillis();
+		String testID = "init";
+		FaultSequence empty = FaultSequence.getEmptyIns();
+		target.run_target(empty, conf, "init", conf.hangSeconds);
 		FuzzInfo.total_execs++;
 		FuzzInfo.exec_us += target.a_exec_seconds;
 		HashMap<Integer, Integer> faultsToTests = FuzzInfo.timeToFaulsToTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
@@ -304,9 +377,13 @@ public class Fuzzer {
 	}
 
 	private void updateTimeToFaulsToTestsNum(QueueEntry q) {
+		updateTimeToFaulsToTestsNum(q.faultSeq);
+	}
+
+	private void updateTimeToFaulsToTestsNum(FaultSequence fs) {
 		HashMap<Integer, Integer> faultsToTests = FuzzInfo.timeToFaulsToTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
-		faultsToTests.computeIfAbsent(q.faultSeq.seq.size(), key -> 0);
-		faultsToTests.computeIfPresent(q.faultSeq.seq.size(), (key, value) -> value + 1);
+		faultsToTests.computeIfAbsent(fs.seq.size(), key -> 0);
+		faultsToTests.computeIfPresent(fs.seq.size(), (key, value) -> value + 1);
 	}
 
 	private void updateTimeToFaulsToNewCovTestsNum(QueueEntry q) {

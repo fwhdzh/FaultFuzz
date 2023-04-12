@@ -123,8 +123,8 @@ public class Configuration {
     public static long TAINT_MSG_RAND_SEED = 0;
 
     // not stable for now
-    public static boolean REPLAY_MODE = true;
-    public static boolean REPLAY_NOW = true;
+    public static boolean REPLAY_MODE = false;
+    public static boolean REPLAY_NOW = false;
 
     private Configuration() {
         // Prevents this class from being instantiated
