@@ -30,22 +30,24 @@ import edu.iscas.CCrashFuzzer.control.replay.ReplayController.ReplayControllerRe
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class ReplayTarget extends AbstractTarget{
+
     public ArrayList<String> logInfo;
 	public ArrayList<String> checkInfo;
 	public long a_exec_seconds;
 
-	Cluster cluster;
+	private Cluster mCluster;
 
-	QueueEntry mEntry;
-	Conf mConf;
-	String mTestID;
-	long mWaitSeconds;
+	private QueueEntry mEntry;
+	private Conf mConf;
+	private String mTestID;
+	private long mWaitSeconds;
 
-	ReplayControllerResult rct;
-	boolean finishWorkload;
+	// variables conncecting doTarget and afterTarget 
+	private ReplayControllerResult controllerResult;
+	private boolean finishWorkload;
 
-	// int mResult;
-	ReplayResult mResult;
+	// target result
+	private ReplayResult mResult;
 
 	public static class ReplayResult {
 		public int result;
@@ -68,7 +70,7 @@ public class ReplayTarget extends AbstractTarget{
 		checkInfo = new ArrayList<String>();
 		a_exec_seconds = 0;
 
-		cluster = new Cluster(conf);
+		mCluster = new Cluster(conf);
 	}
 
 	@Override
@@ -82,13 +84,11 @@ public class ReplayTarget extends AbstractTarget{
 		// For replay target, we should collect run-time information for all scenarios.
 		String runInfoPath = collectRuntimeInfo();
 		boolean findBug = checkIfABugExist(runInfoPath);
-		mResult = generateReplayResult(finishWorkload, rct.allPointsAreReplayed , findBug);
+		mResult = generateReplayResult(finishWorkload, controllerResult.allPointsAreReplayed , findBug);
 		return mResult;
 	}
 
     private int replayATest(QueueEntry entry, final Conf conf, String testID, long waitSeconds) {
-
-        
 		logInfo.add(Stat.log("=========================Going to conduct test "+testID+"("+waitSeconds+"s)========================="));
 		logInfo.add(Stat.log(""));
 		logInfo.add(Stat.log("Fault sequence info {"));
@@ -99,7 +99,7 @@ public class ReplayTarget extends AbstractTarget{
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
-		final ReplayController dController = new ReplayController(cluster, conf.CONTROLLER_PORT, conf);
+		final ReplayController dController = new ReplayController(mCluster, conf.CONTROLLER_PORT, conf);
 		// final ReplayController dController = new ReplayController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(dController.cluster.prepareCluster());
@@ -135,7 +135,6 @@ public class ReplayTarget extends AbstractTarget{
 		runWorkload.start();
 		
 		int waitIdx = 0;
-
 		while ((runWorkload.isAlive() || dController.finishFlag == false) && waitIdx < waitSeconds) {
 			try {
                 Thread.sleep(1000);
@@ -148,14 +147,12 @@ public class ReplayTarget extends AbstractTarget{
 		}
 
 		dController.stopController();
-
-
 		/*
 		 * Collect the result of replay controller and the result of workload
 		 */
-		rct = dController.collectReplayResult();
+		controllerResult = dController.collectReplayResult();
 		finishWorkload = !runWorkload.isAlive();
-		if (!rct.allPointsAreReplayed) {
+		if (!controllerResult.allPointsAreReplayed) {
 			logInfo.addAll(dController.rst);
 		}
 		a_exec_seconds = Fuzzer.getExecSeconds(start);
@@ -169,7 +166,7 @@ public class ReplayTarget extends AbstractTarget{
 	 */
 	private void sendNotReplayToCluster() {
 		Stat.log("Command to wait all nodes not replay ...");
-		executeCliCommandToCluster(rct.finalCluster, mConf, AflCommand.NOTREPLAY, 300000);
+		executeCliCommandToCluster(controllerResult.finalCluster, mConf, AflCommand.NOTREPLAY, 300000);
 		// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
 		Stat.log("Finish waiting all nodes not replay ...");
 	}
@@ -178,10 +175,10 @@ public class ReplayTarget extends AbstractTarget{
 	private String collectRuntimeInfo() {
 		String result = "";
 		logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
-		executeCliCommandToCluster(rct.finalCluster, mConf, AflCommand.STABLE, 300000);
+		executeCliCommandToCluster(controllerResult.finalCluster, mConf, AflCommand.STABLE, 300000);
 		logInfo.add(Stat.log("Finish waiting recovery processes."));
 		logInfo.add(Stat.log("Command to save run-time traces ..."));
-		executeCliCommandToCluster(rct.finalCluster, mConf, AflCommand.SAVE, 600000);
+		executeCliCommandToCluster(controllerResult.finalCluster, mConf, AflCommand.SAVE, 600000);
 		logInfo.add(Stat.log("Finish saving run-time traces."));
 		Monitor m = new Monitor(mConf);
 		String runInfoPath = m.getTmpReportDir(mTestID);
@@ -195,10 +192,10 @@ public class ReplayTarget extends AbstractTarget{
 
 	private boolean checkIfABugExist(String runInfoPath) {
 		boolean result = false;
-		if (rct.allPointsAreReplayed) {
+		if (controllerResult.allPointsAreReplayed) {
 			FaultSequence seq = mEntry.faultSeq;
 			logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
-			logInfo.addAll(cluster.runChecker(mConf, rct.finalCluster, runInfoPath+FileUtil.monitorDir));
+			logInfo.addAll(mCluster.runChecker(mConf, controllerResult.finalCluster, runInfoPath+FileUtil.monitorDir));
 			// logInfo.addAll(dController.cluster.runChecker(conf, dController.currentCluster, runInfoPath+FileUtil.monitorDir));
 			int checkBugRst = checkBug(seq, mConf);
 			if (checkBugRst == 1) {
@@ -242,7 +239,6 @@ public class ReplayTarget extends AbstractTarget{
 		for (MaxDownNodes subCluster : cluster) {
 			for (final String alive : subCluster.aliveGroup) {
 				Thread t = new Thread() {
-
 					@Override
 					public void run() {
 						// TODO Auto-generated method stub
@@ -295,7 +291,6 @@ public class ReplayTarget extends AbstractTarget{
 
 
 	public void compareRecordAndEntry(List<FaultPointBlocked> record, QueueEntry entry) {
-        
         List<IOPoint> iList = entry.ioSeq;
         int meaningSize = record.size() < iList.size() ? record.size() : iList.size();
         Stat.log("check where the differ of record and IOList begin: ");
