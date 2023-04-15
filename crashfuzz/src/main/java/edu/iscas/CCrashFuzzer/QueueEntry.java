@@ -173,17 +173,31 @@ public class QueueEntry {
 		String result = "";
 		for (IOPoint p: ioSeq) {
 			result = result + p.ioID + ", ";
-			// result = result + p.ioID + ": " + p.TIMESTAMP+ ", ";
 		}
 		return result;
 	} 
+
+	public static String getIoSeqToIDString(List<IOPoint> ioSeq) {
+		String result = "";
+		for (IOPoint p: ioSeq) {
+			result = result + p.ioID + ", ";
+		}
+		return result;
+	}
 
 	public String getIoSeqToPathString() {
 		String result = "";
 		for (IOPoint p: ioSeq) {
 			result = result + p.PATH + ", ";
-			// result = result + p.ioID + ": " + p.TIMESTAMP+ ", ";
 		}
 		return result;
 	} 
+
+	public static String getIoSeqToPathString(List<IOPoint> ioSeq) {
+		String result = "";
+		for (IOPoint p: ioSeq) {
+			result = result + p.PATH + ", ";
+		}
+		return result;
+	}
 }

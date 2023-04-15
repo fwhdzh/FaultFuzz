@@ -36,6 +36,7 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.control.AbstractController;
 import edu.iscas.CCrashFuzzer.control.NormalController;
+import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
 import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
 import edu.iscas.CCrashFuzzer.control.NormalController.ClientHandler;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
@@ -44,7 +45,6 @@ public class ReplayController
 // extends NormalController 
 extends AbstractController
 {
-
 	public Thread serverThread;
 	public ServerSocket serverSocket;
 	public List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
@@ -55,7 +55,10 @@ extends AbstractController
 	public AtomicInteger index;
 	public AtomicInteger fIndex;
 
-	public QueueEntry entry;
+	// private QueueEntry entry;
+	public List<IOPoint> ioSeq;
+	public FaultSequence faultSeq;
+	
 
 	public boolean arriveAllFaultPoint;
 
@@ -90,7 +93,7 @@ extends AbstractController
 
 	public ReplayControllerResult collectReplayResult() {
 		ReplayControllerResult result = new ReplayControllerResult();
-		result.allPointsAreReplayed = index.get() >= entry.ioSeq.size();
+		result.allPointsAreReplayed = index.get() >= ioSeq.size();
 		result.allFaultsAreReplayed = arriveAllFaultPoint;
 		result.actualFPBList = actualFPBList;
 		result.finalCluster = currentCluster;
@@ -193,10 +196,12 @@ extends AbstractController
 
 	}
 
-	public void prepareQueueEntry(QueueEntry entry) {
-		this.entry = entry;
-		entry.faultSeq.reset();
-		updataCurCrashPointFile(entry.faultSeq);
+	public void prepareFaultSeqAndIOSeq(FaultSeqAndIOSeq seqPair) {
+		// this.entry = entry;
+		this.ioSeq = seqPair.ioSeq;
+		this.faultSeq = seqPair.faultSeq;
+		seqPair.faultSeq.reset();
+		updataCurCrashPointFile(seqPair.faultSeq);
 		Stat.log("Current fault sequence was prepared.");
 	}
 
@@ -469,16 +474,17 @@ extends AbstractController
 			// TODO Auto-generated method stub
 			super.run();
 			Stat.log("ListScanner start...");
-			Stat.log("ioList size is: " + entry.ioSeq.size());
-			Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
-			Stat.log("ListScanner next to wait: " + entry.ioSeq.get(index.get()).ioID + ", path: "
-					+ entry.ioSeq.get(index.get()).PATH);
+			Stat.log("ioList size is: " + ioSeq.size());
+			// Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
+			Stat.log("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
+			Stat.log("ListScanner next to wait: " + ioSeq.get(index.get()).ioID + ", path: "
+					+ ioSeq.get(index.get()).PATH);
 			int extraWriteMsgHandleCount = 0;
 			try {
 				// boolean timeOut = false;
 				// while (!timeOut && index.get() < entry.ioSeq.size()) {
-				while (index.get() < entry.ioSeq.size()) {
-					IOPoint p = entry.ioSeq.get(index.get());
+				while (index.get() < ioSeq.size()) {
+					IOPoint p = ioSeq.get(index.get());
 					Stat.log("ListScanner next index to check:  " + index.get());
 					Stat.log("ListScanner next to wait: " + p.ioID + ", from " + p.ip + ", path: " + p.PATH);
 					// long timeCount = 0;
@@ -489,33 +495,35 @@ extends AbstractController
 					}
 					Stat.log("Find FaultPointBlocked! For now, faultPointList size is " + faultPointList.size());
 
-					if (!arriveAllFaultPoint) {
-						updataIOAppearIdxInFaultSeq(entry.faultSeq, fIndex.get(), b.ioID);
-						FaultPoint fp = entry.faultSeq.seq.get(fIndex.get());
-						if (checkFaultPointMatchIOPoint(fp, p)) {
-							fp.actualNodeIp = p.ip;
-							Stat.log("A FaultPoint is found! The faultPoint is: " + fp.stat + ", ioID: " + fp.ioPt.ioID
-									+ ", ip: " + fp.ioPt.ip + ", path: " + fp.ioPt.PATH);
-							b.cilentHander.doOperationToCluster(fp);
-							int nf = fIndex.incrementAndGet();
-							Stat.log(
-									"Next faultPoint index: " + nf + ", faultPoint size: " + entry.faultSeq.seq.size());
-							if (nf >= entry.faultSeq.seq.size()) {
-								Stat.log("Arrive all FaultPoint!");
-								arriveAllFaultPoint = true;
-								// break;
-							} else {
-								Stat.log("Next faultPoint is: " + entry.faultSeq.seq.get(nf).stat + ", ioID: "
-										+ entry.faultSeq.seq.get(nf).ioPt.ioID + ", ip: "
-										+ entry.faultSeq.seq.get(nf).ioPt.ip + ", path: "
-										+ entry.faultSeq.seq.get(nf).ioPt.PATH);
-							}
-						} else {
-							b.cilentHander.doOperationToCluster(p);
-						}
-					} else {
-						b.cilentHander.doOperationToCluster(p);
-					}
+					// if (!arriveAllFaultPoint) {
+					// 	updataIOAppearIdxInFaultSeq(entry.faultSeq, fIndex.get(), b.ioID);
+					// 	FaultPoint fp = entry.faultSeq.seq.get(fIndex.get());
+					// 	if (checkFaultPointMatchIOPoint(fp, p)) {
+					// 		fp.actualNodeIp = p.ip;
+					// 		Stat.log("A FaultPoint is found! The faultPoint is: " + fp.stat + ", ioID: " + fp.ioPt.ioID
+					// 				+ ", ip: " + fp.ioPt.ip + ", path: " + fp.ioPt.PATH);
+					// 		b.cilentHander.doOperationToCluster(fp);
+					// 		int nf = fIndex.incrementAndGet();
+					// 		Stat.log(
+					// 				"Next faultPoint index: " + nf + ", faultPoint size: " + entry.faultSeq.seq.size());
+					// 		if (nf >= entry.faultSeq.seq.size()) {
+					// 			Stat.log("Arrive all FaultPoint!");
+					// 			arriveAllFaultPoint = true;
+					// 			// break;
+					// 		} else {
+					// 			Stat.log("Next faultPoint is: " + entry.faultSeq.seq.get(nf).stat + ", ioID: "
+					// 					+ entry.faultSeq.seq.get(nf).ioPt.ioID + ", ip: "
+					// 					+ entry.faultSeq.seq.get(nf).ioPt.ip + ", path: "
+					// 					+ entry.faultSeq.seq.get(nf).ioPt.PATH);
+					// 		}
+					// 	} else {
+					// 		b.cilentHander.doOperationToCluster(p);
+					// 	}
+					// } else {
+					// 	b.cilentHander.doOperationToCluster(p);
+					// }
+
+					handleFPB(b);
 
 					index.getAndIncrement();
 					actualFPBList.add(b);
@@ -550,6 +558,50 @@ extends AbstractController
 			}
 			return result;
 		}
+
+		/*
+         * It seems we only consider appearIdx of whole cluster, not the appearIdx of each node.
+         * It is not reasonable. However, NormalTarget just do this.
+         * Need to be improved.
+         */
+        public boolean checkFaultPointMatchFPBAndAppearIdx(FaultPoint fp, FaultPointBlocked fpb) {
+            boolean result = false;
+            if (fp.ioPt.ioID == fpb.ioID && fp.ioPt.appearIdx == fp.curAppear) {
+                result = true;
+            }
+            return result;
+        }
+
+		public void handleFPB(FaultPointBlocked b) throws IOException, AflException, AbortFaultException {
+            if (!arriveAllFaultPoint) {
+                
+				updataIOAppearIdxInFaultSeq(faultSeq, fIndex.get(), b.ioID);
+                FaultPoint fp = faultSeq.seq.get(fIndex.get());
+                if (checkFaultPointMatchFPBAndAppearIdx(fp, b)) {
+                    fp.actualNodeIp = b.reportNodeIp;
+                    Stat.log("A FaultPoint is found! The faultPoint is: " + fp.stat + ", ioID: " + fp.ioPt.ioID
+                            + ", ip: " + fp.ioPt.ip + ", path: " + fp.ioPt.PATH);
+                    b.cilentHander.doOperationToCluster(fp);
+                    int nf = fIndex.incrementAndGet();
+                    Stat.log(
+                            "Next faultPoint index: " + nf + ", faultPoint size: " + faultSeq.seq.size());
+                    if (nf >= faultSeq.seq.size()) {
+                        Stat.log("Arrive all FaultPoint!");
+                        arriveAllFaultPoint = true;
+                        // break;
+                    } else {
+                        Stat.log("Next faultPoint is: " + faultSeq.seq.get(nf).stat + ", ioID: "
+                                + faultSeq.seq.get(nf).ioPt.ioID + ", ip: "
+                                + faultSeq.seq.get(nf).ioPt.ip + ", path: "
+                                + faultSeq.seq.get(nf).ioPt.PATH);
+                    }
+                } else {
+                    b.cilentHander.doOperationToCluster(b);
+                }
+            } else {
+                b.cilentHander.doOperationToCluster(b);
+            }
+        }
 
 	}
 

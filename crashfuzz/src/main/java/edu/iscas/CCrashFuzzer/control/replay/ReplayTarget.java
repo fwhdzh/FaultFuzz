@@ -23,24 +23,16 @@ import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
+import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget;
 import edu.iscas.CCrashFuzzer.control.AbstractTarget;
 import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
 import edu.iscas.CCrashFuzzer.control.replay.ReplayController.FaultPointBlocked;
 import edu.iscas.CCrashFuzzer.control.replay.ReplayController.ReplayControllerResult;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
-public class ReplayTarget extends AbstractTarget{
+public class ReplayTarget extends AbstractDeterminismTarget{
 
-    public ArrayList<String> logInfo;
-	public ArrayList<String> checkInfo;
-	public long a_exec_seconds;
 
-	private Cluster mCluster;
-
-	private QueueEntry mEntry;
-	private Conf mConf;
-	private String mTestID;
-	private long mWaitSeconds;
 
 	// variables conncecting doTarget and afterTarget 
 	private ReplayControllerResult controllerResult;
@@ -53,46 +45,46 @@ public class ReplayTarget extends AbstractTarget{
 		public int result;
 	}
 
-	@Override
-	public void beforeTarget(Object data, Conf conf, Object... args) {
-		// TODO Auto-generated method stub
-		mEntry = (QueueEntry) data;
-		mConf = conf;
-		if (args.length == 2) {
-			mTestID = (String) args[0];
-			mWaitSeconds = (Long) args[1];
-		}
-		else {
-			throw new IllegalArgumentException("replay target args should be 2");
-		}
+	// @Override
+	// public void beforeTarget(Object data, Conf conf, Object... args) {
+	// 	// TODO Auto-generated method stub
+	// 	mEntry = (QueueEntry) data;
+	// 	mConf = conf;
+	// 	if (args.length == 2) {
+	// 		mTestID = (String) args[0];
+	// 		mWaitSeconds = (Long) args[1];
+	// 	}
+	// 	else {
+	// 		throw new IllegalArgumentException("replay target args should be 2");
+	// 	}
 
-		logInfo = new ArrayList<String>();
-		checkInfo = new ArrayList<String>();
-		a_exec_seconds = 0;
+	// 	logInfo = new ArrayList<String>();
+	// 	checkInfo = new ArrayList<String>();
+	// 	a_exec_seconds = 0;
 
-		mCluster = new Cluster(conf);
-	}
+	// 	mCluster = new Cluster(conf);
+	// }
 
 	@Override
 	public void doTarget() {
-		replayATest(mEntry, mConf, mTestID, mWaitSeconds);
+		replayATest(mSeqPair, mConf, mTestID, mWaitSeconds);
 	}
 
 	@Override
 	public ReplayResult afterTarget() {
-		sendNotReplayToCluster();
+		sendNotReplayToCluster(controllerResult.finalCluster);
 		// For replay target, we should collect run-time information for all scenarios.
-		String runInfoPath = collectRuntimeInfo();
+		String runInfoPath = collectRuntimeInfo(controllerResult.finalCluster);
 		boolean findBug = checkIfABugExist(runInfoPath);
 		mResult = generateReplayResult(finishWorkload, controllerResult.allPointsAreReplayed , findBug);
 		return mResult;
 	}
 
-    private int replayATest(QueueEntry entry, final Conf conf, String testID, long waitSeconds) {
+    private int replayATest(FaultSeqAndIOSeq seqPair, final Conf conf, String testID, long waitSeconds) {
 		logInfo.add(Stat.log("=========================Going to conduct test "+testID+"("+waitSeconds+"s)========================="));
 		logInfo.add(Stat.log(""));
 		logInfo.add(Stat.log("Fault sequence info {"));
-		logInfo.add(Stat.log(entry.faultSeq.toString()));
+		logInfo.add(Stat.log(seqPair.faultSeq.toString()));
 		logInfo.add(Stat.log("}"));
 
 		int ret = 0;
@@ -105,7 +97,7 @@ public class ReplayTarget extends AbstractTarget{
 		logInfo.addAll(dController.cluster.prepareCluster());
 		logInfo.add(Stat.log("Prepare current fault sequence ..."));
 		// dController.prepareFaultSeq(seq);
-		dController.prepareQueueEntry(entry);
+		dController.prepareFaultSeqAndIOSeq(seqPair);
 		logInfo.add(Stat.log("Start controller ..."));
 		dController.startController();
 		
@@ -161,39 +153,13 @@ public class ReplayTarget extends AbstractTarget{
 		return ret;
 	}
 
-	/*
-	 * Before we collect information from cluster, we should ask the cluster to exit replay mode first.
-	 */
-	private void sendNotReplayToCluster() {
-		Stat.log("Command to wait all nodes not replay ...");
-		executeCliCommandToCluster(controllerResult.finalCluster, mConf, AflCommand.NOTREPLAY, 300000);
-		// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
-		Stat.log("Finish waiting all nodes not replay ...");
-	}
-
 	
-	private String collectRuntimeInfo() {
-		String result = "";
-		logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
-		executeCliCommandToCluster(controllerResult.finalCluster, mConf, AflCommand.STABLE, 300000);
-		logInfo.add(Stat.log("Finish waiting recovery processes."));
-		logInfo.add(Stat.log("Command to save run-time traces ..."));
-		executeCliCommandToCluster(controllerResult.finalCluster, mConf, AflCommand.SAVE, 600000);
-		logInfo.add(Stat.log("Finish saving run-time traces."));
-		Monitor m = new Monitor(mConf);
-		String runInfoPath = m.getTmpReportDir(mTestID);
-		logInfo.add(Stat.log("Collecting run-time information ..."));
-		m.collectRunTimeInfo(runInfoPath);
-		FileUtil.copyFileToDir(mConf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
-		result = runInfoPath;
-		return result;
-	}
 
 
 	private boolean checkIfABugExist(String runInfoPath) {
 		boolean result = false;
 		if (controllerResult.allPointsAreReplayed) {
-			FaultSequence seq = mEntry.faultSeq;
+			FaultSequence seq = mSeqPair.faultSeq;
 			logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
 			logInfo.addAll(mCluster.runChecker(mConf, controllerResult.finalCluster, runInfoPath+FileUtil.monitorDir));
 			// logInfo.addAll(dController.cluster.runChecker(conf, dController.currentCluster, runInfoPath+FileUtil.monitorDir));
@@ -234,64 +200,9 @@ public class ReplayTarget extends AbstractTarget{
 		return result;
 	}
 
-	public void executeCliCommandToCluster(List<MaxDownNodes> cluster, final Conf conf, AflCommand command, long waitTime) {
-		List<Thread> workThreads = new ArrayList<Thread>();
-		for (MaxDownNodes subCluster : cluster) {
-			for (final String alive : subCluster.aliveGroup) {
-				Thread t = new Thread() {
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						super.run();
-						String[] args = new String[3];
-						args[0] = alive;
-						args[1] = String.valueOf(conf.AFL_PORT);
-						args[2] = command.toString();
-						// args[2] = AflCommand.STABLE.toString();
 
-						logInfo.add(Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args)));
-
-						try {
-							AflCli.main(args);
-						} catch (AflException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-
-				};
-				t.start();
-				workThreads.add(t);
-			}
-		}
-		for (Thread t : workThreads) {
-			try {
-				t.join(300000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private int checkBug(FaultSequence seq, Conf conf) {
-		// TODO Auto-generated method stub
-		boolean phosError = false;
-		for (int i = 0; i < logInfo.size(); i++) {
-			String s = logInfo.get(i);
-			if (s.contains("FAV test has failed")) {
-				if (s.contains("ClassCircularityError")) {
-					phosError = true;
-				}
-				this.checkInfo.add(s);
-			}
-		}
-		return phosError ? -1 : ((this.checkInfo.size() > 0) ? 1 : 0);
-	}
-
-
-	public void compareRecordAndEntry(List<FaultPointBlocked> record, QueueEntry entry) {
-        List<IOPoint> iList = entry.ioSeq;
+	public void compareRecordAndIOList(List<FaultPointBlocked> record, List<IOPoint> ioSeq) {
+        List<IOPoint> iList = ioSeq;
         int meaningSize = record.size() < iList.size() ? record.size() : iList.size();
         Stat.log("check where the differ of record and IOList begin: ");
         for (int i=0; i< meaningSize; i++) {

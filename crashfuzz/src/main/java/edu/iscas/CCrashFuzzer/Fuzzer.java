@@ -26,6 +26,7 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
 import edu.iscas.CCrashFuzzer.control.NormalTarget;
+import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
 import edu.iscas.CCrashFuzzer.control.replay.ReplayTarget;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
@@ -959,7 +960,8 @@ public class Fuzzer {
 		ReplayTarget rt = new ReplayTarget();
 		// rt.replayATest(entry, conf, "replay", conf.hangSeconds);
 		// rt.replayATest(entry, conf, "replay", conf.REPLAY_HANG_TIME);
-		rt.beforeTarget(entry, conf, "replay", conf.REPLAY_HANG_TIME);
+		FaultSeqAndIOSeq seqPair = new FaultSeqAndIOSeq(entry.faultSeq, entry.ioSeq);
+		rt.beforeTarget(seqPair, conf, "replay", conf.REPLAY_HANG_TIME);
 		rt.doTarget();
 		int result = rt.afterTarget().result;
 		Stat.log("replay result: " + result);
