@@ -17,29 +17,77 @@ public class QueueManagerNew {
 		public QueueEntry mutate;
 		public int mutateIdx;
 	}
-	public static Set<Integer> tested_fault_id = new HashSet<Integer>();;
+	public static Set<Integer> tested_fault_id = new HashSet<Integer>();
+
+	static Random rand = new Random();
+
+
 	public static QueuePair retrieveAnEntry(List<QueueEntry> candidate_queue) {
 		if(candidate_queue == null ||candidate_queue.isEmpty()) {
 			return null;
 		}
-		
-	    Random rand = new Random();
-	    int totalSum = 0;
-	    
+		QueuePair result = null;
+		result = tryToGetAQueueEntryWithGlobalNewPoint(candidate_queue);
+		if (result != null) return result;
+		result = tryToGetAQueueEntryWithRecovery(candidate_queue);
+		if (result != null) return result;
+		result = tryToGetAQueueEntryWithLocalNewPoint(candidate_queue);
+	    if (result != null) return result;
+	    result = tryToGetAQueueEntryWithFavoredMutates(candidate_queue);
+		if (result != null) return result;
+    	Stat.log("Check all the entries");
+		result = tryToGetAQueueEntryWithRandom(candidate_queue);
+		if (result != null) return result;
+		return result;
+	}
+
+	// public static class EntryAndScoreSelection {
+	// 	public QueueEntry entry;
+	// 	public int score;
+	// 	public EntryAndScoreSelection(QueueEntry entry, int score) {
+	// 		this.entry = entry;
+	// 		this.score = score;
+	// 	}
+	// }
+
+	public static List<QueuePair> retrievePairListFWH(List<QueueEntry> candidate_queue, Conf conf) {
+		List<QueuePair> result = new ArrayList<QueuePair>();
+		QueueEntry seed = SeedSelection.retrieveSeed(candidate_queue);
+		List<QueueEntry> mutations = Mutation.getMutationEntry(seed, conf);
+		for (QueueEntry mutate: mutations) {
+			QueuePair pair = new QueuePair();
+			pair.seed = seed;
+			pair.mutate = mutate;
+			pair.seedIdx = candidate_queue.indexOf(seed);
+			pair.mutateIdx = seed.mutates.indexOf(mutate);
+			Stat.log("Retrieve entry in retrievePairListFWH:"+pair.seedIdx+":"+pair.mutateIdx);
+			result.add(pair);
+		}
+		return result;
+	}
+
+	public static QueuePair tryToGetAQueueEntryWithGlobalNewPoint(List<QueueEntry> candidate_queue) {
+		QueuePair result = null;
+		int totalSum = 0;
 	    if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
 	    	Stat.log("Check entry in global not_tested");
 	    	totalSum = 0;
 	    	for(QueueEntry q:candidate_queue) {
 	    		for(QueueEntry m:q.mutates) {
-    				FaultPoint lastFault = m.faultSeq.seq.get(m.faultSeq.seq.size()-1);
-    				int id = (lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode();
 					
-    				if(!tested_fault_id.contains(id)) {
-    					totalSum += m.getPerfScore();
-    				}
+					if (Mutation.checkIfEntryIsGlobalNewIO(m)) {
+						totalSum += m.getPerfScore();
+					}
+
+    				// FaultPoint lastFault = m.faultSeq.seq.get(m.faultSeq.seq.size()-1);
+					// int id = lastFault.getFaultID();
+					
+    				// if(!tested_fault_id.contains(id)) {
+    				// 	totalSum += m.getPerfScore();
+    				// }
     			}
 		    }
-		    
+		    Stat.log("totalSum:"+totalSum);
 		    if(totalSum != 0) {
 		    	int index = rand.nextInt(totalSum);
 		        int sum = 0;
@@ -47,41 +95,64 @@ public class QueueManagerNew {
 		        int j = 0;
 		        while(sum < index ) {
 		        	for(j = 0; j<candidate_queue.get(i).mutates.size() && sum < index; j++) {
-	    				FaultPoint lastFault = candidate_queue.get(i).mutates.get(j).faultSeq.seq.get(candidate_queue.get(i).mutates.get(j).faultSeq.seq.size()-1);
-	    				int id = (lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode();
+
+						QueueEntry e = candidate_queue.get(i).mutates.get(j);
+						if (Mutation.checkIfEntryIsGlobalNewIO(e)) {
+							sum = sum + e.getPerfScore();
+						}
+
+	    				// FaultPoint lastFault = candidate_queue.get(i).mutates.get(j).faultSeq.seq.get(candidate_queue.get(i).mutates.get(j).faultSeq.seq.size()-1);
+						// int id = lastFault.getFaultID();
 						
-	    				if(!tested_fault_id.contains(id)) {
-	    					sum = sum + candidate_queue.get(i).mutates.get(j).getPerfScore();
-	    				}
+	    				// if(!tested_fault_id.contains(id)) {
+	    				// 	sum = sum + candidate_queue.get(i).mutates.get(j).getPerfScore();
+	    				// }
 	    			}
 		            i++;
 		        }
 		        Stat.log("Retrieve entry in global not_tested_fault_id:"+Math.max(0,i-1)+":"+Math.max(0,j-1));
-		    	
-		    	if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap >= 4) {
-		    		candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap -= 4;
-		    	  } else if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap>0) {
-		    		  candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap--;
-		    	  }
-		    	
-		    	QueuePair pair = new QueuePair();
-		    	pair.seedIdx = Math.max(0,i-1);
-		    	pair.seed = candidate_queue.get(pair.seedIdx);
-		    	pair.mutateIdx = Math.max(0,j-1);
-		    	pair.mutate = pair.seed.mutates.get(pair.mutateIdx);
-		    	
-		        return pair;
+
+				int seedIdx = Math.max(0,i-1);
+				int mutateIdx = Math.max(0,j-1);
+				Stat.log("Retrieve entry in global not_tested_fault_id:"+seedIdx+":"+mutateIdx);
+		        result = updateHandicapAndConstructQueuePair(candidate_queue, seedIdx, mutateIdx);
 		    }
 	    }
-	    
-	    if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_NFAV_OLD_PROB) {
+		return result;
+	}
+
+	private static QueuePair updateHandicapAndConstructQueuePair(List<QueueEntry> candidate_queue, int seedIdx, int mutateIdx) {
+		QueuePair result = null;
+		if (candidate_queue.get(seedIdx).mutates.get(mutateIdx).handicap >= 4) {
+			candidate_queue.get(seedIdx).mutates.get(mutateIdx).handicap -= 4;
+		} else if (candidate_queue.get(seedIdx).mutates.get(mutateIdx).handicap > 0) {
+			candidate_queue.get(seedIdx).mutates.get(mutateIdx).handicap--;
+		}
+		
+		result = new QueuePair();
+		result.seedIdx = seedIdx;
+		result.seed = candidate_queue.get(result.seedIdx);
+		result.mutateIdx = mutateIdx;
+		result.mutate = result.seed.mutates.get(result.mutateIdx);
+		return result;
+	}
+
+	private static QueuePair tryToGetAQueueEntryWithRecovery(List<QueueEntry> candidate_queue) {
+		QueuePair result = null;
+		int totalSum = 0;
+		if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_NFAV_OLD_PROB) {
 	    	Stat.log("Check entry on_recovery");
 	    	totalSum = 0;
 	    	for(QueueEntry q:candidate_queue) {
 		    	for(QueueEntry m:q.on_recovery_mutates) {
-		    		if(m.faultSeq.on_recovery) {
-		    			totalSum += m.getPerfScore();
-		    		}
+
+					if (Mutation.checkIfEntryIsRecovery(m)) {
+						totalSum += m.getPerfScore();
+					}
+
+		    		// if(m.faultSeq.on_recovery) {
+		    		// 	totalSum += m.getPerfScore();
+		    		// }
 		    	}
 		    }
 		    
@@ -92,41 +163,41 @@ public class QueueManagerNew {
 		        int j = 0;
 		        while(sum < index ) {
 		        	 for(j = 0; j<candidate_queue.get(i).on_recovery_mutates.size() && sum < index; j++) {
-		        		 if(candidate_queue.get(i).on_recovery_mutates.get(j).faultSeq.on_recovery) {
-		        			 sum = sum + candidate_queue.get(i).on_recovery_mutates.get(j).getPerfScore();
-		        		 }
+
+						QueueEntry e = candidate_queue.get(i).on_recovery_mutates.get(j);
+						if (Mutation.checkIfEntryIsRecovery(e)) {
+							sum = sum + e.getPerfScore();
+						}
+
+		        		//  if(candidate_queue.get(i).on_recovery_mutates.get(j).faultSeq.on_recovery) {
+		        		// 	 sum = sum + candidate_queue.get(i).on_recovery_mutates.get(j).getPerfScore();
+		        		//  }
 		        	 }
 		             i++;
 		        }
 		        Stat.log("Retrieve entry in on_recovery:"+Math.max(0,i-1)+":"+Math.max(0,j-1));
 		        int mutateIdx = candidate_queue.get(Math.max(0,i-1)).mutates.indexOf(candidate_queue.get(Math.max(0,i-1)).on_recovery_mutates.get(Math.max(0,j-1)));
 		    	
-		    	if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap >= 4) {
-		    		candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap -= 4;
-		    	  } else if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap>0) {
-		    		  candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap--;
-		    	  }
-		    	
-		    	QueuePair pair = new QueuePair();
-		    	pair.seedIdx = Math.max(0,i-1);
-		    	pair.seed = candidate_queue.get(pair.seedIdx);
-		    	pair.mutateIdx = Math.max(0,mutateIdx);
-		    	pair.mutate = pair.seed.mutates.get(pair.mutateIdx);
-		    	Stat.log("Retrieve entry:"+pair.seedIdx+":"+pair.mutateIdx);
-		        return pair;
+				int seedIdx = Math.max(0,i-1);
+				int realMutateIdx = Math.max(0,mutateIdx);
+				result = updateHandicapAndConstructQueuePair(candidate_queue, seedIdx, realMutateIdx);
+		    	Stat.log("Retrieve entry:"+result.seedIdx+":"+result.mutateIdx);
 		    }
 	    }
-	    
-	    
-	    if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
+		return result;
+	}
+
+	private static QueuePair tryToGetAQueueEntryWithLocalNewPoint(List<QueueEntry> candidate_queue) {
+		QueuePair result = null;
+		int totalSum = 0;
+		if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
 	    	Stat.log("Check entry in local not_tested_fault_id");
 	    	totalSum = 0;
 	    	for(QueueEntry q:candidate_queue) {
 	    		if(!q.not_tested_fault_id.isEmpty()) {
 	    			for(QueueEntry m:q.mutates) {
 	    				FaultPoint lastFault = m.faultSeq.seq.get(m.faultSeq.seq.size()-1);
-	    				int id = (lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode();
-						
+						int id = lastFault.getFaultID();
 	    				if(q.not_tested_fault_id.contains(id)) {
 	    					totalSum += m.getPerfScore();
 	    				}
@@ -143,8 +214,7 @@ public class QueueManagerNew {
 		        	if(!candidate_queue.get(i).not_tested_fault_id.isEmpty()) {
 		        		for(j = 0; j<candidate_queue.get(i).mutates.size() && sum < index; j++) {
 		    				FaultPoint lastFault = candidate_queue.get(i).mutates.get(j).faultSeq.seq.get(candidate_queue.get(i).mutates.get(j).faultSeq.seq.size()-1);
-		    				int id = (lastFault.ioPt.CALLSTACK+lastFault.stat.toString()+lastFault.tarNodeIp).hashCode();
-							
+							int id = lastFault.getFaultID();
 		    				if(candidate_queue.get(i).not_tested_fault_id.contains(id)) {
 		    					sum = sum + candidate_queue.get(i).mutates.get(j).getPerfScore();
 		    				}
@@ -153,24 +223,19 @@ public class QueueManagerNew {
 		            i++;
 		        }
 		        Stat.log("Retrieve entry in not_tested_fault_id:"+Math.max(0,i-1)+":"+Math.max(0,j-1));
-		    	
-		    	if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap >= 4) {
-		    		candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap -= 4;
-		    	  } else if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap>0) {
-		    		  candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap--;
-		    	  }
-		    	
-		    	QueuePair pair = new QueuePair();
-		    	pair.seedIdx = Math.max(0,i-1);
-		    	pair.seed = candidate_queue.get(pair.seedIdx);
-		    	pair.mutateIdx = Math.max(0,j-1);
-		    	pair.mutate = pair.seed.mutates.get(pair.mutateIdx);
-		    	
-		        return pair;
+
+				int seedIdx = Math.max(0,i-1);
+				int mutateIdx = Math.max(0,j-1);
+				result = updateHandicapAndConstructQueuePair(candidate_queue, seedIdx, mutateIdx);
 		    }
 	    }
-	    
-	    if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
+		return result;
+	}
+
+	private static QueuePair tryToGetAQueueEntryWithFavoredMutates(List<QueueEntry> candidate_queue) {
+		QueuePair result = null;
+		int totalSum = 0;
+		if(Fuzzer.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
 	    	Stat.log("Check favored entries");
 	    	totalSum = 0;
 		    
@@ -197,25 +262,19 @@ public class QueueManagerNew {
 		        Stat.log("Retrieve entry in favored:"+Math.max(0,i-1)+":"+Math.max(0,j-1));
 		        int mutateIdx = candidate_queue.get(Math.max(0,i-1)).mutates.indexOf(candidate_queue.get(Math.max(0,i-1)).favored_mutates.get(Math.max(0,j-1)));
 		    	
-		    	if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap >= 4) {
-		    		candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap -= 4;
-		    	  } else if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap>0) {
-		    		  candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,mutateIdx)).handicap--;
-		    	  }
-		    	
-		    	QueuePair pair = new QueuePair();
-		    	pair.seedIdx = Math.max(0,i-1);
-		    	pair.seed = candidate_queue.get(pair.seedIdx);
-		    	pair.mutateIdx = Math.max(0,mutateIdx);
-		    	pair.mutate = pair.seed.mutates.get(pair.mutateIdx);
-
-		        Stat.log("Retrieve entry:"+pair.seedIdx+":"+pair.mutateIdx);
-		        return pair;
+				int seedIdx = Math.max(0,i-1);
+				int realMutateIdx = Math.max(0,mutateIdx);
+				result = updateHandicapAndConstructQueuePair(candidate_queue, seedIdx, realMutateIdx);
+		        Stat.log("Retrieve entry:"+result.seedIdx+":"+result.mutateIdx);
 		    }
 	    }
+		return result;
+	}
 
-    	Stat.log("Check all the entries");
-	    totalSum = 0;
+	private static QueuePair tryToGetAQueueEntryWithRandom(List<QueueEntry> candidate_queue) {
+		QueuePair result = null;
+		int totalSum = 0;
+		totalSum = 0;
 	    for(QueueEntry q:candidate_queue) {
 	    	for(QueueEntry m:q.mutates) {
 	    		totalSum += m.getPerfScore();
@@ -232,20 +291,12 @@ public class QueueManagerNew {
              i++;
         }
         Stat.log("Retrieve entry:"+Math.max(0,i-1)+":"+Math.max(0,j-1));
-    	
-    	if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap >= 4) {
-    		candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap -= 4;
-    	  } else if (candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap>0) {
-    		  candidate_queue.get(Math.max(0,i-1)).mutates.get(Math.max(0,j-1)).handicap--;
-    	  }
-    	
-    	QueuePair pair = new QueuePair();
-    	pair.seedIdx = Math.max(0,i-1);
-    	pair.seed = candidate_queue.get(pair.seedIdx);
-    	pair.mutateIdx = Math.max(0,j-1);
-    	pair.mutate = pair.seed.mutates.get(pair.mutateIdx);
-    	
-        return pair;
+
+		int seedIdx = Math.max(0,i-1);
+		int mutateIdx = Math.max(0,j-1);
+		result = updateHandicapAndConstructQueuePair(candidate_queue, seedIdx, mutateIdx);
+		Stat.log("Retrieve entry:"+result.seedIdx+":"+result.mutateIdx);
+		return result;
 	}
 	
 	public static QueueEntry retrieveAnEntrySimple(List<QueueEntry> candidate_queue) {

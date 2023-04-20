@@ -1,77 +1,18 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 
 public class Mutation {
-	public static void buildClusterStatus(List<MaxDownNodes> currentCluster, String faultNodeIp, FaultStat faultType) {
-		for(MaxDownNodes subCluster:currentCluster) {
-//			System.out.println("mutation, maxDown "+subCluster.maxDown
-//					+", alive:"+subCluster.aliveGroup+", dead:"+subCluster.deadGroup);
-			if(subCluster.aliveGroup.contains(faultNodeIp) && faultType.equals(FaultStat.CRASH)) {
-				subCluster.maxDown--;
-				subCluster.aliveGroup.remove(faultNodeIp);
-				subCluster.deadGroup.add(faultNodeIp);
 
-//				System.out.println("mutation, move "+faultNodeIp+" from alive to dead."+subCluster.maxDown);
-				break;
-			} else if(subCluster.deadGroup.contains(faultNodeIp) && faultType.equals(FaultStat.REBOOT)) {
-				subCluster.maxDown++;
-				subCluster.deadGroup.remove(faultNodeIp);
-				subCluster.aliveGroup.add(faultNodeIp);
-//				System.out.println("mutation, move "+faultNodeIp+" from dead to alive."+subCluster.maxDown);
-				break;
-			} else {
-				continue;
-			}
-		}
-	}
-	public static boolean isAliveNode(List<MaxDownNodes> currentCluster, String faultNodeIp) {
-		for(MaxDownNodes subCluster:currentCluster) {
-//			System.out.println("mutation, maxDown "+subCluster.maxDown
-//					+", alive:"+subCluster.aliveGroup+", dead:"+subCluster.deadGroup);
-			if(subCluster.aliveGroup.contains(faultNodeIp)) {
-				return true;
-			} else {
-				continue;
-			}
-		}
-		return false;
-	}
-	public static boolean isDeadNode(List<MaxDownNodes> currentCluster, String faultNodeIp) {
-		for(MaxDownNodes subCluster:currentCluster) {
-//			System.out.println("mutation, maxDown "+subCluster.maxDown
-//					+", alive:"+subCluster.aliveGroup+", dead:"+subCluster.deadGroup);
-			if(subCluster.deadGroup.contains(faultNodeIp)) {
-				return true;
-			} else {
-				continue;
-			}
-		}
-		return false;
-	}
-	public static List<MaxDownNodes> cloneCluster(List<MaxDownNodes> srcCluster) {
-		List<MaxDownNodes> desCluster = new ArrayList<MaxDownNodes>();
-		for(MaxDownNodes sub:srcCluster) {
-    		MaxDownNodes group = new MaxDownNodes();
-    		group.maxDown = sub.maxDown;
-    		group.aliveGroup = new HashSet<String>();
-    		group.aliveGroup.addAll(sub.aliveGroup);
-    		
-    		group.deadGroup = new HashSet<String>();
-    		group.deadGroup.addAll(sub.deadGroup);
-    		desCluster.add(group);
-    	}
-		return desCluster;
-	}
 	public static void mutateFaultSequence(QueueEntry q, Conf conf) {
 		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
 		FaultSequence original_faults = q.faultSeq;
@@ -89,9 +30,9 @@ public class Mutation {
 		}
 
 
-		List<MaxDownNodes> currentCluster = Mutation.cloneCluster(conf.maxDownGroup);
+		List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(conf.maxDownGroup);
 		for(FaultPoint fault:original_faults.seq) {
-			buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
+			MaxDownNodes.buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
 		}
 		
 		int lastIO = q.ioSeq.size();
@@ -156,7 +97,7 @@ public class Mutation {
 						if(q.on_recovery_mutates == null) {
 							q.on_recovery_mutates = new ArrayList<QueueEntry>();
 						}
-						int faultid = (p.ioPt.CALLSTACK+p.stat.toString()+p.tarNodeIp).hashCode();
+						int faultid = p.getFaultID();
 						q.not_tested_fault_id.add(faultid);
 						if(faults.on_recovery) {
 							q.on_recovery_mutates.add(new_q);
@@ -197,7 +138,7 @@ public class Mutation {
 							if(q.on_recovery_mutates == null) {
 								q.on_recovery_mutates = new ArrayList<QueueEntry>();
 							}
-							int faultid = (p.ioPt.CALLSTACK+p.stat.toString()+p.tarNodeIp).hashCode();
+							int faultid = p.getFaultID();
 							q.not_tested_fault_id.add(faultid);
 							if(faults.on_recovery) {
 								q.on_recovery_mutates.add(new_q);
@@ -214,7 +155,115 @@ public class Mutation {
 		q.mutates = mutates;
 		// q.favored_mutates = q.mutates;
 		q.favored_mutates = new ArrayList<QueueEntry>(mutates);
+		// q.globalNewIOMutates = collectGlobelNewIOMutates(q.favored_mutates);
 	}
+
+	// public static List<QueueEntry> collectGlobelNewIOMutates(List<QueueEntry> entryList) {
+	// 	List<QueueEntry> result = new ArrayList<QueueEntry>();
+	// 	for (QueueEntry entry: entryList) {
+	// 		boolean haveGloablNewIO = false;
+	// 		List<FaultPoint> seq = entry.faultSeq.seq;
+	// 		for (FaultPoint fp: seq) {
+	// 			if (QueueManagerNew.tested_fault_id.contains(fp.getFaultID())) {
+	// 				haveGloablNewIO = true;
+	// 				break;
+	// 			}
+	// 		}
+	// 		if (haveGloablNewIO) {
+	// 			result.add(entry);
+	// 		}
+	// 	}
+	// 	return result;
+	// }
+
+	// public static List<QueueEntry> getToTestEneryAndRemoveThemFromRespondingQueue(QueueEntry entry) {
+	// 	List<QueueEntry> result = new ArrayList<QueueEntry>();
+		
+	// 	return result;
+	// }
+
+	public static class EntryAndScore implements Comparable<EntryAndScore> {
+		public QueueEntry entry;
+		public int score;
+		public EntryAndScore(QueueEntry entry, int score) {
+			this.entry = entry;
+			this.score = score;
+		}
+		@Override
+		public int compareTo(EntryAndScore o) {
+			// TODO Auto-generated method stub
+			int result = this.score - o.score;
+			// result = 0 - result;
+			return result;
+		}
+
+		
+	}
+
+	public static boolean checkIfEntryIsGlobalNewIO(QueueEntry entry) {
+		boolean result = false;
+		FaultPoint lastFault = entry.faultSeq.seq.get(entry.faultSeq.seq.size() - 1);
+		int id = lastFault.getFaultID();
+		result = !QueueManagerNew.tested_fault_id.contains(id);
+		return result;
+	}
+
+	public static void appendGlobalNewIOSocre(List<QueueEntry> mutates, List<Integer> scores) {
+		if (mutates.size() != scores.size()) return;
+		for (int i = 0; i < mutates.size(); i++) {
+			QueueEntry entry = mutates.get(i);
+			if (checkIfEntryIsGlobalNewIO(entry)) {
+				int s = scores.get(i);
+				s = s + 1;
+				scores.set(i, s);
+			}
+		}
+	}
+
+	public static void appendGlobalNewIOSocre(List<QueueEntry> mutates, int[] scores) {
+		if (mutates.size() != scores.length)
+			return;
+		for (int i = 0; i < mutates.size(); i++) {
+			if (checkIfEntryIsGlobalNewIO(mutates.get(i))) {
+				scores[i]++;
+			}
+		}
+	}
+
+	public static void appendGlobalNewIOSocre(List<EntryAndScore> list) {
+		for (EntryAndScore es: list) {
+			if (checkIfEntryIsGlobalNewIO(es.entry)) {
+				es.score++;
+			}
+		}
+	}
+
+	public static boolean checkIfEntryIsRecovery(QueueEntry entry) {
+		boolean result = false;
+		result = entry.faultSeq.on_recovery;
+		return result;
+	}
+
+	public static void appendRecoveryScore(List<EntryAndScore> list) {
+		for (EntryAndScore es: list) {
+			if (checkIfEntryIsRecovery(es.entry)) {
+				es.score++;
+			}
+		}
+	}
+
+	public static void appendLocalNewIOScore(QueueEntry oriEntry, List<EntryAndScore> list) {
+		for (EntryAndScore es : list) {
+			List<FaultPoint> seq = es.entry.faultSeq.seq;
+			FaultPoint lastFault = seq.get(seq.size() - 1);
+			int id = lastFault.getFaultID();
+			if (oriEntry.not_tested_fault_id.contains(id)) {
+				es.score++;
+			}
+		}
+	}
+
+
 	
 	public static List<QueueEntry> mutateFaultSequence_backup(QueueEntry q) {
 		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
@@ -283,5 +332,30 @@ public class Mutation {
 		public static int getRandomNumber(int limit) {
 			int num = (int) (Math.random()*limit);
 			return num;
+		}
+
+		public static List<QueueEntry> getMutationEntry(QueueEntry seed, Conf conf) {
+			List<QueueEntry> result = new ArrayList<QueueEntry>();
+			List<EntryAndScore> mList = new ArrayList<EntryAndScore>();
+			for (QueueEntry entry: seed.mutates) {
+				mList.add(new EntryAndScore(entry, 0));
+			};
+			
+			appendGlobalNewIOSocre(mList);
+
+			SeedSelection.logScoresList("mutates", mList);
+
+			mList.sort(new Comparator<EntryAndScore>() {
+				@Override
+				public int compare(EntryAndScore o1, EntryAndScore o2) {
+					return o2.score - o1.score;
+				}
+			});
+
+			int k = conf.MUTATE_CHOOSE;
+			for (int i = 0; i < k; i++) {
+				result.add(mList.get(i).entry);
+			}
+			return result;
 		}
 }

@@ -77,6 +77,46 @@ public class CoverageCollector {
 		Stat.log("Covered "+finds+" new code blocks!!!!!!!!!!!!!!!!!!!");
 		return finds;
 	}
+
+	public int hasNewBitsNew() {
+		int finds= 0;
+		for(int i = 0; i< trace_bits.length; i++) {
+			if(trace_bits[i]>0 && virgin_bits[i] ==0) {
+				finds++;
+				virgin_bits[i] = trace_bits[i];
+//				System.out.println("Got new edge:"+i+".");
+			}
+		}
+		System.out.println("Got "+finds+" new edges.");
+		return finds;
+	}
+
+	public int updateVirginBits(){
+		int result = 0;
+		int finds = 0;
+		for(int i = 0; i< trace_bits.length; i++) {
+			if(trace_bits[i]>0 && virgin_bits[i] ==0) {
+				virgin_bits[i] = trace_bits[i];
+				finds++;
+			}
+		}
+		for(int i = 0; i< virgin_bits.length; i++) {
+			if(virgin_bits[i] > 0) {
+				result++;
+			}
+		}
+
+		if(finds > 0) {
+			write_bitmap(virgin_bits, FileUtil.root+FileUtil.virgin_map_file);
+			int key = (int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60));
+			FuzzInfo.timeToTotalCovs.put(key, result);
+			FuzzInfo.lastNewCovTime = FuzzInfo.getUsedSeconds();
+		}
+		System.out.println("Current covered edges is "+result);
+		Stat.log("Covered "+finds+" new code blocks!!!!!!!!!!!!!!!!!!!");
+
+		return result;
+	}
 	
 	public static int coveredBlocks(byte[] bytes) {
 		int rst = 0;

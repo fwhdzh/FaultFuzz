@@ -21,10 +21,9 @@ import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
-import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
-import edu.iscas.CCrashFuzzer.Mutation;
+import edu.iscas.CCrashFuzzer.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.RunCommand;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.random.RandomFaultSequence.RandomFaultPoint;
@@ -55,7 +54,7 @@ public class RandomController {
     	this.injectionAborted = false;
     	this.rst = new ArrayList<String>();
     	this.clients = Collections.synchronizedSet(new HashSet<Thread>());
-    	currentCluster = Mutation.cloneCluster(favconfig.maxDownGroup);
+    	currentCluster = MaxDownNodes.cloneCluster(favconfig.maxDownGroup);
     }
 
     public void startController() {
@@ -82,7 +81,7 @@ public class RandomController {
 			                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
 			                rst.add(Stat.log("node "+fault.actualNodeIp+" was killed!"));
 			                
-			                Mutation.buildClusterStatus(currentCluster, fault.actualNodeIp, FaultStat.CRASH);
+			                MaxDownNodes.buildClusterStatus(currentCluster, fault.actualNodeIp, FaultStat.CRASH);
 						} else if(fault.stat.equals(FaultStat.REBOOT)) {
 							fault.actualNodeIp = fault.tarNodeIp;
 							rst.add(Stat.log("Meet "+cur_Fault+"th fault point[REBOOT]:"+fault));
@@ -94,7 +93,7 @@ public class RandomController {
 			                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
 			                rst.add(Stat.log("node "+fault.actualNodeIp+" was restarted!"));
 				            
-			                Mutation.buildClusterStatus(currentCluster, fault.actualNodeIp, FaultStat.REBOOT);
+			                MaxDownNodes.buildClusterStatus(currentCluster, fault.actualNodeIp, FaultStat.REBOOT);
 						} 
 				    }
 					faultInjected = true;

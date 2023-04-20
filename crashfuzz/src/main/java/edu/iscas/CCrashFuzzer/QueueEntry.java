@@ -33,8 +33,18 @@ public class QueueEntry {
 	}
 
 	public List<QueueEntry> mutates;
-	public List<QueueEntry> on_recovery_mutates;
 	public List<QueueEntry> favored_mutates;
+
+	public List<QueueEntry> on_recovery_mutates;
+	// public int recoveryMutatesIndex;
+
+	// public List<QueueEntry> globalNewIOMutates;
+	// public int globalNewIOMutatesIndex;
+
+	// public List<Integer> mutatesSocre;
+	public int[] mutatesScore;
+
+
 
 	public Set<Integer> unique_io_id;
 	public Set<Integer> recovery_io_id;

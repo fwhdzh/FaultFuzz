@@ -22,7 +22,6 @@ import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
-import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget;
 import edu.iscas.CCrashFuzzer.control.AbstractTarget;
 import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;

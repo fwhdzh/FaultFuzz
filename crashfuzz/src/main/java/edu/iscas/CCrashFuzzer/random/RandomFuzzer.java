@@ -25,12 +25,11 @@ import edu.iscas.CCrashFuzzer.random.RandomFaultSequence.RandomFaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.FuzzInfo;
+import edu.iscas.CCrashFuzzer.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.Monitor;
-import edu.iscas.CCrashFuzzer.Mutation;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.random.RandomQueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class RandomFuzzer {
@@ -330,7 +329,7 @@ public class RandomFuzzer {
     }
 	
 	public RandomFaultSequence generateRadomFaultSequence() {
-		List<MaxDownNodes> currentCluster = Mutation.cloneCluster(conf.maxDownGroup);
+		List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(conf.maxDownGroup);
 		RandomFaultSequence randomFaults = new RandomFaultSequence();
 		
 		Random random = new Random();
@@ -408,7 +407,7 @@ public class RandomFuzzer {
 						if(Conf.DEBUG) {
 							Stat.log(i+"Crash node "+tarNodeIp+" after "+timeOffSet);
 						}
-						Mutation.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.CRASH);
+						MaxDownNodes.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.CRASH);
 						break;
 					} else if(canReboot) {
 						RandomFaultPoint p  = new RandomFaultPoint();
@@ -431,7 +430,7 @@ public class RandomFuzzer {
 							Stat.log(i+"Reboot node "+tarNodeIp+" after "+timeOffSet);
 						}
 						
-						Mutation.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.REBOOT);
+						MaxDownNodes.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.REBOOT);
 						break;
 					}
 				}

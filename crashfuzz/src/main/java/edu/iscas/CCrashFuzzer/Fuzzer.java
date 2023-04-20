@@ -102,59 +102,59 @@ public class Fuzzer {
 	    long start = System.currentTimeMillis();
 		String testID = "init";
 		FaultSequence empty = FaultSequence.getEmptyIns();
-		target.run_target(empty, conf, "init", conf.hangSeconds);
-		FuzzInfo.total_execs++;
-		FuzzInfo.exec_us += target.a_exec_seconds;
-		updateTimeToFaulsToTestsNum(empty);
-
-		// HashMap<Integer, Integer> faultsToTests = FuzzInfo.timeToFaulsToTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
-		// faultsToTests.computeIfAbsent(0, key -> 0);
-		// faultsToTests.computeIfPresent(0, (key, value) -> value + 1);
-
-		String tmpRootDir = monitor.getTmpReportDir(testID);
-		// FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), tmpRootDir);
-
-		FileUtil.generateFAVLogInfo("", testID, target.logInfo, FaultSequence.getEmptyIns());
-		
-//		MyXMLReader.read_trace_map(monitor.getRootReport("init")+"cov/cov.xml");
-		coverage.read_bitmap(tmpRootDir+FileUtil.coverageDir);
-		int nb = coverage.has_new_bits();
-		FileUtil.writeMap(testID, coverage.trace_bits, FuzzInfo.getTotalCoverage(coverage.trace_bits), nb);
 		QueueEntry q = new QueueEntry();
-		// q.faultSeq = null;
 		q.faultSeq = empty;
 		q.fname = testID;
-		q.bitmap_size = coverage.coveredBlocks(coverage.trace_bits);
-		q.exec_s = target.a_exec_seconds;
-		if(nb>0) {
-			FuzzInfo.lastNewCovFaults = 0;
 
-			// HashMap<Integer, Integer> faultsToNewCovTests = FuzzInfo.timeToFaulsToNewCovTestsNum.computeIfAbsent((int) (FuzzInfo.getUsedSeconds()/(FuzzInfo.reportWindow*60)), k -> new HashMap<Integer, Integer>());
-			// faultsToNewCovTests.computeIfAbsent(0, key -> 0);
-			// faultsToNewCovTests.computeIfPresent(0, (key, value) -> value + 1);
-			updateTimeToFaulsToNewCovTestsNum(q);
-			
+		int rst = -1;
+		rst = target.run_target(empty, conf, "init", conf.hangSeconds);
+
+		String tmpRootDir = monitor.getTmpReportDir(testID);
+		coverage.read_bitmap(tmpRootDir+FileUtil.coverageDir);
+		int nb = coverage.has_new_bits();
+
+		// q.bitmap_size = coverage.coveredBlocks(coverage.trace_bits);
+		// q.exec_s = target.a_exec_seconds;
+		// if (nb > 0) {
+		// 	q.has_new_cov = true;
+		// 	q.new_cov_contribution = nb;
+		// }
+		updateQInSaveIfInterestring(q, rst, testID, nb);
+		
+
+		if (nb > 0) {
 			add_to_queue(q, testID);
 			if(q.recovery_io_id == null || q.recovery_io_id.isEmpty()) {
 				q.recovery_io_id = new HashSet<Integer>();
 			}
 			Mutation.mutateFaultSequence(q, conf);
-			
-			// q.handicap = 0;
-			// q.fuzzed_time = 0;
-			// q.was_fuzzed = false;
-
-			q.has_new_cov = true;
-			q.new_cov_contribution = nb;
-			
-			FileUtil.writePostTestInfo(q.fname, q.bitmap_size, q.exec_s);
-			FileUtil.copyToQueue(q.fname, conf);
 			totalSeedCases++;
 		}
-		FuzzInfo.total_bitmap_size += q.bitmap_size;
-		FuzzInfo.total_bitmap_entries++;
-		long usedSeconds = FuzzInfo.getUsedSeconds();
-		FileUtil.copyToTested(testID, usedSeconds, conf);
+
+		// FuzzInfo.total_execs++;
+		// FuzzInfo.exec_us += target.a_exec_seconds;
+		// updateTimeToFaulsToTestsNum(empty);
+		// if (nb > 0) {
+		// 	FuzzInfo.lastNewCovFaults = 0;
+		// 	updateTimeToFaulsToNewCovTestsNum(q);
+		// }
+		// FuzzInfo.total_bitmap_size += q.bitmap_size;
+		// FuzzInfo.total_bitmap_entries++;
+		updateFuzzInfoInSaveIfInterestring(q, rst, testID, target, nb);
+		
+
+		// FileUtil.generateFAVLogInfo("", testID, target.logInfo, FaultSequence.getEmptyIns());
+		// FileUtil.writeMap(testID, coverage.trace_bits, FuzzInfo.getTotalCoverage(coverage.trace_bits), nb);
+		// if (nb > 0) {
+		// 	FileUtil.writePostTestInfo(q.fname, q.bitmap_size, q.exec_s);
+		// 	FileUtil.copyToQueue(q.fname, conf);
+		// }
+		// long usedSeconds = FuzzInfo.getUsedSeconds();
+		// FileUtil.copyToTested(testID, usedSeconds, conf);
+
+		writeToFileInSaveIfInterestring(q, rst, testID, "", nb);
+		
+
 		if(Conf.MANUAL) {
 			Scanner scan = new Scanner(System.in);
         	scan.nextLine();
@@ -162,6 +162,7 @@ public class Fuzzer {
 		if(!Conf.DEBUG) {
 			FileUtil.delete(tmpRootDir);
 		}
+
         recordGlobalInfo();
 	}
 
@@ -243,7 +244,7 @@ public class Fuzzer {
     	}
     	
     	FaultPoint tmpLastFault = q.mutate.faultSeq.seq.get(q.mutate.faultSeq.seq.size()-1);
-		int tmpID = (tmpLastFault.ioPt.CALLSTACK+tmpLastFault.stat.toString()+tmpLastFault.tarNodeIp).hashCode();
+		int tmpID = tmpLastFault.getFaultID();
 		q.seed.not_tested_fault_id.remove(tmpID);
 		QueueManagerNew.tested_fault_id.add(tmpID);
     	
@@ -342,16 +343,13 @@ public class Fuzzer {
 
 			if(lastRst == 2 && rst != 2){
 				FuzzInfo.total_hangs--;
+				FileUtil.removeFromHang(testID,conf);
 			}
 			if (lastRst == 2 && rst == 2) {
 				FuzzInfo.lastNewHangTime = FuzzInfo.getUsedSeconds();
 				FuzzInfo.lastNewHangFaults = q.faultSeq.seq.size();
 				updateTimeToFaulsHangsNum(q);
             }
-
-			if(lastRst == 2 && rst != 2) {//not a hang bug
-            	FileUtil.removeFromHang(testID,conf);
-            } 
 
             // save_if_interesting(q, rst, q.fname, seedQ);
 			save_if_interesting_rewrite(q, rst, q.fname, seedQ, target);
@@ -400,11 +398,12 @@ public class Fuzzer {
 		faultsToBugs.computeIfPresent(q.faultSeq.seq.size(), (key, value) -> value + 1);
 	}
 
-	private void updateQInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ) {
-		
-		
+	private void updateQInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, int nb) {
+		updateQInSaveIfInterestring(seedQ, faultMode, testID, nb);
+	}
 
-		int nb = coverage.has_new_bits();
+	private void updateQInSaveIfInterestring(QueueEntry q, int faultMode, String testID, int nb) {
+		// int nb = coverage.has_new_bits();
 		q.new_cov_contribution = nb;
 		if(nb>0 && faultMode != -1) {
 			q.has_new_cov = true;
@@ -424,7 +423,11 @@ public class Fuzzer {
 		totalSeedCases++;
 	}
 
-	private void updateFuzzInfoInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, NormalTarget target) {
+	private void updateFuzzInfoInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, NormalTarget target, int nb) {
+		updateFuzzInfoInSaveIfInterestring(q, faultMode, testID, target, nb);
+	}
+
+	private void updateFuzzInfoInSaveIfInterestring(QueueEntry q, int faultMode, String testID, NormalTarget target, int nb) {
 
 		FuzzInfo.total_execs++;
 		FuzzInfo.exec_us += target.a_exec_seconds;
@@ -433,80 +436,129 @@ public class Fuzzer {
 			updateTimeToFaulsToTestsNum(q);
 		}
 		
-		int nb = coverage.has_new_bits();
+		// int nb = coverage.has_new_bits();
 		if(nb>0 && faultMode != -1) {
 			FuzzInfo.lastNewCovFaults = q.faultSeq.seq.size();
 			updateTimeToFaulsToNewCovTestsNum(q);
 		}
-		long usedSeconds = FuzzInfo.getUsedSeconds();
-		if(faultMode >0) {
-			if(faultMode == 1) {
-				FuzzInfo.total_bugs++;
-				Stat.log("*********************Find a BUG for test "+testID+"*********************");
-				FuzzInfo.lastNewBugTime = FuzzInfo.getUsedSeconds();
-				FuzzInfo.lastNewBugFaults = q.faultSeq.seq.size();
-				updateTimeToFaulsBugsNum(q);
-			} else if (faultMode == 2) {
-				FuzzInfo.total_hangs++;
-				Stat.log("*********************Find a HANG for test "+testID+"*********************");
-			}
-		} else if(faultMode <0) {
-			Stat.log("*********************Test "+testID+" CANNOT be triggered*********************");
+		if (CoverageFilter.checkIfInteresting(faultMode, nb, q)) // imply faultMode == 0
+		{
+			Stat.log("*********************Test "+testID+" is ADDED to queue*********************");
 		} else {
-			if(nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH) {//TODO: rethink this
-				Stat.log("*********************Test "+testID+" is ADDED to queue*********************");
-				totalSeedCases++;
+			if(faultMode >0) {
+				if(faultMode == 1) {
+					FuzzInfo.total_bugs++;
+					Stat.log("*********************Find a BUG for test "+testID+"*********************");
+					FuzzInfo.lastNewBugTime = FuzzInfo.getUsedSeconds();
+					FuzzInfo.lastNewBugFaults = q.faultSeq.seq.size();
+					updateTimeToFaulsBugsNum(q);
+				} else if (faultMode == 2) {
+					FuzzInfo.total_hangs++;
+					Stat.log("*********************Find a HANG for test "+testID+"*********************");
+				}
+			} else if(faultMode <0) {
+				Stat.log("*********************Test "+testID+" CANNOT be triggered*********************");
 			}
 		}
+		// if(faultMode >0) {
+		// 	if(faultMode == 1) {
+		// 		FuzzInfo.total_bugs++;
+		// 		Stat.log("*********************Find a BUG for test "+testID+"*********************");
+		// 		FuzzInfo.lastNewBugTime = FuzzInfo.getUsedSeconds();
+		// 		FuzzInfo.lastNewBugFaults = q.faultSeq.seq.size();
+		// 		updateTimeToFaulsBugsNum(q);
+		// 	} else if (faultMode == 2) {
+		// 		FuzzInfo.total_hangs++;
+		// 		Stat.log("*********************Find a HANG for test "+testID+"*********************");
+		// 	}
+		// } else if(faultMode <0) {
+		// 	Stat.log("*********************Test "+testID+" CANNOT be triggered*********************");
+		// } else {
+		// 	if(nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH) {//TODO: rethink this
+		// 		Stat.log("*********************Test "+testID+" is ADDED to queue*********************");
+		// 	}
+		// }
 		FuzzInfo.total_bitmap_size += q.bitmap_size;
 		FuzzInfo.total_bitmap_entries++;
 	}
 
-	private void writeToFileInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ) {
+	private void writeToFileInSaveIfInterestring(QueueEntry q, int faultMode, String testID, String seedName, int nb) {
 		
-		FileUtil.generateFAVLogInfo(seedQ.fname, testID, target.logInfo, q.faultSeq);
+		FileUtil.generateFAVLogInfo(seedName, testID, target.logInfo, q.faultSeq);
 
-		
-		int nb = coverage.has_new_bits();
+		// int nb = coverage.has_new_bits();
 
 		FileUtil.writeMap(testID, coverage.trace_bits, FuzzInfo.getTotalCoverage(coverage.trace_bits), nb);
 		FileUtil.writeNeighborNewCovs(testID, q.faultSeq.adjacent_new_covs);
 		FileUtil.writePostTestInfo(testID, q.bitmap_size, q.exec_s);
 
 		long usedSeconds = FuzzInfo.getUsedSeconds();
-		if(faultMode >0) {
-			if(faultMode == 1) {
-				FileUtil.copyDirToBugs(testID, usedSeconds);
-			} else if (faultMode == 2) {
-				FileUtil.copyDirToHangs(testID, usedSeconds);
-			}
-		} else if(faultMode <0) {
-			FileUtil.copyToUntriggered(testID,conf);
-			if(!Conf.DEBUG) {
-				FileUtil.delete(FileUtil.root_tmp+testID);
-			}
+		if (CoverageFilter.checkIfInteresting(faultMode, nb, q)) // imply faultMode == 0
+		{
+			FileUtil.copyToQueue(testID, conf);
 		} else {
-			if(nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH) {//TODO: rethink this
-				FileUtil.copyToQueue(testID, conf);
+			if(faultMode >0) {
+				if(faultMode == 1) {
+					FileUtil.copyDirToBugs(testID, usedSeconds);
+				} else if (faultMode == 2) {
+					FileUtil.copyDirToHangs(testID, usedSeconds);
+				}
+			} else if(faultMode <0) {
+				FileUtil.copyToUntriggered(testID,conf);
+				if(!Conf.DEBUG) {
+					FileUtil.delete(FileUtil.root_tmp+testID);
+				}
 			}
 		}
+		// if(faultMode >0) {
+		// 	if(faultMode == 1) {
+		// 		FileUtil.copyDirToBugs(testID, usedSeconds);
+		// 	} else if (faultMode == 2) {
+		// 		FileUtil.copyDirToHangs(testID, usedSeconds);
+		// 	}
+		// } else if(faultMode <0) {
+		// 	FileUtil.copyToUntriggered(testID,conf);
+		// 	if(!Conf.DEBUG) {
+		// 		FileUtil.delete(FileUtil.root_tmp+testID);
+		// 	}
+		// } else {
+		// 	if(nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH) {//TODO: rethink this
+		// 		FileUtil.copyToQueue(testID, conf);
+		// 	}
+		// }
 		FileUtil.copyToTested(testID, usedSeconds, conf);
 		if(!Conf.DEBUG) {
 			FileUtil.delete(FileUtil.root_tmp+testID);
 		}
 	}
 
+	private void writeToFileInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, int nb) {
+		String seedName = seedQ.fname;
+		writeToFileInSaveIfInterestring(q, faultMode, testID, seedName, nb);
+	}
+
+	public static class CoverageFilter {
+		public static boolean checkIfInteresting(int faultMode, int nb, QueueEntry q) {
+			boolean result = false;
+			if (faultMode != 0) return false;
+			if (nb>0) return true;
+			result = q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH;
+			// result = (faultMode == 0) && (nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH);
+			return result;
+		}
+	}
+
 	public boolean save_if_interesting_rewrite(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, NormalTarget target) {
 		boolean result = true;
 		coverage.read_bitmap(FileUtil.root_tmp+testID+"/"+FileUtil.coverageDir);
-		updateQInSaveIfInterestring(q, faultMode, testID, seedQ);
 		int nb = coverage.has_new_bits();
-		if ((faultMode == 0) && (nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH)) {
+		updateQInSaveIfInterestring(q, faultMode, testID, seedQ, nb);
+		if (CoverageFilter.checkIfInteresting(faultMode, nb, q)) {
 			addToQueueAndMutateInSaveIfInterestring(q, testID, seedQ);
 		}
 
-		updateFuzzInfoInSaveIfInterestring(q, faultMode, testID, seedQ, target);
-		writeToFileInSaveIfInterestring(q, faultMode, testID, seedQ);
+		updateFuzzInfoInSaveIfInterestring(q, faultMode, testID, seedQ, target, nb);
+		writeToFileInSaveIfInterestring(q, faultMode, testID, seedQ, nb);
 		return result;
 	}
 
@@ -993,24 +1045,34 @@ public class Fuzzer {
         	queue_cycle++;
 
         	cull_queue();
-        	QueuePair q = QueueManagerNew.retrieveAnEntry(candidate_queue);
-        	if(q == null) {
-        		break;
-        	}
-        	Stat.log("Going to test queue entry"+q.seedIdx+"'s mutation:"+q.mutateIdx);
+
+        	// QueuePair q = QueueManagerNew.retrieveAnEntry(candidate_queue);
+        	// if(q == null) {
+        	// 	break;
+        	// }
+			// doARun(q);
+
+			List<QueuePair> pairList = QueueManagerNew.retrievePairListFWH(candidate_queue, conf);
+			for (QueuePair pair : pairList) {
+				doARun(pair);
+			}
+
+			
+        	// Stat.log("Going to test queue entry"+q.seedIdx+"'s mutation:"+q.mutateIdx);
         	
-        	int exec_rst = common_fuzz_stuff(q.mutate, q.seed);
+        	// int exec_rst = common_fuzz_stuff(q.mutate, q.seed);
         	
-        	q.seed.was_fuzzed = true;
-        	FileUtil.updateQueueInfo(q.seed.fname, q.seed.mutates, q.seed.fuzzed_time, q.seed.handicap);
+        	// q.seed.was_fuzzed = true;
+        	// FileUtil.updateQueueInfo(q.seed.fname, q.seed.mutates, q.seed.fuzzed_time, q.seed.handicap);
         	
-        	if(exec_rst != -1) {
-            	update_queue(q);
-        	}
-        	if(Conf.MANUAL) {
-    			Scanner scan = new Scanner(System.in);
-            	scan.nextLine();
-    		}
+        	// if(exec_rst != -1) {
+            // 	update_queue(q);
+        	// }
+
+        	// if(Conf.MANUAL) {
+    		// 	Scanner scan = new Scanner(System.in);
+            // 	scan.nextLine();
+    		// }
 //        	fuzzed_queue.add(q);
         	
         	hasFaultSequence = !candidate_queue.isEmpty();
@@ -1020,6 +1082,21 @@ public class Fuzzer {
 			recordTestedFaultId();
 			recordVirginBits();
         }
+	}
+
+	public void doARun(QueuePair q) {
+		
+		Stat.log("Going to test queue entry" + q.seedIdx + "'s mutation:" + q.mutateIdx);
+		int exec_rst = common_fuzz_stuff(q.mutate, q.seed);
+		q.seed.was_fuzzed = true;
+		FileUtil.updateQueueInfo(q.seed.fname, q.seed.mutates, q.seed.fuzzed_time, q.seed.handicap);
+		if (exec_rst != -1) {
+			update_queue(q);
+		}
+		if (Conf.MANUAL) {
+			Scanner scan = new Scanner(System.in);
+			scan.nextLine();
+		}
 	}
 	
 	public void recordGlobalInfo() {

@@ -22,14 +22,13 @@ import edu.iscas.CCrashFuzzer.AflCli;
 import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
-import edu.iscas.CCrashFuzzer.Mutation;
 import edu.iscas.CCrashFuzzer.RunCommand;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
-import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
+import edu.iscas.CCrashFuzzer.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 //We do not trigger remote crash in this controller.
 //This controller aims to trigger local crashes for systems deployed as processes in the same machine
@@ -59,7 +58,7 @@ public class NormalController {
     	this.injectionAborted = false;
     	this.rst = new ArrayList<String>();
     	this.clients = Collections.synchronizedSet(new HashSet<ClientHandler>());
-    	currentCluster = Mutation.cloneCluster(favconfig.maxDownGroup);
+    	currentCluster = MaxDownNodes.cloneCluster(favconfig.maxDownGroup);
     }
 
     public void startController() {
@@ -277,7 +276,7 @@ public class NormalController {
 						}
 						
 						rst.add(Stat.log("Meet "+cur_Fault+"th fault point [CRASH]:"+pendingPoint));
-						if(Mutation.isDeadNode(currentCluster, pendingPoint.actualNodeIp)) {
+						if(MaxDownNodes.isDeadNode(currentCluster, pendingPoint.actualNodeIp)) {
 							throw new AbortFaultException("Crashing a dead node "+pendingPoint.actualNodeIp+"!!!");
 						}
 
@@ -306,10 +305,10 @@ public class NormalController {
 		                //CrashTriggerMain.generateFailureInfo(restartRst, point, acceptedCrashNode, CUR_CRASH_NODE_NAME, restarted, "restart-failure");
 		                rst.add(Stat.log("node "+pendingPoint.actualNodeIp+" was killed!"));
 		                
-		                Mutation.buildClusterStatus(currentCluster, pendingPoint.actualNodeIp, FaultStat.CRASH);
+		                MaxDownNodes.buildClusterStatus(currentCluster, pendingPoint.actualNodeIp, FaultStat.CRASH);
 					} else if(pendingPoint.stat.equals(FaultStat.REBOOT)) {
 						rst.add(Stat.log("Meet "+cur_Fault+"th fault point[REBOOT]:"+pendingPoint));
-						if(Mutation.isAliveNode(currentCluster, pendingPoint.actualNodeIp)) {
+						if(MaxDownNodes.isAliveNode(currentCluster, pendingPoint.actualNodeIp)) {
 							throw new AbortFaultException("Restarting an alive node "+pendingPoint.actualNodeIp+"!!!");
 						}
 						
@@ -333,7 +332,7 @@ public class NormalController {
 //						Stat.log(cliID+"---------For fault "+cur_Fault+", informed reporting node: REBOOT:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");
 						
 						
-		                Mutation.buildClusterStatus(currentCluster, pendingPoint.actualNodeIp, FaultStat.REBOOT);
+		                MaxDownNodes.buildClusterStatus(currentCluster, pendingPoint.actualNodeIp, FaultStat.REBOOT);
 					} else {
 						//no need to inject faults
 						Stat.log(cliID+"---------For fault "+cur_Fault+", time to info reporting node: NONE:"+faultSequence.seq.get(cur_Fault).curAppear+"----------");

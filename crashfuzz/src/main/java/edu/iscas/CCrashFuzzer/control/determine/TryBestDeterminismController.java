@@ -11,10 +11,10 @@ import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
 import edu.iscas.CCrashFuzzer.IOPoint;
+import edu.iscas.CCrashFuzzer.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
-import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
 import edu.iscas.CCrashFuzzer.control.replay.ReplayController;
@@ -51,8 +51,8 @@ public class TryBestDeterminismController extends ReplayController{
 		Stat.log("Current fault sequence was prepared.");
 	}
 
-    @Override
-    public void startController() {
+    // @Override
+    // public void startController() {
         // TODO Auto-generated method stub
         // running = true;
 		// counter = 0;
@@ -102,7 +102,7 @@ public class TryBestDeterminismController extends ReplayController{
 
 		// ListScanner scanThread = new ListScanner();
 		// scanThread.start();
-    }
+    // }
 
     public class TryBestDeterminismListScanner extends ListScanner {
 

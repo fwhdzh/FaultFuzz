@@ -13,11 +13,11 @@ import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
 import edu.iscas.CCrashFuzzer.Fuzzer;
+import edu.iscas.CCrashFuzzer.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.Monitor;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
-import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class NormalTarget extends AbstractNormalTarget{

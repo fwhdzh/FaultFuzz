@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import edu.iscas.CCrashFuzzer.Conf.MaxDownNodes;
-
 public class Cluster {
 	//public RestartDecision restartDecision;
 	public Conf favconfig;

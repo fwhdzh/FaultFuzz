@@ -66,12 +66,20 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 			return "FaultPoint=[ IOPoint=["+ioPt.toString()+"]"+", FaultStat=["+stat+"], "+", FaultPos=["+pos+"], "
 		+"tarNodeIp=["+tarNodeIp+"], actualNodeIp=["+actualNodeIp+"] ]";
 		}
-		public int getFaultID() {
-			return getFaultInfo().hashCode();
-		}
+		
 		public String getFaultInfo() {
 			return ioPt.ioID+ioPt.appearIdx+pos.toString()+stat.toString();
 		}
+
+		public int getFaultID() {
+			int result = (ioPt.CALLSTACK+stat.toString()+tarNodeIp).hashCode();
+			return result;
+		}
+
+		// It semms the function never be used and CrashFuzz compute fault Id in another way
+		// public int getFaultIDOld() {
+		// 	return getFaultInfo().hashCode();
+		// }
 	}
 	public enum FaultStat {
 		NO, //we may not use this stat
