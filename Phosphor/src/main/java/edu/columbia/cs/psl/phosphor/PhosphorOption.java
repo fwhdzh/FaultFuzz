@@ -677,6 +677,30 @@ public enum PhosphorOption {
                 Configuration.SAVE_RESULT_INTERNAL = Integer.parseInt(commandLine.getOptionValue(optionName));
             }
         }
+    },
+    REPLAY_MODE(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.REPLAY_MODE = Boolean.parseBoolean(commandLine.getOptionValue(optionName));
+            }
+        }
+    },
+    REPLAY_NOW(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.REPLAY_NOW = Boolean.parseBoolean(commandLine.getOptionValue(optionName));
+            }
+        }
+    },
+    DETERMINE_STATE(new PhosphorOptionBuilder(null, false, true).argType(int.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.DETERMINE_STATE = Integer.parseInt(commandLine.getOptionValue(optionName));
+            }
+        }
     };
 
     final String optionName;

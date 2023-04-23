@@ -202,6 +202,9 @@ extends AbstractController
 		seqPair.faultSeq.reset();
 		updataCurCrashPointFile(seqPair.faultSeq);
 		Stat.log("Current fault sequence was prepared.");
+
+	    arriveAllFaultPoint = faultSeq.isEmpty();
+		
 	}
 
 	public void updataCurCrashPointFile(FaultSequence faultSequence) {
@@ -228,6 +231,11 @@ extends AbstractController
 
 	// @Override
 	public void startController() {
+		startSeverThread();
+		startScanThread();
+	}
+
+	protected void startSeverThread() {
 		running = true;
 		counter = 0;
 		serverThread = new Thread() {
@@ -259,21 +267,26 @@ extends AbstractController
 					serverSocket.close();
 
 				} catch (Exception e) {
-					e.printStackTrace();
-					Stat.log("recieve total socket count: " + counter);
-					Stat.log("faultPointList size is : " + faultPointList.size());
-					Stat.log("actualFPBList size is : " + actualFPBList.size());
-					Stat.log("The left FPBS are : ");
-					String s = "";
-					for (FaultPointBlocked fpb : faultPointList) {
-						s = s + JSONObject.toJSONString(fpb) + "\n";
+					synchronized (faultPointList) {
+						e.printStackTrace();
+						Stat.log("recieve total socket count: " + counter);
+						Stat.log("faultPointList size is : " + faultPointList.size());
+						Stat.log("actualFPBList size is : " + actualFPBList.size());
+						Stat.log("The left FPBS are : ");
+						String s = "";
+						for (FaultPointBlocked fpb : faultPointList) {
+							s = s + JSONObject.toJSONString(fpb) + "\n";
+						}
+						Stat.log(s);
 					}
-					Stat.log(s);
+					
 				}
 			}
 		};
 		serverThread.start();
+	}
 
+	protected void startScanThread() {
 		ListScanner scanThread = new ListScanner();
 		scanThread.start();
 	}
@@ -406,7 +419,7 @@ extends AbstractController
 				args[0] = p.actualNodeIp;
 				args[1] = String.valueOf(favconfig.AFL_PORT);
 				args[2] = AflCommand.SAVE.toString();
-				AflCli.main(args);
+				AflCli.interactWithNode(args);
 				rst.add(Stat.log("Prepare to crash node " + p.actualNodeIp));
 				List<String> crashRst = cluster.killNode(p.actualNodeIp, p.actualNodeIp);
 				rst.addAll(crashRst);
@@ -476,9 +489,6 @@ extends AbstractController
 			Stat.log("ioList size is: " + ioSeq.size());
 			// Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
 			Stat.log("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
-			Stat.log("ListScanner next to wait: " + ioSeq.get(index.get()).ioID + ", path: "
-					+ ioSeq.get(index.get()).PATH);
-			int extraWriteMsgHandleCount = 0;
 			try {
 				// boolean timeOut = false;
 				// while (!timeOut && index.get() < entry.ioSeq.size()) {
@@ -577,7 +587,8 @@ extends AbstractController
 				updataIOAppearIdxInFaultSeq(faultSeq, fIndex.get(), b.ioID);
                 FaultPoint fp = faultSeq.seq.get(fIndex.get());
                 if (checkFaultPointMatchFPBAndAppearIdx(fp, b)) {
-                    fp.actualNodeIp = b.reportNodeIp;
+					fp.actualNodeIp = fp.tarNodeIp;
+                    // fp.actualNodeIp = b.reportNodeIp;
                     Stat.log("A FaultPoint is found! The faultPoint is: " + fp.stat + ", ioID: " + fp.ioPt.ioID
                             + ", ip: " + fp.ioPt.ip + ", path: " + fp.ioPt.PATH);
                     b.cilentHander.doOperationToCluster(fp);

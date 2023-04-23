@@ -3,8 +3,6 @@ package edu.iscas.CCrashFuzzer.control;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.alibaba.fastjson.JSONObject;
-
 import edu.iscas.CCrashFuzzer.AflCli;
 import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
@@ -15,7 +13,6 @@ import edu.iscas.CCrashFuzzer.Monitor;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
-import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public abstract class AbstractDeterminismTarget extends AbstractTarget{
@@ -62,53 +59,27 @@ public abstract class AbstractDeterminismTarget extends AbstractTarget{
 		mCluster = new Cluster(conf);
 	}
 
-    
-    public void executeCliCommandToCluster(List<MaxDownNodes> cluster, final Conf conf, AflCommand command, long waitTime) {
-		List<Thread> workThreads = new ArrayList<Thread>();
-		for (MaxDownNodes subCluster : cluster) {
-			for (final String alive : subCluster.aliveGroup) {
-				Thread t = new Thread() {
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						super.run();
-						String[] args = new String[3];
-						args[0] = alive;
-						args[1] = String.valueOf(conf.AFL_PORT);
-						args[2] = command.toString();
-						// args[2] = AflCommand.STABLE.toString();
+	public void beforeTarget(FaultSeqAndIOSeq seqPair, Conf conf, String testID, long waitSeconds) {
+		mSeqPair = seqPair;
+		mConf = conf;
+		mTestID = testID;
+		mWaitSeconds = waitSeconds;
 
-						logInfo.add(Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args)));
+		logInfo = new ArrayList<String>();
+		checkInfo = new ArrayList<String>();
+		a_exec_seconds = 0;
 
-						try {
-							AflCli.main(args);
-						} catch (AflException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-
-				};
-				t.start();
-				workThreads.add(t);
-			}
-		}
-		for (Thread t : workThreads) {
-			try {
-				t.join(300000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		mCluster = new Cluster(conf);
 	}
 
+
+    
     /*
 	 * Before we collect information from cluster, we should ask the cluster to exit replay mode first.
 	 */
 	protected void sendNotReplayToCluster(List<MaxDownNodes> cluster) {
 		Stat.log("Command to wait all nodes not replay ...");
-		executeCliCommandToCluster(cluster, mConf, AflCommand.NOTREPLAY, 300000);
+		AflCli.executeCliCommandToCluster(cluster, mConf, AflCommand.NOTREPLAY, 300000);
 		// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
 		Stat.log("Finish waiting all nodes not replay ...");
 	}
@@ -117,10 +88,10 @@ public abstract class AbstractDeterminismTarget extends AbstractTarget{
 	public String collectRuntimeInfo(List<MaxDownNodes> cluster) {
 		String result = "";
 		logInfo.add(Stat.log("Command to wait all recovery process complete ..."));
-		executeCliCommandToCluster(cluster, mConf, AflCommand.STABLE, 300000);
+		AflCli.executeCliCommandToCluster(cluster, mConf, AflCommand.STABLE, 300000);
 		logInfo.add(Stat.log("Finish waiting recovery processes."));
 		logInfo.add(Stat.log("Command to save run-time traces ..."));
-		executeCliCommandToCluster(cluster, mConf, AflCommand.SAVE, 600000);
+		AflCli.executeCliCommandToCluster(cluster, mConf, AflCommand.SAVE, 600000);
 		logInfo.add(Stat.log("Finish saving run-time traces."));
 		Monitor m = new Monitor(mConf);
 		String runInfoPath = m.getTmpReportDir(mTestID);

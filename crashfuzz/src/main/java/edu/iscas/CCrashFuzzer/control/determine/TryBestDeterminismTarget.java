@@ -1,13 +1,16 @@
 package edu.iscas.CCrashFuzzer.control.determine;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import edu.iscas.CCrashFuzzer.AflCli;
 import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
 import edu.iscas.CCrashFuzzer.Fuzzer;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget;
 import edu.iscas.CCrashFuzzer.control.AbstractTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismController.TryBestDeterminismControllerResult;
@@ -19,25 +22,37 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 
     public static class TryBestDeterminismTResult {
 		public int result;
+		public List<String> logInfo;
 	}
 
     private TryBestDeterminismTResult mResult;
     private boolean finishWorkload;
+
+	
     
     @Override
+	public void beforeTarget(FaultSeqAndIOSeq seqPair, Conf conf, String testID, long waitSeconds) {
+		// TODO Auto-generated method stub
+		super.beforeTarget(seqPair, conf, testID, waitSeconds);
+
+		
+	}
+
+	@Override
     public void doTarget() {
         // TODO Auto-generated method stub
         runATestWithTryBestDetermineControl(mSeqPair, mConf, mTestID, mWaitSeconds);
     }
 
     @Override
-    public Object afterTarget() {
+    public TryBestDeterminismTResult afterTarget() {
         // TODO Auto-generated method stub
         sendNotReplayToCluster(controllerResult.finalCluster);
 		// For replay target, we should collect run-time information for all scenarios.
 		String runInfoPath = collectRuntimeInfo(controllerResult.finalCluster);
 		boolean findBug = checkIfABugExist(runInfoPath);
 		mResult = generateTryBestDeterminismTResult(finishWorkload, controllerResult.allFaultsAreInjected , findBug);
+		Stat.log("TryBestDeterminismTResult is "+mResult.result);
 		return mResult;
     }
 
@@ -47,6 +62,8 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		logInfo.add(Stat.log("Fault sequence info {"));
 		logInfo.add(Stat.log(seqPair.faultSeq.toString()));
 		logInfo.add(Stat.log("}"));
+
+		
 
 		int ret = 0;
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
@@ -71,6 +88,8 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 				e.printStackTrace();
 			}
 		}
+
+		// executeCliCommandToCluster(tbdController.currentCluster, conf, AflCli.AflCommand.DOREPLAY, mWaitSeconds);
 		
 		//start the cluster
 		//run the test case
@@ -86,6 +105,9 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		};
 		long start = System.currentTimeMillis();
 		runWorkload.start();
+
+		// logInfo.add(Stat.log("Check heartbeat ..."));
+		// AflCli.executeUtilSuccess(tbdController.currentCluster, conf, AflCommand.HEARTBEAT, waitSeconds);
 		
 		int waitIdx = 0;
 		while ((runWorkload.isAlive() || tbdController.finishFlag == false) && waitIdx < waitSeconds) {
@@ -98,6 +120,34 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
                 e.printStackTrace();
             }
 		}
+
+		Stat.log("The first while loop end! runWorkload.isAlive(): " + runWorkload.isAlive()
+				+ " tbdController.finishFlag: " + tbdController.finishFlag + " waitIdx: " + waitIdx);
+
+		// try {
+		// 	Thread.sleep(5000);
+		// } catch (InterruptedException e) {
+		// 	// TODO Auto-generated catch block
+		// 	e.printStackTrace();
+		// }
+
+		// terriable implementation for thread synchronous
+		int workloadIdx = 0;
+		int workloadSecond = 20;
+		while (tbdController.finishFlag == true && runWorkload.isAlive() && workloadIdx < workloadSecond) {
+			Stat.log("Try to wait workload to finish ...");
+			try {
+				Thread.sleep(1000);
+				workloadIdx++;
+				Stat.log("workloadIdx: " + workloadIdx);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		Stat.log("The second while loop end! runWorkload.isAlive(): " + runWorkload.isAlive()
+				+ " tbdController.finishFlag: " + tbdController.finishFlag + " workloadIdx: " + workloadIdx);
 
 		tbdController.stopController();
 		/*
@@ -136,6 +186,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 
     public TryBestDeterminismTResult generateTryBestDeterminismTResult(boolean workloadFinish, boolean injectFaultFinish, boolean findBug) {
 		TryBestDeterminismTResult result = new TryBestDeterminismTResult();
+		Stat.log("workloadFinish: " + workloadFinish + ", injectFaultFinish: " + injectFaultFinish + ", findBug: " + findBug);
 		if (workloadFinish && injectFaultFinish && findBug) {
 			result.result = 0;
 		} else if (workloadFinish && injectFaultFinish && !findBug) {
@@ -147,7 +198,26 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		} else if (!workloadFinish && !injectFaultFinish) {
 			result.result = -1;
 		}
+		result.logInfo = logInfo;
 		return result;
+	}
+
+	//0 triggered, no bug
+	//1 triggered, non-hang bug
+	//2 triggered, hang bug
+	//-1 not triggered
+	public static int mapTBDResutToFaultMode(int result) {
+		int faultMode = -1;
+		if (result == 0) {
+			faultMode = 1;
+		}
+		if (result == 2 || result == 3 || result == 4) {
+			faultMode = -1;
+		}
+		if (result == 1) {
+			faultMode = 0;
+		}
+		return faultMode;
 	}
 
 }

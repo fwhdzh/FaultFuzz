@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import edu.columbia.cs.psl.phosphor.Configuration;
+import edu.iscas.CCrashFuzzer.AflCli;
 import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.tracing.FAVEntry;
 import edu.iscas.tcse.favtrigger.tracing.RecordsHandler;
@@ -77,6 +78,8 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
     // there is tons of debugging data added to the resulting JNI
     // library.
     private static final String _jni_code = "<INJECT-JNI>";
+
+	public static boolean ready = false;
 
     static {
     	/*
@@ -281,6 +284,18 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
                 JavaAfl._after_main();
             }
         });
+
+		MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
+
+		// if (Configuration.DETERMINE_STATE != -1) {
+		// 	while (!ready) {
+		// 		try {
+		// 			Thread.currentThread().sleep(500);
+		// 		} catch (InterruptedException e) {
+		// 			e.printStackTrace();
+		// 		}
+		// 	}
+		// }
 
         save_records_td = new Thread() {
 

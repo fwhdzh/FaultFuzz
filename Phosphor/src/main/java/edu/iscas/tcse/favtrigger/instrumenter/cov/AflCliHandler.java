@@ -45,9 +45,29 @@ public class AflCliHandler extends Thread {
 		      }
 	      } else if (clientMessage.equals(AflCommand.HEARTBEAT.toString())) {
 				// serverMessage = AflCommand.HEATBEAT.toString();
+				MyLogger.log("Recieve command HEARTBEAT");
+				JavaAfl.ready = true;
 		  } else if (clientMessage.equals(AflCommand.NOTREPLAY.toString())) {
 				MyLogger.log("Recieve command NOTREPLAY");
 				Configuration.REPLAY_NOW = false;
+		  } else if (clientMessage.equals(AflCommand.DOREPLAY.toString())) {
+				MyLogger.log("Recieve command DOREPLAY");
+				Configuration.REPLAY_NOW = true;
+		  } else if (clientMessage.equals(AflCommand.REPLAYMODE.toString())) {
+				MyLogger.log("Recieve command REPLAYMODE");
+				Configuration.REPLAY_MODE = true;
+		  } else if (clientMessage.equals(AflCommand.NORMALMODE.toString())) {
+				MyLogger.log("Recieve command NORMALMODE");
+				Configuration.REPLAY_MODE = false;
+		  } else if (clientMessage.equals(AflCommand.DETERMINE_CONTROL.toString())) {
+				MyLogger.log("Recieve command DETERMINE_CONTROL");
+				Configuration.DETERMINE_STATE = 2;
+		  } else if (clientMessage.equals(AflCommand.DETERMINE_NORMAL.toString())) {
+				MyLogger.log("Recieve command DETERMINE_NORMAL");
+				Configuration.DETERMINE_STATE = 1;
+		  } else if (clientMessage.equals(AflCommand.DETERMINE_NO_SEND.toString())) {
+				MyLogger.log("Recieve command DETERMINE_NO_SEND");
+				Configuration.DETERMINE_STATE = 0;
 		  }
 		  else {
 	    	  serverMessage = "Illegal command: "+clientMessage;

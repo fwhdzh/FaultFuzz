@@ -31,7 +31,12 @@ public class WaitToExec { //for docker
         entry.CALLSTACK = callstack;
         entry.ip = crashNode;
 
+		// handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
+		MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
+
 		if (Configuration.REPLAY_MODE) {
+			handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
+		} else if (Configuration.DETERMINE_STATE != -1) {
 			handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
 		} else {
 			handleCrashPoint(procID, crashNode, entry, callstack, path);
@@ -71,9 +76,17 @@ public class WaitToExec { //for docker
 			info = info + "thread id " + threadInfo + "\n";
 			MyLogger.log(info);
 
-			if (!Configuration.REPLAY_NOW) {
-				return;
-			} 
+			
+
+			if (Configuration.REPLAY_MODE) {
+				if (!Configuration.REPLAY_NOW) {
+					return;
+				} 
+			} else if (Configuration.DETERMINE_STATE != -1) {
+				if (Configuration.DETERMINE_STATE == 0) {
+					return;
+				}
+			}
 
 			// System.out.println(procID+" meet current crash point!");
 			String[] secs = Configuration.CONTROLLER_SOCKET.split(":");
@@ -91,28 +104,19 @@ public class WaitToExec { //for docker
 			// messageBuffer.put(nodeIP.getBytes());
 			// messageBuffer.put(messageBytes)
 
-			
-			
-
 			outStream.writeInt(ioID.intValue());
 			// MyLogger.log("WaitToExec write ioID: " + ioID.intValue());
 			outStream.writeUTF(nodeIP);
 			// MyLogger.log("WaitToExec write nodeIP: " + nodeIP);
-			
-
 			outStream.writeUTF(cliId);
 			// MyLogger.log("WaitToExec write cliId" + cliId);
 			outStream.writeUTF(path);
 			// MyLogger.log("WaitToExec write nodeIP path is " + path);
-			
 			outStream.writeUTF(threadInfo);
-
  			// MyLogger.log("thread id " + threadInfo);
 			outStream.flush();
 			// System.out.println(procID+"!!!!!WaitToExec Send msg to
 			// controller:"+procInfo);
-			
-			
 
 			fuzzCommand = inStream.readUTF();
 			CurrentFaultSequence.faultSeq.curFault = new AtomicInteger(inStream.readInt());

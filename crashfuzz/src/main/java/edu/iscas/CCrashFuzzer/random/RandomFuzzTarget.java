@@ -137,7 +137,7 @@ public class RandomFuzzTarget {
 							args[1] = String.valueOf(conf.AFL_PORT);
 							args[2] = AflCommand.STABLE.toString();
 							try {
-								AflCli.main(args);
+								AflCli.interactWithNode(args);
 							} catch (AflException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
@@ -174,7 +174,7 @@ public class RandomFuzzTarget {
 							args[1] = String.valueOf(conf.AFL_PORT);
 							args[2] = AflCommand.SAVE.toString();
 							try {
-								AflCli.main(args);
+								AflCli.interactWithNode(args);
 							} catch (AflException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();

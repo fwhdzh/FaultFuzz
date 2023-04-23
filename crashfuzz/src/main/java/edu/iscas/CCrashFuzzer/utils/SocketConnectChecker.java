@@ -51,7 +51,7 @@ public class SocketConnectChecker {
         args[1] = String.valueOf(12081);
         args[2] = AflCommand.HEARTBEAT.toString();
         try {
-            AflCli.main(args);
+            AflCli.interactWithNode(args);
         } catch (AflException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

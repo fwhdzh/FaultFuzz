@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.alibaba.fastjson.JSONObject;
 
+import edu.iscas.CCrashFuzzer.AflCli;
 import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
@@ -14,6 +15,7 @@ import edu.iscas.CCrashFuzzer.IOPoint;
 import edu.iscas.CCrashFuzzer.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
@@ -42,14 +44,6 @@ public class TryBestDeterminismController extends ReplayController{
 		return result;
 	}
 
-    public void preparIOSeqAnfFaultSeq(FaultSequence seq, List<IOPoint> ioSeq) {
-		// this.entry = entry;
-		this.ioSeq = ioSeq;
-		this.faultSeq = seq;
-		this.faultSeq.reset();
-		updataCurCrashPointFile(this.faultSeq);
-		Stat.log("Current fault sequence was prepared.");
-	}
 
     // @Override
     // public void startController() {
@@ -104,9 +98,17 @@ public class TryBestDeterminismController extends ReplayController{
 		// scanThread.start();
     // }
 
+	
+	@Override
+	protected void startScanThread() {
+		// TODO Auto-generated method stub
+		TryBestDeterminismListScanner scanThread = new TryBestDeterminismListScanner();
+		scanThread.start();
+	}
+
     public class TryBestDeterminismListScanner extends ListScanner {
 
-        public int maxWaitInternal = 10000;
+        public int maxWaitInternal = favconfig.DETERMINE_WAIT_TIME;
 
         @Override
         public void run() {
@@ -115,9 +117,7 @@ public class TryBestDeterminismController extends ReplayController{
             Stat.log("ioList size is: " + ioSeq.size());
 			// Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
             Stat.log("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
-			Stat.log("ListScanner next to wait: " + ioSeq.get(index.get()).ioID + ", path: "
-					+ ioSeq.get(index.get()).PATH);
-            boolean needToTurnToNormalController = false;
+            boolean needToTurnToNormalController = arriveAllFaultPoint;
 			try {
 				// boolean timeOut = false;
 				// while (!timeOut && index.get() < entry.ioSeq.size()) {
@@ -136,7 +136,7 @@ public class TryBestDeterminismController extends ReplayController{
 					}
                     if (waitTime >= maxWaitInternal) {
                         Stat.log("ListScanner wait time out! The ioID is: " + p.ioID + ", path: " + p.PATH);
-                        needToTurnToNormalController = true;
+                        needToTurnToNormalController = arriveAllFaultPoint;
                         break;
                     }
 					Stat.log("Find FaultPointBlocked! For now, faultPointList size is " + faultPointList.size());
@@ -148,6 +148,10 @@ public class TryBestDeterminismController extends ReplayController{
 				}
 
                 if (needToTurnToNormalController) {
+
+					// AflCli.executeCliCommandToCluster(currentCluster, favconfig, AflCommand.DETERMINE_NORMAL, 300000);
+					AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NORMAL, 300000);
+
                     while (faultPointList.size() > 0 && !arriveAllFaultPoint) {
                         FaultPointBlocked b = faultPointList.get(0);
                         faultPointList.remove(0);
@@ -156,7 +160,16 @@ public class TryBestDeterminismController extends ReplayController{
                     }
                 }
 				Stat.log("All of faults have been replayed!");
+
 				finishFlag = true;
+
+				AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NO_SEND, 300000);
+				while (faultPointList.size() > 0) {
+					FaultPointBlocked b = faultPointList.get(0);
+					faultPointList.remove(0);
+					handleFPB(b);
+					actualFPBList.add(b);
+				}
 
 				// if (timeOut) {
 				// result = 1;
@@ -171,4 +184,5 @@ public class TryBestDeterminismController extends ReplayController{
 
         
     }
+
 }

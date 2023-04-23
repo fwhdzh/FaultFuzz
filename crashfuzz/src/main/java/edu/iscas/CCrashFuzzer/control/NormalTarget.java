@@ -203,7 +203,7 @@ public class NormalTarget extends AbstractNormalTarget{
 							logInfo.add(Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args)));
 
 							try {
-								AflCli.main(args);
+								AflCli.interactWithNode(args);
 							} catch (AflException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
@@ -240,7 +240,7 @@ public class NormalTarget extends AbstractNormalTarget{
 							args[1] = String.valueOf(conf.AFL_PORT);
 							args[2] = AflCommand.SAVE.toString();
 							try {
-								AflCli.main(args);
+								AflCli.interactWithNode(args);
 							} catch (AflException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();

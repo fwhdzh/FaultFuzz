@@ -296,7 +296,7 @@ public class NormalController {
 						args[0] = pendingPoint.actualNodeIp;
 						args[1] = String.valueOf(favconfig.AFL_PORT);
 						args[2] = AflCommand.SAVE.toString();
-						AflCli.main(args);
+						AflCli.interactWithNode(args);
 						
 						//Restart the node
 		        		rst.add(Stat.log("Prepare to crash node "+pendingPoint.actualNodeIp));

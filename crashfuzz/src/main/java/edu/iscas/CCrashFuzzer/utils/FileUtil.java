@@ -78,7 +78,7 @@ public class FileUtil {
 		root_tmp = root+"tmp/";
 	}
 	
-	public static void generateFAVLogInfo(String seed, String testID, ArrayList<String> logInfo, FaultSequence seq) {
+	public static void generateFAVLogInfo(String seed, String testID, List<String> logInfo, FaultSequence seq) {
 		String rootReport = FileUtil.root_tmp+testID+"/"+"fuzz.log";
 
         try {
@@ -114,7 +114,7 @@ public class FileUtil {
         }
 	}
 	
-	public static void generateFAVLogInfo(String seed, String testID, ArrayList<String> logInfo) {
+	public static void generateFAVLogInfo(String seed, String testID, List<String> logInfo) {
 		String rootReport = FileUtil.root_tmp+testID+"/"+"fuzz.log";
 
         try {

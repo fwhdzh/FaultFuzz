@@ -126,6 +126,18 @@ public class Configuration {
     public static boolean REPLAY_MODE = false;
     public static boolean REPLAY_NOW = false;
 
+    // public static boolean DETERMINE_CONTROL = false;
+    // public static boolean DETERMINE_NORMAL = false;
+    // public static boolean DETERMINE_NO_SEND = false;
+
+    /**
+     * -1: not determined
+     * 0: no send
+     * 1: normal
+     * 2: control
+     */
+    public static int DETERMINE_STATE = -1;
+
     private Configuration() {
         // Prevents this class from being instantiated
     }
