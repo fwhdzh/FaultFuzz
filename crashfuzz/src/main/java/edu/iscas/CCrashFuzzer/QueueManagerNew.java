@@ -53,6 +53,9 @@ public class QueueManagerNew {
 	public static List<QueuePair> retrievePairListFWH(List<QueueEntry> candidate_queue, Conf conf) {
 		List<QueuePair> result = new ArrayList<QueuePair>();
 		QueueEntry seed = SeedSelection.retrieveSeed(candidate_queue);
+		if (!seed.was_fuzzed) {
+			Mutation.mutateFaultSequence(seed, conf);
+		}
 		List<QueueEntry> mutations = Mutation.getMutationEntry(seed, conf);
 		for (QueueEntry mutate: mutations) {
 			QueuePair pair = new QueuePair();

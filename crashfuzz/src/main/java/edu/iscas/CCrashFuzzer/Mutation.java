@@ -13,7 +13,7 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 
 public class Mutation {
 
-	public static void mutateFaultSequence(QueueEntry q, Conf conf) {
+	public static void mutateFaultSequenceOld(QueueEntry q, Conf conf) {
 		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
 		FaultSequence original_faults = q.faultSeq;
 		
@@ -39,36 +39,14 @@ public class Mutation {
 		Stat.log("Start to check fault point from "+io_index+" th I/O point for "+q.ioSeq.size()+" I/O points.");
 		
 		for(int curIO = io_index; curIO< lastIO; curIO++) {
-			/*
-			List<IOPoint> beforeNeighbors = new ArrayList<IOPoint>();
-			List<IOPoint> afterNeighbors = new ArrayList<IOPoint>();
-			int adjacentNewCovs = 0;
-			for(int i = io_index-1; i >=0; i--) {
-				if((q.ioSeq.get(io_index).TIMESTAMP - q.ioSeq.get(i).TIMESTAMP) <= conf.similarBehaviorWindow) {
-					beforeNeighbors.add(q.ioSeq.get(i));
-					adjacentNewCovs += q.ioSeq.get(i).newCovs;
-				} else {
-					break;
-				}
-			}
-			for(int i = io_index; i < lastIO; i++) {
-				if((q.ioSeq.get(i).TIMESTAMP - q.ioSeq.get(io_index).TIMESTAMP) <= conf.similarBehaviorWindow) {
-					afterNeighbors.add(q.ioSeq.get(i));
-					adjacentNewCovs += q.ioSeq.get(i).newCovs;
-				} else {
-					break;
-				}
-			}
-			*/
 			for(MaxDownNodes subCluster:currentCluster) {
 				if(subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip)
 						|| subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip)) {
 					boolean canCrash = subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip) && (subCluster.maxDown-1)>=0;
 					boolean canReboot = subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip);
 					if(canCrash) {
-						FaultSequence faults = new FaultSequence();
-						faults.seq = new ArrayList<FaultPoint>();
-						faults.seq.addAll(original_faults.seq);
+						
+
 						FaultPoint p  = new FaultPoint();
 						p.ioPt = q.ioSeq.get(curIO);
 						p.ioPtIdx = curIO;
@@ -76,12 +54,12 @@ public class Mutation {
 						p.tarNodeIp = p.ioPt.ip;
 						p.stat = FaultStat.CRASH;
 						p.actualNodeIp = null;
-						faults.seq.add(p);
-						if(q.recovery_io_id.contains(p.ioPt.ioID)) {
-							faults.on_recovery = true;
-						}
+
+						FaultSequence faults = new FaultSequence();
+						faults.seq = new ArrayList<FaultPoint>();
+						faults.seq.addAll(original_faults.seq);
+						faults.seq.add(p);					
 						faults.reset();
-//						faults.adjacent_new_covs = adjacentNewCovs;
 						
 						QueueEntry new_q = new QueueEntry();
 						new_q.ioSeq = q.ioSeq;
@@ -94,11 +72,15 @@ public class Mutation {
 						if(q.not_tested_fault_id == null) {
 							q.not_tested_fault_id = new HashSet<Integer>();
 						}
+						int faultid = p.getFaultID();
+						q.not_tested_fault_id.add(faultid);
+
 						if(q.on_recovery_mutates == null) {
 							q.on_recovery_mutates = new ArrayList<QueueEntry>();
 						}
-						int faultid = p.getFaultID();
-						q.not_tested_fault_id.add(faultid);
+						if(q.recovery_io_id.contains(p.ioPt.ioID)) {
+							faults.on_recovery = true;
+						}
 						if(faults.on_recovery) {
 							q.on_recovery_mutates.add(new_q);
 						}
@@ -107,9 +89,8 @@ public class Mutation {
 					}
 					if(canReboot) {
 						for(String rebootNode:subCluster.deadGroup) {
-							FaultSequence faults = new FaultSequence();
-							faults.seq = new ArrayList<FaultPoint>();
-							faults.seq.addAll(original_faults.seq);
+							
+
 							FaultPoint p  = new FaultPoint();
 							p.ioPt = q.ioSeq.get(curIO);
 							p.ioPtIdx = curIO;
@@ -117,12 +98,12 @@ public class Mutation {
 							p.tarNodeIp = rebootNode;
 							p.stat = FaultStat.REBOOT;
 							p.actualNodeIp = null;
+							
+							FaultSequence faults = new FaultSequence();
+							faults.seq = new ArrayList<FaultPoint>();
+							faults.seq.addAll(original_faults.seq);
 							faults.seq.add(p);
-							if(q.recovery_io_id.contains(p.ioPt.ioID)) {
-								faults.on_recovery = true;
-							}
 							faults.reset();
-//							faults.adjacent_new_covs = adjacentNewCovs;
 							
 							QueueEntry new_q = new QueueEntry();
 							new_q.ioSeq = q.ioSeq;
@@ -135,11 +116,16 @@ public class Mutation {
 							if(q.not_tested_fault_id == null) {
 								q.not_tested_fault_id = new HashSet<Integer>();
 							}
+							int faultid = p.getFaultID();
+							q.not_tested_fault_id.add(faultid);
+
+							
 							if(q.on_recovery_mutates == null) {
 								q.on_recovery_mutates = new ArrayList<QueueEntry>();
 							}
-							int faultid = p.getFaultID();
-							q.not_tested_fault_id.add(faultid);
+							if(q.recovery_io_id.contains(p.ioPt.ioID)) {
+								faults.on_recovery = true;
+							}
 							if(faults.on_recovery) {
 								q.on_recovery_mutates.add(new_q);
 							}
@@ -153,9 +139,134 @@ public class Mutation {
 		Stat.log("Got "+mutates.size()+" mutations.");
 
 		q.mutates = mutates;
-		// q.favored_mutates = q.mutates;
+
+		// initializeLocalNotTestedFaultId(q);
+		// initializeOnRecoveryMutates(q);
+	
 		q.favored_mutates = new ArrayList<QueueEntry>(mutates);
 		// q.globalNewIOMutates = collectGlobelNewIOMutates(q.favored_mutates);
+	}
+
+	public static void mutateFaultSequence(QueueEntry q, Conf conf) {
+		
+		List<QueueEntry> mutates = generateQueueEntry(q, conf);
+		q.mutates = mutates;
+		Stat.log("Got "+mutates.size()+" mutations.");
+		q.favored_mutates = new ArrayList<QueueEntry>(mutates);
+		initializeOnRecoveryMutates(q);
+	}
+
+	private static List<QueueEntry> generateQueueEntry(QueueEntry q, Conf conf) {
+		List<QueueEntry> result = new ArrayList<QueueEntry>();
+		List<FaultPoint> faultPointToMutate = q.faultPointsToMutate;
+		FaultSequence original_faults = q.faultSeq;
+		for (FaultPoint p : faultPointToMutate) {
+			FaultSequence faults = new FaultSequence();
+			faults.seq = new ArrayList<FaultPoint>();
+			faults.seq.addAll(original_faults.seq);
+			faults.seq.add(p);
+			faults.reset();
+
+			QueueEntry new_q = new QueueEntry();
+			new_q.ioSeq = q.ioSeq;
+			new_q.faultSeq = faults;
+			new_q.favored = true;
+			new_q.exec_s = q.exec_s;
+			new_q.bitmap_size = q.bitmap_size;
+			new_q.handicap = 0;
+
+			result.add(new_q);
+		}
+
+		return result;
+	}
+
+	private static List<FaultPoint> findFaultPointToInject(QueueEntry q, Conf conf) {
+
+		List<FaultPoint> result = new ArrayList<>();
+
+		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
+		FaultSequence original_faults = q.faultSeq;
+		
+		int io_index = q.candidate_io;
+		int fault_index = q.max_match_fault;
+		
+		if(io_index == q.ioSeq.size() || fault_index < original_faults.seq.size() || original_faults.seq.size() >= conf.MAX_FAULTS) {
+			//no I/O points to inject a new fault
+			//or current I/O points do not match with the fault sequence
+			q.mutates = mutates;
+			// q.favored_mutates = q.mutates;
+			q.favored_mutates = new ArrayList<QueueEntry>(mutates);
+			return result;
+		}
+
+
+		List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(conf.maxDownGroup);
+		for(FaultPoint fault:original_faults.seq) {
+			MaxDownNodes.buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
+		}
+		
+		int lastIO = q.ioSeq.size();
+		Stat.log("Start to check fault point from "+io_index+" th I/O point for "+q.ioSeq.size()+" I/O points.");
+		
+		for(int curIO = io_index; curIO< lastIO; curIO++) {
+			for(MaxDownNodes subCluster:currentCluster) {
+				if(subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip)
+						|| subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip)) {
+					boolean canCrash = subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip) && (subCluster.maxDown-1)>=0;
+					boolean canReboot = subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip);
+					if(canCrash) {
+						FaultPoint p  = new FaultPoint();
+						p.ioPt = q.ioSeq.get(curIO);
+						p.ioPtIdx = curIO;
+						p.pos = FaultPos.BEFORE;
+						p.tarNodeIp = p.ioPt.ip;
+						p.stat = FaultStat.CRASH;
+						p.actualNodeIp = null;
+						result.add(p);
+					}
+					if(canReboot) {
+						for(String rebootNode:subCluster.deadGroup) {
+							FaultPoint p  = new FaultPoint();
+							p.ioPt = q.ioSeq.get(curIO);
+							p.ioPtIdx = curIO;
+							p.pos = FaultPos.BEFORE;
+							p.tarNodeIp = rebootNode;
+							p.stat = FaultStat.REBOOT;
+							p.actualNodeIp = null;
+							result.add(p);
+						}
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	public static void initializeFaultPointsToMutate(QueueEntry q, Conf conf) {
+		List<FaultPoint> faults = findFaultPointToInject(q, conf);
+		q.faultPointsToMutate = faults;
+	}
+
+	public static void initializeLocalNotTestedFaultId(QueueEntry seedQ) {
+		Set<Integer> r = new HashSet<>();
+		for (FaultPoint p: seedQ.faultPointsToMutate) {
+			int faultId = p.getFaultID();
+			r.add(faultId);
+		}
+		seedQ.not_tested_fault_id = r;
+	}
+
+	private static void initializeOnRecoveryMutates(QueueEntry seedQ) {
+		List<QueueEntry> r = new ArrayList<>();
+		for (QueueEntry mutate: seedQ.mutates) {
+			FaultPoint p = mutate.faultSeq.seq.get(mutate.faultSeq.seq.size()-1);
+			if (seedQ.recovery_io_id.contains(p.ioPt.ioID)) {
+				r.add(mutate);
+			}
+		}
+		seedQ.on_recovery_mutates = r;
 	}
 
 	// public static List<QueueEntry> collectGlobelNewIOMutates(List<QueueEntry> entryList) {

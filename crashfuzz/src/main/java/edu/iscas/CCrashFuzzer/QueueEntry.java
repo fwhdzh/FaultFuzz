@@ -61,6 +61,8 @@ public class QueueEntry {
 	public int handicap; /* Number of queue cycles behind */
 	// public long depth; /* Path depth */
 
+	public List<FaultPoint> faultPointsToMutate;
+
 	public String toJSONString() {
 		String result = "transform QueueEntry to JSONString fail";
 		result = JSONObject.toJSONString(this);

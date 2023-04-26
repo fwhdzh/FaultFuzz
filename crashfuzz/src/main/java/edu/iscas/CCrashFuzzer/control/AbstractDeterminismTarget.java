@@ -107,10 +107,13 @@ public abstract class AbstractDeterminismTarget extends AbstractTarget{
 		boolean phosError = false;
 		for (int i = 0; i < logInfo.size(); i++) {
 			String s = logInfo.get(i);
+			if (s.contains("ClassCircularityError")) {
+				phosError = true;
+			}
 			if (s.contains("FAV test has failed")) {
-				if (s.contains("ClassCircularityError")) {
-					phosError = true;
-				}
+				// if (s.contains("ClassCircularityError")) {
+				// 	phosError = true;
+				// }
 				this.checkInfo.add(s);
 			}
 		}

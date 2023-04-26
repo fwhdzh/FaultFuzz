@@ -130,10 +130,18 @@ public class Fuzzer {
 		
 		if (nb > 0) {
 			add_to_queue(q, testID);
+			if(q.unique_io_id == null || q.unique_io_id.isEmpty()) {
+				q.unique_io_id = new HashSet<Integer>();
+				for(IOPoint p:q.ioSeq) {
+					q.unique_io_id.add(p.ioID);
+				}
+			}
 			if(q.recovery_io_id == null || q.recovery_io_id.isEmpty()) {
 				q.recovery_io_id = new HashSet<Integer>();
 			}
-			Mutation.mutateFaultSequence(q, conf);
+			Mutation.initializeFaultPointsToMutate(q, conf);
+			Mutation.initializeLocalNotTestedFaultId(q);
+			// Mutation.mutateFaultSequence(q, conf);
 			totalSeedCases++;
 		}
 
@@ -160,6 +168,9 @@ public class Fuzzer {
 	   skipped or bailed out. */
 
 	public void update_queue(QueuePair q) {
+
+		q.seed.faultPointsToMutate.remove(q.mutateIdx);
+
     	q.seed.mutates.remove(q.mutateIdx);
     	if(q.mutate.favored) {
     		q.seed.favored_mutates.remove(q.mutate);
@@ -363,13 +374,25 @@ public class Fuzzer {
 
 	private void addToQueueAndMutateInSaveIfInterestring(QueueEntry q, String testID, QueueEntry seedQ) {
 		add_to_queue(q, testID);
+		initializeRecoveryIOIdWithUniqueIOId(q, seedQ);
+		Mutation.initializeFaultPointsToMutate(q, conf);
+		Mutation.initializeLocalNotTestedFaultId(q);
+		// Mutation.mutateFaultSequence(q, conf);
+		totalSeedCases++;
+	}
+
+	public void initializeRecoveryIOIdWithUniqueIOId(QueueEntry q, QueueEntry seedQ) {
+		if(q.unique_io_id == null || q.unique_io_id.isEmpty()) {
+			q.unique_io_id = new HashSet<Integer>();
+			for(IOPoint p:q.ioSeq) {
+				q.unique_io_id.add(p.ioID);
+			}
+		}
 		if(q.recovery_io_id == null || q.recovery_io_id.isEmpty()) {
 			q.recovery_io_id = new HashSet<Integer>();
 			q.recovery_io_id.addAll(q.unique_io_id);
 			q.recovery_io_id.removeAll(seedQ.unique_io_id);
 		}
-		Mutation.mutateFaultSequence(q, conf);
-		totalSeedCases++;
 	}
 
 	private void updateFuzzInfoInSaveIfInterestring(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, long exec_seconds, int nb) {
@@ -503,34 +526,34 @@ public class Fuzzer {
 		}
 		q.ioSeq = reader.ioPoints;
 		
-		if(q.unique_io_id == null || q.unique_io_id.isEmpty()) {
-			q.unique_io_id = new HashSet<Integer>();
-			for(IOPoint p:q.ioSeq) {
-				q.unique_io_id.add(p.ioID);
-			}
-		}
-		
 		q.calibrate();
+
 		
-		// q.depth = this.cur_depth + 1;
+
 		q.handicap = 0;
 		q.was_fuzzed = false;
 		q.fuzzed_time = 0;
 		  
-		// if(q.depth > max_depth) {
-		//     max_depth = q.depth;
-		// }
-		
-		//   queued_paths++;
 
 		candidate_queue.add(q);
 
-		if (checkQueueEntrySuitedToReplay(q)) {
-			Stat.log("begin to record queue for replay!");
-			recoveryManager.recordQueue(q);
-		}
+		// if (checkQueueEntrySuitedToReplay(q)) {
+		// 	Stat.log("begin to record queue for replay!");
+		// 	recoveryManager.recordQueue(q);
+		// }
 		
 	}
+
+	// public void collecIOSeqFromTrace(QueueEntry q, String fname) {
+	// 	TraceReader reader = new TraceReader(FileUtil.root_tmp+fname+"/"+FileUtil.ioTracesDir);
+	// 	reader.readTraces();
+	// 	if(reader.ioPoints == null || reader.ioPoints.isEmpty()) {
+	// 		return;
+	// 	}
+	// 	q.ioSeq = reader.ioPoints;
+		
+	// 	q.calibrate();
+	// }
 	
 	/* When we bump into a new path, we call this to see if the path appears
 	   more "favorable" than any of the existing ones. The purpose of the
