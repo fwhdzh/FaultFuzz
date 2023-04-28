@@ -25,4 +25,10 @@ public enum ConfOption {
 	RECOVERY_DIR,
 	// REPLAY_MODE,
 
+	DETERMINE_WAIT_TIME,
+	WRITE_FAV_ENV,
+	COPY_ENV_TO_CLUSTER,
+	
+
+
 }

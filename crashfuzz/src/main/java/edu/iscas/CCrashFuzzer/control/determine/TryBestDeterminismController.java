@@ -117,7 +117,7 @@ public class TryBestDeterminismController extends ReplayController{
             Stat.log("ioList size is: " + ioSeq.size());
 			// Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
             Stat.log("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
-            boolean needToTurnToNormalController = arriveAllFaultPoint;
+            boolean needToTurnToNormalController = false;
 			try {
 				// boolean timeOut = false;
 				// while (!timeOut && index.get() < entry.ioSeq.size()) {
@@ -136,7 +136,7 @@ public class TryBestDeterminismController extends ReplayController{
 					}
                     if (waitTime >= maxWaitInternal) {
                         Stat.log("ListScanner wait time out! The ioID is: " + p.ioID + ", path: " + p.PATH);
-                        needToTurnToNormalController = arriveAllFaultPoint;
+                        needToTurnToNormalController = !arriveAllFaultPoint;
                         break;
                     }
 					Stat.log("Find FaultPointBlocked! For now, faultPointList size is " + faultPointList.size());
@@ -149,15 +149,24 @@ public class TryBestDeterminismController extends ReplayController{
 
                 if (needToTurnToNormalController) {
 
+					Stat.log("Begin to normal control, left faults size is " + faultPointList.size());
 					// AflCli.executeCliCommandToCluster(currentCluster, favconfig, AflCommand.DETERMINE_NORMAL, 300000);
 					AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NORMAL, 300000);
 
-                    while (faultPointList.size() > 0 && !arriveAllFaultPoint) {
-                        FaultPointBlocked b = faultPointList.get(0);
-                        faultPointList.remove(0);
-                        handleFPB(b);
-                        actualFPBList.add(b);
-                    }
+					while (!arriveAllFaultPoint) {
+						if (faultPointList.size() > 0) {
+							FaultPointBlocked b = faultPointList.get(0);
+							faultPointList.remove(0);
+							handleFPB(b);
+							actualFPBList.add(b);
+						}
+					}
+                    // while (faultPointList.size() > 0 && !arriveAllFaultPoint) {
+                    //     FaultPointBlocked b = faultPointList.get(0);
+                    //     faultPointList.remove(0);
+                    //     handleFPB(b);
+                    //     actualFPBList.add(b);
+                    // }
                 }
 				Stat.log("All of faults have been replayed!");
 

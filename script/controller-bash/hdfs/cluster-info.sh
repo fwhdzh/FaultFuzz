@@ -1,0 +1,1 @@
+declare -a clusterName=("C1NN" "C1RM" "C1Master1" "C1Master2" "C1Slave1" "C1Slave2" "C1Slave3" "C1Slave4" "C1HS" "C1WPS" "C1hd-zk")

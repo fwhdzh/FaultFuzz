@@ -1,0 +1,9 @@
+fault point=1125404674
+event=CRASH
+pos=BEFORE
+nodeIp=172.28.0.4
+ioID=-1955317811
+ioCallStack=[org.apache.hadoop.hdfs.protocolPB.DatanodeProtocolServerSideTranslatorPB.sendHeartbeat$$PHOSPHORTAGGED(DatanodeProtocolServerSideTranslatorPB.java), org.apache.hadoop.hdfs.protocol.proto.DatanodeProtocolProtos$DatanodeProtocolService$2.callBlockingMethod$$PHOSPHORTAGGED(DatanodeProtocolProtos.java:33881), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call$$PHOSPHORTAGGED(ProtobufRpcEngine2.java:600), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call$$PHOSPHORTAGGED(ProtobufRpcEngine2.java:568), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call$$PHOSPHORTAGGED(ProtobufRpcEngine2.java:552), org.apache.hadoop.ipc.RPC$Server.call$$PHOSPHORTAGGED(RPC.java:1093), org.apache.hadoop.ipc.Server$RpcCall.run$$PHOSPHORTAGGED(Server.java:1035), org.apache.hadoop.ipc.Server$RpcCall.run$$PHOSPHORTAGGED(Server.java:963), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:0), java.security.AccessController.doPrivileged(Native Method), java.security.AccessController.doPrivileged$$PHOSPHORTAGGED(AccessController.java), javax.security.auth.Subject.doAs$$PHOSPHORTAGGED(Subject.java:422), org.apache.hadoop.security.UserGroupInformation.doAs$$PHOSPHORTAGGED(UserGroupInformation.java:1878), org.apache.hadoop.ipc.Server$Handler.run$$PHOSPHORTAGGED(Server.java:2966), org.apache.hadoop.ipc.Server$Handler.run(Server.java)]
+path=FAVMSG:172.28.0.7&1603270612*READ
+ioAppearIdx=99
+end

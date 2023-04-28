@@ -66,12 +66,13 @@ public class Conf {
     public long REPLAY_HANG_TIME = 40;
     public String REPLAY_ACTUAL_FPB_LIST_PATH = "/data/fengwenhan/data/crashfuzz_fwh/actualFPBList.txt";
     public int MUTATE_CHOOSE = 3;
+
     public int DETERMINE_WAIT_TIME = 10000;
     public File WRITE_FAV_ENV = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/write-fav-env.sh");
     public File COPY_ENV_TO_CLUSTER = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/copy-env-to-cluster.sh");
+
     public File COPY_LOGS_TO_CONTROLLER = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/copy-logs-to-controller.sh");
     public String CLUSTER_LOGS_IN_CONTROLLER_DIR = "/data/fengwenhan/data/crashfuzz_fwh/logs";
-
 
 	
 	public Conf(File configFile) {
@@ -288,6 +289,35 @@ public class Conf {
             RECOVERY_TESTEDFAULTID_PATH = recoveryDir + "/TestedFaultId.txt";
             RECOVERY_VIRGINBITS_PATH = recoveryDir + "/VirginBits.txt";
         }
+
+        String determineWaitTime = p.getProperty(ConfOption.DETERMINE_WAIT_TIME.toString());
+        if(determineWaitTime != null) {
+        	DETERMINE_WAIT_TIME = Integer.parseInt(determineWaitTime);
+        }
+
+        String writeFavEnv = p.getProperty(ConfOption.WRITE_FAV_ENV.toString());
+        if (writeFavEnv != null) {
+            if (!writeFavEnv.startsWith("/")) {
+                writeFavEnv = workdir + writeFavEnv;
+            }
+            File f = new File(writeFavEnv);
+            if (f.exists()) {
+                WRITE_FAV_ENV = f;
+            }
+        }
+
+        String copyEnvToCluster = p.getProperty(ConfOption.COPY_ENV_TO_CLUSTER.toString());
+        if (copyEnvToCluster != null) {
+            if (!copyEnvToCluster.startsWith("/")) {
+                copyEnvToCluster = workdir + copyEnvToCluster;
+            }
+            File f = new File(copyEnvToCluster);
+            if (f.exists()) {
+                COPY_ENV_TO_CLUSTER = f;
+            }
+        }
+
+        
 
         if(RESTART == null || CRASH == null || WORKLOAD == null || CUR_CRASH_FILE == null || PRETREATMENT == null) {
         	throw new IOException();

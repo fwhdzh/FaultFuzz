@@ -1,0 +1,9 @@
+fault point=-285596425
+event=CRASH
+pos=BEFORE
+nodeIp=172.26.0.4
+ioID=1628515235
+ioCallStack=[org.apache.hadoop.hdfs.qjournal.protocolPB.QJournalProtocolTranslatorPB.getEditLogManifest(QJournalProtocolTranslatorPB.java:280), org.apache.hadoop.hdfs.qjournal.client.IPCLoggerChannel$14.call(IPCLoggerChannel.java:590), org.apache.hadoop.hdfs.qjournal.client.IPCLoggerChannel$14.call(IPCLoggerChannel.java:587), org.apache.hadoop.thirdparty.com.google.common.util.concurrent.TrustedListenableFutureTask$TrustedFutureInterruptibleTask.runInterruptibly(TrustedListenableFutureTask.java:125), org.apache.hadoop.thirdparty.com.google.common.util.concurrent.InterruptibleTask.run(InterruptibleTask.java:69), org.apache.hadoop.thirdparty.com.google.common.util.concurrent.TrustedListenableFutureTask.run(TrustedListenableFutureTask.java:78), java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149), java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624), java.lang.Thread.run(Thread.java:748)]
+path=FAVMSG:172.26.0.6&1785505948
+ioAppearIdx=2
+end

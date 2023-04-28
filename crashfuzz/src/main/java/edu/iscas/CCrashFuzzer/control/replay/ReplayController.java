@@ -284,11 +284,13 @@ extends AbstractController
 			}
 		};
 		serverThread.start();
+		Stat.log("controller serverThread has started!");
 	}
 
 	protected void startScanThread() {
 		ListScanner scanThread = new ListScanner();
 		scanThread.start();
+		Stat.log("controller scanThread has started!");
 	}
 
 	public void stopController() {
