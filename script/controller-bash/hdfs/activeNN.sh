@@ -6,7 +6,9 @@ do
 
 info=$1
 #rst=$(docker exec -it C1NN bin/bash -ic "cd /home/gaoyu/evaluation/hadoop-3.3.1 && bin/hdfs haadmin -getServiceState nn2")
+echo "docker exec -t C1hd-zk /bin/bash -ic 'cd /home/gaoyu/evaluation/hd-zk-3.6.3 && bin/zkCli.sh -server localhost:11181 get /hadoop-ha/mycluster/ActiveBreadCrumb'"
 rst=$(docker exec -t C1hd-zk /bin/bash -ic 'cd /home/gaoyu/evaluation/hd-zk-3.6.3 && bin/zkCli.sh -server localhost:11181 get /hadoop-ha/mycluster/ActiveBreadCrumb')
+echo "$rst"
 #got=$( echo "$rst" | grep "$info" )
 got=$( echo "$rst" | grep "C1NN" )
 if [[ "$got" != "" ]]; then

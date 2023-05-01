@@ -1,3 +1,5 @@
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 #sh clearRst.sh
 #sh clearDockerRst.sh
 #sh clearLogs.sh
@@ -6,7 +8,6 @@ START_TIME=`date +%s`
 echo "Start zkfc on C1Master1"
 docker exec -t C1Master1 /bin/bash -ic '/home/gaoyu/evaluation/hadoop-3.3.1/bin/hdfs zkfc -formatZK -force && jps'
 # docker exec -t C1Master1 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.1/ && . fav-env.sh && HADOOP_OPTS="" && /home/gaoyu/evaluation/hadoop-3.3.1/bin/hdfs zkfc -formatZK -force && jps'
-
 
 #add jps command to avoid SIGHUP
 echo "Start journal node on C1Slave1:"
@@ -35,17 +36,18 @@ echo "Start datanode on C1Slave3:"
 docker exec -t C1Slave3 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.1/ && bin/hdfs --daemon start datanode && jps'
 
 echo "waiting for active namenode ..."
-sh activeNN.sh
+sh $SCRIPT_DIR/activeNN.sh
 #sh leaveSafe.sh
 
 export PHOS_OPTS="-Xbootclasspath/a:Phosphor-0.0.5-SNAPSHOT.jar -javaagent:Phosphor-0.0.5-SNAPSHOT.jar=useFav=false,hdfsRpc=true"
 
-docker cp dfs1-cli.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.1
-docker cp ubuntuFailTest.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.1
+docker cp $SCRIPT_DIR/dfs1-cli.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.1
+docker cp $SCRIPT_DIR/ubuntuFailTest.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.1
 docker exec -t C1Slave4 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.1/ && sh dfs1-cli.sh'
 
-java -cp dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/crashfuzzer/hdfs-3.3.1-c1-new/failTest.sh
-#fav-jre-inst/bin/java $PHOS_OPTS -cp dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/crashfuzzer/hdfs-3.3.1-c1-new/failTest.sh
+echo "java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh $SCRIPT_DIR/failTest.sh"
+java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh $SCRIPT_DIR/failTest.sh
+# java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/crashfuzzer/hdfs-3.3.1-c1-new/failTest.sh
 
 END_TIME=`date +%s`
 EXECUTING_TIME=`expr $END_TIME - $START_TIME`

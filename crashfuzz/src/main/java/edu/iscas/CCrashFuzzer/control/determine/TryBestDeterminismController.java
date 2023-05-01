@@ -108,7 +108,7 @@ public class TryBestDeterminismController extends ReplayController{
 
     public class TryBestDeterminismListScanner extends ListScanner {
 
-        public int maxWaitInternal = favconfig.DETERMINE_WAIT_TIME;
+        public int maxWaitInternalInNormalIOPoint = favconfig.DETERMINE_WAIT_TIME;
 
         @Override
         public void run() {
@@ -129,6 +129,12 @@ public class TryBestDeterminismController extends ReplayController{
 					// long timeCount = 0;
 					FaultPointBlocked b = findAndRemoveFPBInList(p);
                     int waitTime = 0;
+
+					int maxWaitInternal = maxWaitInternalInNormalIOPoint;
+					if (index.get() == 0) {
+						maxWaitInternal = maxWaitInternal * 3;
+					}
+
 					while (b == null && waitTime < maxWaitInternal) {
 						sleep(scanInternal);
                         waitTime += scanInternal;

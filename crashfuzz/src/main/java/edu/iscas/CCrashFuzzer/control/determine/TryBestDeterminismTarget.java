@@ -211,8 +211,11 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		if (result == 0) {
 			faultMode = 1;
 		}
-		if (result == 2 || result == 3 || result == 4) {
+		if (result == 2 ||  result == -1) {
 			faultMode = -1;
+		}
+		if (result == 3) {
+			faultMode = 2;
 		}
 		if (result == 1) {
 			faultMode = 0;

@@ -487,11 +487,26 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             super.visitMethodInsn(INVOKESTATIC, "org/apache/hadoop/ipc/RPC", "getServerAddress", "(Ljava/lang/Object;)Ljava/net/InetSocketAddress;", false);
             super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/net/InetSocketAddress", "getAddress", "()Ljava/net/InetAddress;", false);
             super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/net/InetAddress", "getHostAddress", "()Ljava/lang/String;", false);
-            super.visitVarInsn(ILOAD, msgid);
-            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                    "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
+            int targetNode = lvs.getTmpLV();
+            super.visitVarInsn(Opcodes.ASTORE, targetNode);
+			super.visitVarInsn(Opcodes.ALOAD, targetNode);
+            FAV_NEW_LOGIC_CLOCK_MSGID.delegateVisit(mv);
+			int fwhmsg = lvs.getTmpLV();
+			super.visitVarInsn(Opcodes.ASTORE, fwhmsg);
+            super.visitVarInsn(ALOAD, targetNode);
+			super.visitVarInsn(ALOAD, fwhmsg);
+            FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG.delegateVisit(mv);
+
+            // super.visitVarInsn(ILOAD, msgid);
+            // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+            //         "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
             APP_FAULT_BEFORE.delegateVisit(mv);
             lvs.freeTmpLV(fileOutStream);
+
+            lvs.freeTmpLV(fwhmsg);
+			lvs.freeTmpLV(targetNode);
         }
 
         super.visitVarInsn(Opcodes.ALOAD, request);

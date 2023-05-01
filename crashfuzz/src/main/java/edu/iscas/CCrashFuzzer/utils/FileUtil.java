@@ -65,6 +65,8 @@ public class FileUtil {
 	public static String report_file = "TEST_REPORT";
 	
 	public static String total_tested_time = "TESTED_TIME";
+
+	public static String faultSeqFile = "FAULT_SEQ";
 	
 	public static void init(String _root) {
 		root = _root;
@@ -156,6 +158,18 @@ public class FileUtil {
 			
 			out = new FileOutputStream(FileUtil.root_tmp+testID+"/"+exec_second_file);
 			out.write(FileUtil.parseSecondsToStringTime(exec_s).getBytes());
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void writeFaultSeq(String testID, FaultSequence seq) {
+		try {
+			FileOutputStream out = new FileOutputStream(FileUtil.root_tmp+testID+"/"+faultSeqFile);
+			out.write(seq.toString().getBytes());
 			out.flush();
 			out.close();
 		} catch (IOException e) {

@@ -182,10 +182,6 @@ public class CoverageCollector {
 	}
 	
 
-	public void read_bitmap_fwh(String fname) {
-		
-	}
-
 	/* Read bitmap from file. This is for the -B option again. */
 
 	public void read_bitmap(String fname) {

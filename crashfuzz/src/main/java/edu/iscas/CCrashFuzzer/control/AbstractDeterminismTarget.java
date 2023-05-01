@@ -118,6 +118,14 @@ public abstract class AbstractDeterminismTarget extends AbstractTarget{
 			}
 		}
 		return phosError ? -1 : ((this.checkInfo.size() > 0) ? 1 : 0);
+		// int result = 0;
+		// for (int i = 0 ; i < logInfo.size(); i++) {
+		// 	String s = logInfo.get(i);
+		// 	if (s.contains("FAV test has failed")) {
+		// 						if (s.contains("ClassCircularityError")) {
+		// 			phosError = true;
+		// 		}
+		// 	}
+		// }
 	}
-    
 }

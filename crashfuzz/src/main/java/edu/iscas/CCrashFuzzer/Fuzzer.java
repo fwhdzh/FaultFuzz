@@ -129,6 +129,7 @@ public class Fuzzer {
 		updateQInSaveIfInterestring(q, rst, testID, nb, target.a_exec_seconds);
 		
 		if (nb > 0) {
+			updateQWithTrace(q, testID);
 			add_to_queue(q, testID);
 			if(q.unique_io_id == null || q.unique_io_id.isEmpty()) {
 				q.unique_io_id = new HashSet<Integer>();
@@ -373,6 +374,7 @@ public class Fuzzer {
 	}
 
 	private void addToQueueAndMutateInSaveIfInterestring(QueueEntry q, String testID, QueueEntry seedQ) {
+		updateQWithTrace(q, testID);
 		add_to_queue(q, testID);
 		initializeRecoveryIOIdWithUniqueIOId(q, seedQ);
 		Mutation.initializeFaultPointsToMutate(q, conf);
@@ -449,6 +451,8 @@ public class Fuzzer {
 		FileUtil.writeNeighborNewCovs(testID, q.faultSeq.adjacent_new_covs);
 		FileUtil.writePostTestInfo(testID, q.bitmap_size, q.exec_s);
 
+		FileUtil.writeFaultSeq(testID, q.faultSeq);
+
 		long usedSeconds = FuzzInfo.getUsedSeconds();
 		if (CoverageFilter.checkIfInteresting(faultMode, nb, q)) // imply faultMode == 0
 		{
@@ -512,36 +516,28 @@ public class Fuzzer {
 		return result;
 	}
 
-	
-	/* Append new test case to the queue. */
-	public void add_to_queue(QueueEntry q, String fname) {
-		//after test, the retrieved ioSeq could be different from the original q.ioSeq
-		//the actual faultSeq could also be different from the original q.faultSeq
-		
-		//read from file,add to queue
-		TraceReader reader = new TraceReader(FileUtil.root_tmp+fname+"/"+FileUtil.ioTracesDir);
+	public void updateQWithTrace(QueueEntry q, String fname) {
+		// after test, the retrieved ioSeq could be different from the original q.ioSeq
+		// the actual faultSeq could also be different from the original q.faultSeq
+
+		// read from file,add to queue
+		TraceReader reader = new TraceReader(FileUtil.root_tmp + fname + "/" + FileUtil.ioTracesDir);
 		reader.readTraces();
-		if(reader.ioPoints == null || reader.ioPoints.isEmpty()) {
+		if (reader.ioPoints == null || reader.ioPoints.isEmpty()) {
 			return;
 		}
 		q.ioSeq = reader.ioPoints;
-		
+
 		q.calibrate();
-
-		
-
+	}
+	
+	/* Append new test case to the queue. */
+	public void add_to_queue(QueueEntry q, String fname) {
 		q.handicap = 0;
 		q.was_fuzzed = false;
 		q.fuzzed_time = 0;
-		  
 
 		candidate_queue.add(q);
-
-		// if (checkQueueEntrySuitedToReplay(q)) {
-		// 	Stat.log("begin to record queue for replay!");
-		// 	recoveryManager.recordQueue(q);
-		// }
-		
 	}
 
 	// public void collecIOSeqFromTrace(QueueEntry q, String fname) {
