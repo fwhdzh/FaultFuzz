@@ -413,32 +413,37 @@ public class HBaseTrackingMV extends TaintAdapter implements Opcodes {
 
     public void visitInsn(int opcode) {
         //use lvs would introduce errors, avoid to use lvs
-        if(opcode == ARETURN) {
-        	if((this.ownerSuperCname.endsWith("Service$BlockingInterface") || rpcRelated)
-        			&& ((Configuration.IS_THIRD_PARTY_PROTO && this.desc.startsWith("(Lorg/apache/hbase/thirdparty/com/google/protobuf/RpcController;"))
-        					|| (!Configuration.IS_THIRD_PARTY_PROTO && this.desc.startsWith("(Lcom/google/protobuf/RpcController;")))
-        			&& !this.owner.endsWith("$BlockingStub")
-        			&& (Configuration.USE_FAV && Configuration.FOR_HBASE || Configuration.HBASE_RPC)) {
-        		//server side send response
-        		String responseType = YarnProtocols.getResponseProtoInternalTypeFromDesc(desc);
+        if (opcode == ARETURN) {
+                if ((this.ownerSuperCname.endsWith("Service$BlockingInterface") || rpcRelated)
+                                && ((Configuration.IS_THIRD_PARTY_PROTO && this.desc.startsWith(
+                                                "(Lorg/apache/hbase/thirdparty/com/google/protobuf/RpcController;"))
+                                                || (!Configuration.IS_THIRD_PARTY_PROTO && this.desc
+                                                                .startsWith("(Lcom/google/protobuf/RpcController;")))
+                                && !this.owner.endsWith("$BlockingStub")
+                                && (Configuration.USE_FAV && Configuration.FOR_HBASE || Configuration.HBASE_RPC)) {
+                        // server side send response
+                        String responseType = YarnProtocols.getResponseProtoInternalTypeFromDesc(desc);
 
-//                System.out.println("crashfuzz server send:"+this.owner+"."+this.name);
-                recordOrTriggerRpcResponse(responseType);
-        	} else if(this.owner.endsWith("Service$BlockingStub")
-        			&& ((Configuration.IS_THIRD_PARTY_PROTO && this.desc.startsWith("(Lorg/apache/hbase/thirdparty/com/google/protobuf/RpcController;"))
-        					|| (!Configuration.IS_THIRD_PARTY_PROTO && this.desc.startsWith("(Lcom/google/protobuf/RpcController;")))
-        			&& (this.ownerSuperCname.endsWith("Service$BlockingInterface") || rpcRelated)
-        			&& Configuration.USE_FAV && Configuration.FOR_HBASE) {
-        		//client side receive response
-        		String responseType = YarnProtocols.getResponseProtoInternalTypeFromDesc(desc);
-//                super.visitTypeInsn(CHECKCAST, responseType);
-        		int res = lvs.getTmpLV();
-                super.visitVarInsn(ASTORE, res);
-                attachTaintTagsToMessage(res, responseType, this.owner, this.name, this.desc, FAVTaintType.RPC.toString(), FAVTagType.APP.toString(), false);
-                super.visitVarInsn(ALOAD, res);
+                        // System.out.println("crashfuzz server send:"+this.owner+"."+this.name);
+                        recordOrTriggerRpcResponse(responseType);
+                } else if (this.owner.endsWith("Service$BlockingStub")
+                                && ((Configuration.IS_THIRD_PARTY_PROTO && this.desc
+                                                .startsWith("(Lorg/apache/hbase/thirdparty/com/google/protobuf/RpcController;"))
+                                                || (!Configuration.IS_THIRD_PARTY_PROTO && this.desc
+                                                                .startsWith("(Lcom/google/protobuf/RpcController;")))
+                                && (this.ownerSuperCname.endsWith("Service$BlockingInterface") || rpcRelated)
+                                && Configuration.USE_FAV && Configuration.FOR_HBASE) {
+                        // client side receive response
+                        String responseType = YarnProtocols.getResponseProtoInternalTypeFromDesc(desc);
+                        // super.visitTypeInsn(CHECKCAST, responseType);
+                        int res = lvs.getTmpLV();
+                        super.visitVarInsn(ASTORE, res);
+                        attachTaintTagsToMessage(res, responseType, this.owner, this.name, this.desc,
+                                        FAVTaintType.RPC.toString(), FAVTagType.APP.toString(), false);
+                        super.visitVarInsn(ALOAD, res);
 
-                lvs.freeTmpLV(res);
-        	}
+                        lvs.freeTmpLV(res);
+                }
         }
         super.visitInsn(opcode);
     }

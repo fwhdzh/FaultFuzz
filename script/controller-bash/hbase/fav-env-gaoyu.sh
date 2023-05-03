@@ -1,0 +1,4 @@
+export MSG_OPT=false
+export PHOS_OPTS="-Xbootclasspath/a:/home/gaoyu/Phosphor-0.0.5-SNAPSHOT.jar -javaagent:/home/gaoyu/Phosphor-0.0.5-SNAPSHOT.jar=useFav=false,hbaseRpc=true"
+export FAV_OPTS="-Xbootclasspath/a:/home/gaoyu/Phosphor-0.0.5-SNAPSHOT.jar -javaagent:/home/gaoyu/Phosphor-0.0.5-SNAPSHOT.jar=useFav=true,useMsgid=false,jdkMsg=false,jdkFile=true,recordPhase=false,recordPath=/home/gaoyu/hb244-fav-rst/,dataPaths=/home/gaoyu/evaluation/hbase-2.4.8/tmp:/home/gaoyu/evaluation/hbase-2.4.8/conf,cacheDir=/home/gaoyu/HB244-CacheFolder,favHome=/home/gaoyu,hdfsApi=true,zkApi=true,forHbase=true,currentCrash=$FAV_HOME/hb244curCrash,controllerSocket=124.16.138.61:14900,strictCheck=false,mapSize=10000,wordSize=64,covPath=/home/gaoyu/fuzzcov,covIncludes=org/apache/hadoop/hbase,aflAllow=/home/gaoyu/evaluation/hbase-2.4.8/allowlist,aflDeny=/home/gaoyu/evaluation/hbase-2.4.8/denylist,aflPort=12181"
+export TIME_OPTS="-Dfile.encoding=UTF8 -Duser.timezone=GMT+08"

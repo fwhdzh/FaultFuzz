@@ -142,6 +142,6 @@ networks:
       - subnet: 172.26.0.0/24
 
 
-# docker-compose -p fav -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs/hdfs-compose.yaml up -d
-# docker-compose -p fav -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs/hdfs-compose.yaml down
-# docker-compose -p fav -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs/hdfs-compose.yaml exec C1NN /bin/bash
+# docker-compose -p fav-hdfs -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs/hdfs-compose.yaml up -d
+# docker-compose -p fav-hdfs -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs/hdfs-compose.yaml down
+# docker-compose -p fav-hdfs -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs/hdfs-compose.yaml exec C1NN /bin/bash

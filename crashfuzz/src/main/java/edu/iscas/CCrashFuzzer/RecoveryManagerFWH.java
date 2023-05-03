@@ -19,6 +19,10 @@ public class RecoveryManagerFWH {
     //     this.conf = conf;
     // }
 
+	public void backUpLastRecord() {
+		
+	}
+
     public void recordCandidateQueue(String filepath) {
     	String message = JSONObject.toJSONString(Fuzzer.candidate_queue);
     	FileOutputStream out;

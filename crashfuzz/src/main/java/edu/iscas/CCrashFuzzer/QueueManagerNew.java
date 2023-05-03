@@ -53,6 +53,8 @@ public class QueueManagerNew {
 	public static List<QueuePair> retrievePairListFWH(List<QueueEntry> candidate_queue, Conf conf) {
 		List<QueuePair> result = new ArrayList<QueuePair>();
 		QueueEntry seed = SeedSelection.retrieveSeed(candidate_queue);
+		int seedIdx = candidate_queue.indexOf(seed);
+		Stat.log(QueueManagerNew.class , "Select seed: " + seedIdx);
 		if (!seed.was_fuzzed) {
 			Mutation.mutateFaultSequence(seed, conf);
 		}
@@ -61,7 +63,7 @@ public class QueueManagerNew {
 			QueuePair pair = new QueuePair();
 			pair.seed = seed;
 			pair.mutate = mutate;
-			pair.seedIdx = candidate_queue.indexOf(seed);
+			pair.seedIdx = seedIdx;
 			pair.mutateIdx = seed.mutates.indexOf(mutate);
 			Stat.log("Retrieve entry in retrievePairListFWH:"+pair.seedIdx+":"+pair.mutateIdx);
 			result.add(pair);

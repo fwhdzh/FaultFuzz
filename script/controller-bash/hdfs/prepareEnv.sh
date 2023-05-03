@@ -23,3 +23,5 @@ sh $SCRIPT_DIR/initHDFS.sh
 sh $SCRIPT_DIR/clearLogs.sh
 #sh clearHB.sh
 
+sh $SCRIPT_DIR/clean-error-file-in-cluster.sh
+

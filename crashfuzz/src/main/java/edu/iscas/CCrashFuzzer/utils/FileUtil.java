@@ -260,6 +260,9 @@ public class FileUtil {
     	
         File faultFile = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_CRASH_FILE.getName());
         File seedFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.seed_file);
+
+		File fsFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.faultSeqFile);
+		
         
         if(faultFile.exists()){
         	try {
@@ -272,6 +275,15 @@ public class FileUtil {
         if(seedFile.exists()){
         	try {
 				FileUtils.copyFileToDirectory(seedFile, des);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+
+		if(fsFile.exists()){
+        	try {
+				FileUtils.copyFileToDirectory(fsFile, des);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

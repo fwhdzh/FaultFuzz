@@ -1,18 +1,9 @@
-fault point=789957300
+fault point=-92027613
 event=CRASH
 pos=BEFORE
 nodeIp=172.26.0.2
-ioID=-32639963
-ioCallStack=[org.apache.hadoop.hdfs.qjournal.protocolPB.QJournalProtocolTranslatorPB.prepareRecovery(QJournalProtocolTranslatorPB.java:310), org.apache.hadoop.hdfs.qjournal.client.IPCLoggerChannel$15.call(IPCLoggerChannel.java:613), org.apache.hadoop.hdfs.qjournal.client.IPCLoggerChannel$15.call(IPCLoggerChannel.java:603), org.apache.hadoop.thirdparty.com.google.common.util.concurrent.TrustedListenableFutureTask$TrustedFutureInterruptibleTask.runInterruptibly(TrustedListenableFutureTask.java:125), org.apache.hadoop.thirdparty.com.google.common.util.concurrent.InterruptibleTask.run(InterruptibleTask.java:69), org.apache.hadoop.thirdparty.com.google.common.util.concurrent.TrustedListenableFutureTask.run(TrustedListenableFutureTask.java:78), java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149), java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624), java.lang.Thread.run(Thread.java:748)]
-path=FAVMSG:172.26.0.8&14#5
-ioAppearIdx=2
-end
-fault point=85457441
-event=REBOOT
-pos=BEFORE
-nodeIp=172.26.0.2
-ioID=1058807018
-ioCallStack=[org.apache.hadoop.hdfs.protocolPB.DatanodeProtocolServerSideTranslatorPB.versionRequest(DatanodeProtocolServerSideTranslatorPB.java:270), org.apache.hadoop.hdfs.protocol.proto.DatanodeProtocolProtos$DatanodeProtocolService$2.callBlockingMethod(DatanodeProtocolProtos.java:33891), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:600), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:568), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:552), org.apache.hadoop.ipc.RPC$Server.call(RPC.java:1093), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:1035), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:963), java.security.AccessController.doPrivileged(Native Method), javax.security.auth.Subject.doAs(Subject.java:422), org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1878), org.apache.hadoop.ipc.Server$Handler.run(Server.java:2966)]
-path=FAVMSG:172.26.0.6&1283218719
-ioAppearIdx=5
+ioID=1373891192
+ioCallStack=[org.apache.hadoop.ha.protocolPB.HAServiceProtocolServerSideTranslatorPB.getServiceStatus(HAServiceProtocolServerSideTranslatorPB.java:177), org.apache.hadoop.ha.proto.HAServiceProtocolProtos$HAServiceProtocolService$2.callBlockingMethod(HAServiceProtocolProtos.java:6224), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:600), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:568), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:552), org.apache.hadoop.ipc.RPC$Server.call(RPC.java:1093), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:1035), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:963), java.security.AccessController.doPrivileged(Native Method), javax.security.auth.Subject.doAs(Subject.java:422), org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1878), org.apache.hadoop.ipc.Server$Handler.run(Server.java:2966)]
+path=FAVMSG:FAVMSG:172.26.0.2&170#113
+ioAppearIdx=27
 end

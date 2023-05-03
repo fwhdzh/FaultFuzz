@@ -816,10 +816,10 @@ public class Fuzzer {
         	
         	hasFaultSequence = !candidate_queue.isEmpty();
 
-			recoveryManager.recordFuzzInfo(this);
-			recoveryManager.recordCandidateQueue(this);
-			recoveryManager.recordTestedFaultId(this);
-			recoveryManager.recordVirginBits(this);
+			// recoveryManager.recordFuzzInfo(this);
+			// recoveryManager.recordCandidateQueue(this);
+			// recoveryManager.recordTestedFaultId(this);
+			// recoveryManager.recordVirginBits(this);
 
 			
         }

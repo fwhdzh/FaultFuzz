@@ -19,4 +19,12 @@ public class MyLogger {
     public void test() {
         AflCli c = new AflCli();
     }
+
+    public static String log(Class c, String s) {
+        Date day = new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+        String rst = df.format(day)+" [Deminer][" + c.getName() + "] - INFO - "+s;
+        System.out.println(rst);
+        return rst;
+    }
 }

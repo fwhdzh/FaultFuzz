@@ -946,5 +946,7 @@ public class HDFSAPIModelMV extends TaintAdapter implements Opcodes {
 
         super.visitLabel(finish);
         acceptFn(fn1);
+
+        lvs.freeTmpLV(path);
     }
 }

@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.Mutation.EntryAndScore;
 
 public class SeedSelection {
+
+    static Random rand = new Random();
 
     public static QueueEntry retrieveSeed(List<QueueEntry> candidate_queue) {
     	QueueEntry result = null;
@@ -23,26 +26,28 @@ public class SeedSelection {
     	SeedSelection.appendGlobalNewIOSocre(list);
         SeedSelection.appendPerfSocre(list);
 
-        logScoresList("seeds", list);
+        EntryAndScore.logScoresList("seeds", list);
 
-        list.sort(new Comparator<EntryAndScore>() {
-            @Override
-            public int compare(EntryAndScore o1, EntryAndScore o2) {
-                return o2.score - o1.score;
-            }
-        });
+        // list.sort(new Comparator<EntryAndScore>() {
+        //     @Override
+        //     public int compare(EntryAndScore o1, EntryAndScore o2) {
+        //         return o2.score - o1.score;
+        //     }
+        // });
 
-    	result = list.get(0).entry;
+    	// result = list.get(0).entry;
+
+        result = randomlyRetrieveASeedBasedOnScore(list);
     	return result;
     }
 
-    public static void logScoresList(String title, List<EntryAndScore> list) {
-        String logInfo = title + " score: {";
-        for (int i = 0; i < list.size(); i++) {
-            logInfo = logInfo + i + ":" + list.get(i).score + ",";
+    public static QueueEntry randomlyRetrieveASeedBasedOnScore(List<EntryAndScore> list) {
+        QueueEntry result = null;
+        EntryAndScore e = EntryAndScore.retriveAnEntryAndScoreBasedOnScore(list);
+        if (e != null) {
+            result = e.entry;
         }
-        logInfo = logInfo + "}";
-        Stat.log(logInfo);
+        return result;
     }
 
     public static void appendGlobalNewIOSocre(List<EntryAndScore> list) {
@@ -78,7 +83,8 @@ public class SeedSelection {
         for (int i = 0; i < list.size(); i++) {
             EntryAndScore e = list.get(i);
             if (scores[i] > midean) {
-                e.score += 1;
+                // e.score += 1;
+                e.score = e.score + e.score / 2;
             }
         }
         

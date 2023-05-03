@@ -62,6 +62,15 @@ public class Stat {
         System.out.println(rst);
         return rst;
 	}
+
+	public static String log(Class c, String s) {
+        Date day = new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+        String rst = df.format(day)+" [CrashFuzz][" + c.getName() + "] - INFO - "+s;
+        System.out.println(rst);
+        return rst;
+    }
+
 	public static String warn(String s) {
 	    Date day = new Date();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");

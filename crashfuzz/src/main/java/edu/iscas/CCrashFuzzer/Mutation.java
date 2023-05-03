@@ -1,9 +1,12 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -12,6 +15,8 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 
 public class Mutation {
+
+	static Random random = new Random();
 
 	public static void mutateFaultSequenceOld(QueueEntry q, Conf conf) {
 		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
@@ -294,6 +299,9 @@ public class Mutation {
 	// }
 
 	public static class EntryAndScore implements Comparable<EntryAndScore> {
+
+		static Random rand = new Random();
+
 		public QueueEntry entry;
 		public int score;
 		public EntryAndScore(QueueEntry entry, int score) {
@@ -308,6 +316,44 @@ public class Mutation {
 			return result;
 		}
 
+		public static EntryAndScore retriveAnEntryAndScoreBasedOnScore(List<EntryAndScore> list) {
+            EntryAndScore result = null;
+            if (list.size() == 0) {
+                return null;
+            }
+            int totalSum = 0;
+            for (EntryAndScore e:list) {
+                totalSum = totalSum + e.score;
+            }
+            if (totalSum == 0) {
+                return list.get(rand.nextInt(list.size()));
+            }
+            int bound = rand.nextInt(totalSum);
+			Stat.log(EntryAndScore.class, "bound selected is: " + bound);
+            int nTotal = 0;
+            int index = -1;
+            for (int i = 0; i < list.size(); i++) {
+                nTotal = nTotal + list.get(i).score;
+                if (nTotal > bound) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index >= 0) {
+                result = list.get(index);
+            }
+			Stat.log(EntryAndScore.class, "selected index is: " + index);
+            return result;
+        }
+
+        public static void logScoresList(String title, List<EntryAndScore> list) {
+		    String logInfo = title + " score: {";
+		    for (int i = 0; i < list.size(); i++) {
+		        logInfo = logInfo + i + ":" + list.get(i).score + ",";
+		    }
+		    logInfo = logInfo + "}";
+		    Stat.log(EntryAndScore.class , logInfo);
+		}
 		
 	}
 
@@ -439,34 +485,61 @@ public class Mutation {
 		 Stat.log("Return mutates:"+mutates.size());
 		return mutates;
 	}
-	//from 0 to limit-1
-		public static int getRandomNumber(int limit) {
-			int num = (int) (Math.random()*limit);
-			return num;
+	
+	// from 0 to limit-1
+	public static int getRandomNumber(int limit) {
+		int num = (int) (Math.random() * limit);
+		return num;
+	}
+
+	public static List<QueueEntry> getMutationEntry(QueueEntry seed, Conf conf) {
+		List<QueueEntry> result = new ArrayList<QueueEntry>();
+		List<EntryAndScore> mList = new ArrayList<EntryAndScore>();
+		for (QueueEntry entry : seed.mutates) {
+			mList.add(new EntryAndScore(entry, 0));
 		}
+		;
 
-		public static List<QueueEntry> getMutationEntry(QueueEntry seed, Conf conf) {
-			List<QueueEntry> result = new ArrayList<QueueEntry>();
-			List<EntryAndScore> mList = new ArrayList<EntryAndScore>();
-			for (QueueEntry entry: seed.mutates) {
-				mList.add(new EntryAndScore(entry, 0));
-			};
-			
-			appendGlobalNewIOSocre(mList);
+		appendGlobalNewIOSocre(mList);
+		appendRecoveryScore(mList);
+		appendLocalNewIOScore(seed, mList);
 
-			SeedSelection.logScoresList("mutates", mList);
+		EntryAndScore.logScoresList("mutates", mList);
 
-			mList.sort(new Comparator<EntryAndScore>() {
-				@Override
-				public int compare(EntryAndScore o1, EntryAndScore o2) {
-					return o2.score - o1.score;
-				}
-			});
+		// mList.sort(new Comparator<EntryAndScore>() {
+		// 	@Override
+		// 	public int compare(EntryAndScore o1, EntryAndScore o2) {
+		// 		return o2.score - o1.score;
+		// 	}
+		// });
 
-			int k = conf.MUTATE_CHOOSE;
-			for (int i = 0; i < k; i++) {
-				result.add(mList.get(i).entry);
+		// int k = conf.MUTATE_CHOOSE;
+		// for (int i = 0; i < k; i++) {
+		// 	result.add(mList.get(i).entry);
+		// }
+
+		int k = conf.MUTATE_CHOOSE;
+		result = selectRandomEntries(mList, k);
+		return result;
+	}
+
+	public static List<QueueEntry> selectRandomEntries(List<EntryAndScore> list, int k) {
+        List<QueueEntry> result = new ArrayList<>();
+        if (list.size() == 0) {
+            return result;
+        }
+        if (list.size() < k) {
+			for (EntryAndScore e: list) {
+				result.add(e.entry);
 			}
-			return result;
+            return result;
+        }
+		List<EntryAndScore> mList = new ArrayList<>(list);
+		for (int i = 0; i < k; i++) {
+			EntryAndScore e = EntryAndScore.retriveAnEntryAndScoreBasedOnScore(mList);
+			result.add(e.entry);
+			mList.remove(e);
 		}
+        return result;
+    }
 }

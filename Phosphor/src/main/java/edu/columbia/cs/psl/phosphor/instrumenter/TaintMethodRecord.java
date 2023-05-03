@@ -106,6 +106,8 @@ public enum TaintMethodRecord implements MethodRecord {
     FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ(INVOKESTATIC, YarnInstrument.class, "combineIpWithLogicClockMsgForRead", String.class, false, String.class, String.class),
     FAV_TRANSFORM_STRING_TO_BYTEARRAY(INVOKESTATIC, YarnInstrument.class, "transformStrToByteArr", byte[].class, false, String.class),
     FAV_TRANSFORM_BYTEARRAY_TO_STRING(INVOKESTATIC, YarnInstrument.class, "transformByteArrToStr", String.class, false, byte[].class),
+    FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG(INVOKESTATIC, YarnInstrument.class, "getRemoteAddrFromSourceLogicClockMsg", String.class, false, String.class),
+    FAV_GET_MSG_ID_FROM_SOURCE_LOGIC_CLOCK_MSG(INVOKESTATIC, YarnInstrument.class, "getMsgIdFromSourceLogicClockMsg", String.class, false, String.class),
 
     //YarnRunMode
     FAV_YARN_RECORD_OR_TRIGGER(INVOKESTATIC, YarnRunMode.class, "recordYarnRpcOrTrigger", Void.TYPE, false, long.class, FileOutputStream.class, String.class, LazyByteArrayObjTags.class),

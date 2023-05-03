@@ -91,7 +91,10 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
                     "getLinkSourceFromMsg", "(Ljava/util/List;)Ljava/lang/Object;", false);
             int rawsource = lvs.getTmpLV();
             super.visitVarInsn(ASTORE, rawsource);
-            super.visitLdcInsn(FAVPathType.FAVMSG.toString()+":");
+
+            // super.visitLdcInsn(FAVPathType.FAVMSG.toString()+":");
+            super.visitLdcInsn("");
+
             int stringsource = lvs.getTmpLV();
             super.visitVarInsn(ASTORE, stringsource);
             Label done = new Label();
@@ -127,15 +130,27 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             super.visitLabel(done);
             acceptFn(fn);
             if(recordRemoteIP) {
+
                 super.visitVarInsn(ALOAD, stringsource);
-                super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                        "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
+
+                // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+                //         "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
+                FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+
                 remoteIpVar = lvs.createPermanentLocalVariable(String.class, "FAV_REMOTE_IP");
                 super.visitVarInsn(ASTORE, remoteIpVar);
+
             }
+
+            // super.visitVarInsn(ALOAD, stringsource);
+            // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+            //         "appendRead", "(Ljava/lang/String;)Ljava/lang/String;", false);
             super.visitVarInsn(ALOAD, stringsource);
-            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                    "appendRead", "(Ljava/lang/String;)Ljava/lang/String;", false);
+            FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            super.visitVarInsn(ALOAD, stringsource);
+            FAV_GET_MSG_ID_FROM_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ.delegateVisit(mv);
+
             lvs.freeTmpLV(stringsource);
             lvs.freeTmpLV(rawsource);
         } else {
@@ -151,7 +166,10 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
                     "getLinkSourceFromMsg", "(Ljava/util/List;)Ljava/lang/Object;", false);
             int rawsource = lvs.getTmpLV();
             super.visitVarInsn(ASTORE, rawsource);
-            super.visitLdcInsn(FAVPathType.FAVMSG.toString()+":");
+
+            // super.visitLdcInsn(FAVPathType.FAVMSG.toString()+":");
+            super.visitLdcInsn("");
+
             int stringsource = lvs.getTmpLV();
             super.visitVarInsn(ASTORE, stringsource);
             Label done = new Label();
@@ -168,14 +186,24 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             acceptFn(fn);
             if(recordRemoteIP) {
                 super.visitVarInsn(ALOAD, stringsource);
-                super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                        "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
+
+                // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+                //         "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
+                FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+
                 remoteIpVar = lvs.createPermanentLocalVariable(String.class, "FAV_REMOTE_IP");
                 super.visitVarInsn(ASTORE, remoteIpVar);
             }
+
+            // super.visitVarInsn(ALOAD, stringsource);
+            // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+            //         "appendRead", "(Ljava/lang/String;)Ljava/lang/String;", false);
             super.visitVarInsn(ALOAD, stringsource);
-            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                    "appendRead", "(Ljava/lang/String;)Ljava/lang/String;", false);
+            FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            super.visitVarInsn(ALOAD, stringsource);
+            FAV_GET_MSG_ID_FROM_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ.delegateVisit(mv);
+
             lvs.freeTmpLV(stringsource);
             lvs.freeTmpLV(rawsource);
         }
@@ -362,13 +390,26 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
         	//add msg id to request
             super.visitMethodInsn(INVOKESTATIC, "org/apache/hadoop/thirdparty/protobuf/UnknownFieldSet$Field",
                     "newBuilder", "()Lorg/apache/hadoop/thirdparty/protobuf/UnknownFieldSet$Field$Builder;", false);
-            FAV_NEW_MSGID.delegateVisit(mv);
-            msgid = lvs.getTmpLV();
-            super.visitVarInsn(ISTORE, msgid);
+            
+            // FAV_NEW_MSGID.delegateVisit(mv);
+            // msgid = lvs.getTmpLV();
+            // super.visitVarInsn(ISTORE, msgid);
+            // FAV_CURRENT_IP.delegateVisit(mv);
+            // super.visitVarInsn(ILOAD, msgid);
+            // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+            //         "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
             FAV_CURRENT_IP.delegateVisit(mv);
-            super.visitVarInsn(ILOAD, msgid);
-            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                    "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+            int targetNode = lvs.getTmpLV();
+            super.visitVarInsn(Opcodes.ASTORE, targetNode);
+            super.visitVarInsn(Opcodes.ALOAD, targetNode);
+            FAV_NEW_LOGIC_CLOCK_MSGID.delegateVisit(mv);
+            int fwhmsg = lvs.getTmpLV();
+            super.visitVarInsn(Opcodes.ASTORE, fwhmsg);
+            super.visitVarInsn(ALOAD, targetNode);
+            super.visitVarInsn(ALOAD, fwhmsg);
+            FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG.delegateVisit(mv);
+
             super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "getBytes", "()[B", false);
             super.visitMethodInsn(INVOKESTATIC, "org/apache/hadoop/thirdparty/protobuf/ByteString", "copyFrom", "([B)Lorg/apache/hadoop/thirdparty/protobuf/ByteString;", false);
             super.visitMethodInsn(INVOKEVIRTUAL, "org/apache/hadoop/thirdparty/protobuf/UnknownFieldSet$Field$Builder",
@@ -410,17 +451,33 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
 
             lvs.freeTmpLV(field);
             lvs.freeTmpLV(newunknown);
+
+            lvs.freeTmpLV(fwhmsg);
+			lvs.freeTmpLV(targetNode);
         } else {
         	//add msg id to request
             super.visitMethodInsn(INVOKESTATIC, "com/google/protobuf/UnknownFieldSet$Field",
                     "newBuilder", "()Lcom/google/protobuf/UnknownFieldSet$Field$Builder;", false);
-            FAV_NEW_MSGID.delegateVisit(mv);
-            msgid = lvs.getTmpLV();
-            super.visitVarInsn(ISTORE, msgid);
+            
+            // FAV_NEW_MSGID.delegateVisit(mv);
+            // msgid = lvs.getTmpLV();
+            // super.visitVarInsn(ISTORE, msgid);
+            // FAV_CURRENT_IP.delegateVisit(mv);
+            // super.visitVarInsn(ILOAD, msgid);
+            // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+            //         "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
             FAV_CURRENT_IP.delegateVisit(mv);
-            super.visitVarInsn(ILOAD, msgid);
-            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                    "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+            int targetNode = lvs.getTmpLV();
+            super.visitVarInsn(Opcodes.ASTORE, targetNode);
+            super.visitVarInsn(Opcodes.ALOAD, targetNode);
+            FAV_NEW_LOGIC_CLOCK_MSGID.delegateVisit(mv);
+            int fwhmsg = lvs.getTmpLV();
+            super.visitVarInsn(Opcodes.ASTORE, fwhmsg);
+            super.visitVarInsn(ALOAD, targetNode);
+            super.visitVarInsn(ALOAD, fwhmsg);
+            FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            
             super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "getBytes", "()[B", false);
             super.visitMethodInsn(INVOKESTATIC, "com/google/protobuf/ByteString", "copyFrom", "([B)Lcom/google/protobuf/ByteString;", false);
             super.visitMethodInsn(INVOKEVIRTUAL, "com/google/protobuf/UnknownFieldSet$Field$Builder",
@@ -460,6 +517,9 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
 
             lvs.freeTmpLV(field);
             lvs.freeTmpLV(newunknown);
+
+            lvs.freeTmpLV(fwhmsg);
+			lvs.freeTmpLV(targetNode);
         }
 
         if(Configuration.USE_FAV && Configuration.FOR_HDFS) {
@@ -543,9 +603,17 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
         super.visitVarInsn(ALOAD, response);
         //[rtn]
 
-        FAV_NEW_MSGID.delegateVisit(mv);
+        // FAV_NEW_MSGID.delegateVisit(mv);
+        // super.visitVarInsn(ISTORE, msgid);
+
+        int connectIP = lvs.getTmpLV();
+        FAV_CURRENT_IP.delegateVisit(mv);
+        super.visitVarInsn(ASTORE, connectIP);
+        super.visitVarInsn(ALOAD, connectIP);
         int msgid = lvs.getTmpLV();
-        super.visitVarInsn(ISTORE, msgid);
+        FAV_NEW_LOGIC_CLOCK_MSGID.delegateVisit(mv);
+        super.visitVarInsn(ASTORE, msgid);
+
         //[response]
         if(Configuration.IS_THIRD_PARTY_PROTO) {
         	super.visitMethodInsn(INVOKESTATIC, "org/apache/hadoop/thirdparty/protobuf/UnknownFieldSet",
@@ -554,13 +622,21 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             //[response, UnknownFieldSet$Builder, msgTag]
             super.visitMethodInsn(INVOKESTATIC, "org/apache/hadoop/thirdparty/protobuf/UnknownFieldSet$Field",
                     "newBuilder", "()Lorg/apache/hadoop/thirdparty/protobuf/UnknownFieldSet$Field$Builder;", false);
-            FAV_CURRENT_IP.delegateVisit(mv);
+
+            // FAV_CURRENT_IP.delegateVisit(mv);
+
 //            FAV_NEW_MSGID.delegateVisit(mv);
 //            int msgid = lvs.getTmpLV();
 //            super.visitVarInsn(ISTORE, msgid);
-            super.visitVarInsn(ILOAD, msgid);
-            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                    "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
+            // super.visitVarInsn(ILOAD, msgid);
+            // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+            //         "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
+            super.visitVarInsn(ALOAD, connectIP);
+            super.visitVarInsn(ALOAD, msgid);
+            FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            
             super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "getBytes", "()[B", false);
             super.visitMethodInsn(INVOKESTATIC, "org/apache/hadoop/thirdparty/protobuf/ByteString", "copyFrom", "([B)Lorg/apache/hadoop/thirdparty/protobuf/ByteString;", false);
             super.visitMethodInsn(INVOKEVIRTUAL, "org/apache/hadoop/thirdparty/protobuf/UnknownFieldSet$Field$Builder",
@@ -600,13 +676,19 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             //[response, UnknownFieldSet$Builder, msgTag]
             super.visitMethodInsn(INVOKESTATIC, "com/google/protobuf/UnknownFieldSet$Field",
                     "newBuilder", "()Lcom/google/protobuf/UnknownFieldSet$Field$Builder;", false);
-            FAV_CURRENT_IP.delegateVisit(mv);
-//            FAV_NEW_MSGID.delegateVisit(mv);
-//            int msgid = lvs.getTmpLV();
-//            super.visitVarInsn(ISTORE, msgid);
-            super.visitVarInsn(ILOAD, msgid);
-            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                    "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
+//             FAV_CURRENT_IP.delegateVisit(mv);
+// //            FAV_NEW_MSGID.delegateVisit(mv);
+// //            int msgid = lvs.getTmpLV();
+// //            super.visitVarInsn(ISTORE, msgid);
+//             super.visitVarInsn(ILOAD, msgid);
+//             super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+//                     "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
+            super.visitVarInsn(ALOAD, connectIP);
+            super.visitVarInsn(ALOAD, msgid);
+            FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG.delegateVisit(mv);
+
             super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "getBytes", "()[B", false);
             super.visitMethodInsn(INVOKESTATIC, "com/google/protobuf/ByteString", "copyFrom", "([B)Lcom/google/protobuf/ByteString;", false);
             super.visitMethodInsn(INVOKEVIRTUAL, "com/google/protobuf/UnknownFieldSet$Field$Builder",
@@ -661,9 +743,13 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             super.visitVarInsn(Opcodes.ALOAD, fileOutStream);
             //get remote ip from remoteIpVar
             super.visitVarInsn(ALOAD, remoteIpVar);
-            super.visitVarInsn(ILOAD, msgid);
-            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                    "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+
+            // super.visitVarInsn(ILOAD, msgid);
+            // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+            //         "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
+            super.visitVarInsn(ALOAD, msgid);
+            FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG.delegateVisit(mv);
+
             APP_FAULT_BEFORE.delegateVisit(mv);
             //[rtn]
 
@@ -672,6 +758,8 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
 
         lvs.freeTmpLV(response);
         lvs.freeTmpLV(msgid);
+
+        lvs.freeTmpLV(connectIP);
     }
 
 }

@@ -47,7 +47,8 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
     @Override
     public TryBestDeterminismTResult afterTarget() {
         // TODO Auto-generated method stub
-        sendNotReplayToCluster(controllerResult.finalCluster);
+        // sendNotReplayToCluster(controllerResult.finalCluster);
+		AflCli.executeUtilSuccess(controllerResult.finalCluster, mConf, AflCommand.DETERMINE_NO_SEND, 300000);
 		// For replay target, we should collect run-time information for all scenarios.
 		String runInfoPath = collectRuntimeInfo(controllerResult.finalCluster);
 		boolean findBug = checkIfABugExist(runInfoPath);
