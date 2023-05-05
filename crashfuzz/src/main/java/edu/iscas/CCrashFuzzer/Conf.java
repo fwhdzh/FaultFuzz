@@ -74,6 +74,10 @@ public class Conf {
     public File COPY_LOGS_TO_CONTROLLER;
     public String CLUSTER_LOGS_IN_CONTROLLER_DIR;
 
+    public File NETWORK_DISCONNECT;  // disconnect the network from sourceNode to targetNode
+    public File NETWORK_CONNECT;  // connect the network from sourceNode to targetNode
+
+
 	
 	public Conf(File configFile) {
 		FAV_TRIGGER_CONFIG = configFile;
@@ -331,6 +335,28 @@ public class Conf {
         String clusterlogsInControllerDir = p.getProperty(ConfOption.CLUSTER_LOGS_IN_CONTROLLER_DIR.toString());
         if(clusterlogsInControllerDir != null) {
         	CLUSTER_LOGS_IN_CONTROLLER_DIR = clusterlogsInControllerDir;
+        }
+
+        String networkDisconnection = p.getProperty(ConfOption.NETWORK_DISCONNECTION.toString());
+        if (networkDisconnection != null) {
+            if (!networkDisconnection.startsWith("/")) {
+                networkDisconnection = workdir + networkDisconnection;
+            }
+            File f = new File(networkDisconnection);
+            if (f.exists()) {
+                NETWORK_DISCONNECT = f;
+            }
+        }
+
+        String networkConnection = p.getProperty(ConfOption.NETWORK_CONNECTION.toString());
+        if (networkConnection != null) {
+            if (!networkConnection.startsWith("/")) {
+                networkConnection = workdir + networkConnection;
+            }
+            File f = new File(networkConnection);
+            if (f.exists()) {
+                NETWORK_CONNECT = f;
+            }
         }
 
         

@@ -1,30 +1,13 @@
 package edu.iscas.CCrashFuzzer.control.replay;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-
-import edu.iscas.CCrashFuzzer.AflCli;
-import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
 import edu.iscas.CCrashFuzzer.Fuzzer;
 import edu.iscas.CCrashFuzzer.IOPoint;
-import edu.iscas.CCrashFuzzer.Monitor;
-import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
-import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget;
-import edu.iscas.CCrashFuzzer.control.AbstractTarget;
-import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
 import edu.iscas.CCrashFuzzer.control.replay.ReplayController.FaultPointBlocked;
 import edu.iscas.CCrashFuzzer.control.replay.ReplayController.ReplayControllerResult;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;

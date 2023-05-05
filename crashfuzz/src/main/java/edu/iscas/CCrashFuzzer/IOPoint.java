@@ -1,8 +1,7 @@
 package edu.iscas.CCrashFuzzer;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 
@@ -25,5 +24,28 @@ public class IOPoint {
 	}
 	public int computeIoID() {
 		return CALLSTACK.toString().hashCode();
+	}
+
+	
+	public List<String> getTotalInformationAboutMsgFromPath() {
+		List<String> result = new ArrayList<>();
+		if (!PATH.startsWith("FAVMSG")){
+			return null;
+		}
+		// if the path is "FAVMSG:172.30.0.1&3#1"
+		if (PATH.startsWith("FAVMSG") && (!PATH.startsWith("FAVMSG:READ"))) {
+			result.add("WRITE");
+			result.add(ip);
+			result.add(PATH.substring("FAVMSG:".length()).split("&")[0]);
+			result.add(PATH.split("&")[1]);
+		}
+		// if the path is "FAVMSG:READ172.30.0.1&3#1"
+		if (PATH.startsWith("FAVMSG:READ")) {
+			result.add("READ");
+			result.add(PATH.substring("FAVMSG:READ".length()).split("&")[0]);
+			result.add(ip);
+			result.add(PATH.split("&")[1]);
+		}
+		return result;
 	}
 }

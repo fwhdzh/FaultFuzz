@@ -32,6 +32,21 @@ public class QueueEntry {
 		not_tested_fault_id = new HashSet<Integer>();
 	}
 
+	
+
+	public QueueEntry(FaultSequence faultSeq, List<IOPoint> ioSeq, boolean favored, int bitmap_size, long exec_s,
+			int handicap) {
+		this();
+		this.faultSeq = faultSeq;
+		this.ioSeq = ioSeq;
+		this.favored = favored;
+		this.bitmap_size = bitmap_size;
+		this.exec_s = exec_s;
+		this.handicap = handicap;
+	}
+
+
+
 	public List<QueueEntry> mutates;
 	public List<QueueEntry> favored_mutates;
 

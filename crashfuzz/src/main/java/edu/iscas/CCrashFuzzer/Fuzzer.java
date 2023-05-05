@@ -170,9 +170,13 @@ public class Fuzzer {
 
 	public void update_queue(QueuePair q) {
 
-		q.seed.faultPointsToMutate.remove(q.mutateIdx);
+		// q.seed.faultPointsToMutate.remove(q.mutateIdx);
+    	// q.seed.mutates.remove(q.mutateIdx);
 
-    	q.seed.mutates.remove(q.mutateIdx);
+		int mIndex = q.seed.mutates.indexOf(q.mutate);
+		q.seed.faultPointsToMutate.remove(mIndex);
+		q.seed.mutates.remove(mIndex);
+
     	if(q.mutate.favored) {
     		q.seed.favored_mutates.remove(q.mutate);
     	}

@@ -1,13 +1,9 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
@@ -18,139 +14,127 @@ public class Mutation {
 
 	static Random random = new Random();
 
-	public static void mutateFaultSequenceOld(QueueEntry q, Conf conf) {
-		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
-		FaultSequence original_faults = q.faultSeq;
+	// public static void mutateFaultSequenceOld(QueueEntry q, Conf conf) {
+	// 	List<QueueEntry> mutates = new ArrayList<QueueEntry>();
+	// 	FaultSequence original_faults = q.faultSeq;
 		
-		int io_index = q.candidate_io;
-		int fault_index = q.max_match_fault;
+	// 	int io_index = q.candidate_io;
+	// 	int fault_index = q.max_match_fault;
 		
-		if(io_index == q.ioSeq.size() || fault_index < original_faults.seq.size() || original_faults.seq.size() >= conf.MAX_FAULTS) {
-			//no I/O points to inject a new fault
-			//or current I/O points do not match with the fault sequence
-			q.mutates = mutates;
-			// q.favored_mutates = q.mutates;
-			q.favored_mutates = new ArrayList<QueueEntry>(mutates);
-			return;
-		}
+	// 	if(io_index == q.ioSeq.size() || fault_index < original_faults.seq.size() || original_faults.seq.size() >= conf.MAX_FAULTS) {
+	// 		//no I/O points to inject a new fault
+	// 		//or current I/O points do not match with the fault sequence
+	// 		q.mutates = mutates;
+	// 		// q.favored_mutates = q.mutates;
+	// 		q.favored_mutates = new ArrayList<QueueEntry>(mutates);
+	// 		return;
+	// 	}
 
 
-		List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(conf.maxDownGroup);
-		for(FaultPoint fault:original_faults.seq) {
-			MaxDownNodes.buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
-		}
+	// 	List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(conf.maxDownGroup);
+	// 	for(FaultPoint fault:original_faults.seq) {
+	// 		MaxDownNodes.buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
+	// 	}
 		
-		int lastIO = q.ioSeq.size();
-		Stat.log("Start to check fault point from "+io_index+" th I/O point for "+q.ioSeq.size()+" I/O points.");
+	// 	int lastIO = q.ioSeq.size();
+	// 	Stat.log("Start to check fault point from "+io_index+" th I/O point for "+q.ioSeq.size()+" I/O points.");
 		
-		for(int curIO = io_index; curIO< lastIO; curIO++) {
-			for(MaxDownNodes subCluster:currentCluster) {
-				if(subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip)
-						|| subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip)) {
-					boolean canCrash = subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip) && (subCluster.maxDown-1)>=0;
-					boolean canReboot = subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip);
-					if(canCrash) {
+	// 	for(int curIO = io_index; curIO< lastIO; curIO++) {
+	// 		for(MaxDownNodes subCluster:currentCluster) {
+	// 			if(subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip)
+	// 					|| subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip)) {
+	// 				boolean canCrash = subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip) && (subCluster.maxDown-1)>=0;
+	// 				boolean canReboot = subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip);
+
+	// 				boolean canDisconnectNetwork = subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip) && (q.ioSeq.get(curIO).PATH.startsWith("FAVMSG"))
+	// 					&& (!q.ioSeq.get(curIO).PATH.startsWith("FAVMSG:READ"));
+
+	// 				if(canCrash) {
+
+	// 					IOPoint ioPt = q.ioSeq.get(curIO);
+	// 					FaultPoint p = new FaultPoint(ioPt, curIO, FaultStat.CRASH, FaultPos.BEFORE, ioPt.ip, null);
+
+	// 					FaultSequence faults = new FaultSequence();
+	// 					prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(original_faults, p, faults);
+
+	// 					QueueEntry new_q = new QueueEntry(faults, q.ioSeq, true, q.bitmap_size, q.exec_s, 0);
 						
-
-						FaultPoint p  = new FaultPoint();
-						p.ioPt = q.ioSeq.get(curIO);
-						p.ioPtIdx = curIO;
-						p.pos = FaultPos.BEFORE;
-						p.tarNodeIp = p.ioPt.ip;
-						p.stat = FaultStat.CRASH;
-						p.actualNodeIp = null;
-
-						FaultSequence faults = new FaultSequence();
-						faults.seq = new ArrayList<FaultPoint>();
-						faults.seq.addAll(original_faults.seq);
-						faults.seq.add(p);					
-						faults.reset();
+	// 					updateUntestedFaultInformationField(q, p);
+	// 					updateRecoveryInformationField(q, p, faults, new_q);
 						
-						QueueEntry new_q = new QueueEntry();
-						new_q.ioSeq = q.ioSeq;
-						new_q.faultSeq = faults;
-						new_q.favored = true;
-						new_q.exec_s  = q.exec_s;
-						new_q.bitmap_size = q.bitmap_size;
-						new_q.handicap = 0;
-						
-						if(q.not_tested_fault_id == null) {
-							q.not_tested_fault_id = new HashSet<Integer>();
-						}
-						int faultid = p.getFaultID();
-						q.not_tested_fault_id.add(faultid);
+	// 					mutates.add(new_q);
+	// 				}
+	// 				if(canReboot) {
+	// 					for(String rebootNode:subCluster.deadGroup) {
+														
+	// 						FaultPoint p = new FaultPoint(q.ioSeq.get(curIO), curIO, FaultStat.REBOOT, FaultPos.BEFORE, rebootNode, null);
 
-						if(q.on_recovery_mutates == null) {
-							q.on_recovery_mutates = new ArrayList<QueueEntry>();
-						}
-						if(q.recovery_io_id.contains(p.ioPt.ioID)) {
-							faults.on_recovery = true;
-						}
-						if(faults.on_recovery) {
-							q.on_recovery_mutates.add(new_q);
-						}
-						
-						mutates.add(new_q);
-					}
-					if(canReboot) {
-						for(String rebootNode:subCluster.deadGroup) {
+	// 						FaultSequence faults = new FaultSequence();
+	// 						prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(original_faults, p, faults);
 							
+	// 						QueueEntry new_q = new QueueEntry(faults, q.ioSeq, true, q.bitmap_size, q.exec_s, 0);
 
-							FaultPoint p  = new FaultPoint();
-							p.ioPt = q.ioSeq.get(curIO);
-							p.ioPtIdx = curIO;
-							p.pos = FaultPos.BEFORE;
-							p.tarNodeIp = rebootNode;
-							p.stat = FaultStat.REBOOT;
-							p.actualNodeIp = null;
+	// 						updateUntestedFaultInformationField(q, p);
+	// 						updateRecoveryInformationField(q, p, faults, new_q);
 							
-							FaultSequence faults = new FaultSequence();
-							faults.seq = new ArrayList<FaultPoint>();
-							faults.seq.addAll(original_faults.seq);
-							faults.seq.add(p);
-							faults.reset();
-							
-							QueueEntry new_q = new QueueEntry();
-							new_q.ioSeq = q.ioSeq;
-							new_q.faultSeq = faults;
-							new_q.favored = true;
-							new_q.exec_s  = q.exec_s;
-							new_q.bitmap_size = q.bitmap_size;
-							new_q.handicap = 0;
+	// 						mutates.add(new_q);
+	// 					}
+	// 				}	
+	// 				if (canDisconnectNetwork) {
 
-							if(q.not_tested_fault_id == null) {
-								q.not_tested_fault_id = new HashSet<Integer>();
-							}
-							int faultid = p.getFaultID();
-							q.not_tested_fault_id.add(faultid);
+	// 					IOPoint ioPt = q.ioSeq.get(curIO);
+	// 					FaultPoint p = new FaultPoint(ioPt, curIO, FaultStat.NETWORK_DISCONNECT, FaultPos.BEFORE, ioPt.ip, null);
 
-							
-							if(q.on_recovery_mutates == null) {
-								q.on_recovery_mutates = new ArrayList<QueueEntry>();
-							}
-							if(q.recovery_io_id.contains(p.ioPt.ioID)) {
-								faults.on_recovery = true;
-							}
-							if(faults.on_recovery) {
-								q.on_recovery_mutates.add(new_q);
-							}
-							
-							mutates.add(new_q);
-						}
-					}
-				}
-			}
-		}
-		Stat.log("Got "+mutates.size()+" mutations.");
+	// 					FaultSequence faults = new FaultSequence();
+	// 					prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(original_faults, p, faults);
 
-		q.mutates = mutates;
+	// 					QueueEntry new_q = new QueueEntry(faults, q.ioSeq, true, q.bitmap_size, q.exec_s, 0);
 
-		// initializeLocalNotTestedFaultId(q);
-		// initializeOnRecoveryMutates(q);
+	// 					updateUntestedFaultInformationField(q, p);
+	// 					updateRecoveryInformationField(q, p, faults, new_q);
+
+	// 					mutates.add(new_q);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	Stat.log("Got "+mutates.size()+" mutations.");
+
+	// 	q.mutates = mutates;
+
+	// 	// initializeLocalNotTestedFaultId(q);
+	// 	// initializeOnRecoveryMutates(q);
 	
-		q.favored_mutates = new ArrayList<QueueEntry>(mutates);
-		// q.globalNewIOMutates = collectGlobelNewIOMutates(q.favored_mutates);
+	// 	q.favored_mutates = new ArrayList<QueueEntry>(mutates);
+	// 	// q.globalNewIOMutates = collectGlobelNewIOMutates(q.favored_mutates);
+	// }
+
+	private static void prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(FaultSequence original_faults, FaultPoint p, FaultSequence faults) {
+		faults.seq = new ArrayList<FaultPoint>();
+		faults.seq.addAll(original_faults.seq);
+		faults.seq.add(p);
+		faults.reset();
 	}
+
+	// private static void updateRecoveryInformationField(QueueEntry q, FaultPoint p, FaultSequence faults, QueueEntry new_q) {
+	// 	if(q.on_recovery_mutates == null) {
+	// 		q.on_recovery_mutates = new ArrayList<QueueEntry>();
+	// 	}
+	// 	if(q.recovery_io_id.contains(p.ioPt.ioID)) {
+	// 		faults.on_recovery = true;
+	// 	}
+	// 	if(faults.on_recovery) {
+	// 		q.on_recovery_mutates.add(new_q);
+	// 	}
+	// }
+
+	// private static void updateUntestedFaultInformationField(QueueEntry q, FaultPoint p) {
+	// 	if(q.not_tested_fault_id == null) {
+	// 		q.not_tested_fault_id = new HashSet<Integer>();
+	// 	}
+	// 	int faultid = p.getFaultID();
+	// 	q.not_tested_fault_id.add(faultid);
+	// }
 
 	public static void mutateFaultSequence(QueueEntry q, Conf conf) {
 		
@@ -167,10 +151,7 @@ public class Mutation {
 		FaultSequence original_faults = q.faultSeq;
 		for (FaultPoint p : faultPointToMutate) {
 			FaultSequence faults = new FaultSequence();
-			faults.seq = new ArrayList<FaultPoint>();
-			faults.seq.addAll(original_faults.seq);
-			faults.seq.add(p);
-			faults.reset();
+			prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(original_faults, p, faults);
 
 			QueueEntry new_q = new QueueEntry();
 			new_q.ioSeq = q.ioSeq;
@@ -210,44 +191,69 @@ public class Mutation {
 		for(FaultPoint fault:original_faults.seq) {
 			MaxDownNodes.buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
 		}
+
+		Network network = Network.constructNetworkFromMaxDOwnNodes(MaxDownNodes.cloneCluster(conf.maxDownGroup));
+		for(FaultPoint fault:original_faults.seq) {
+			if (fault.stat == FaultStat.NETWORK_DISCONNECT) {
+				List<String> msgInfo = fault.ioPt.getTotalInformationAboutMsgFromPath();
+				String sourceIp = msgInfo.get(1);
+				String destIp = msgInfo.get(2);
+				network.disconnect(sourceIp, destIp);
+			}
+		}
 		
 		int lastIO = q.ioSeq.size();
 		Stat.log("Start to check fault point from "+io_index+" th I/O point for "+q.ioSeq.size()+" I/O points.");
 		
 		for(int curIO = io_index; curIO< lastIO; curIO++) {
 			for(MaxDownNodes subCluster:currentCluster) {
-				if(subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip)
-						|| subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip)) {
-					boolean canCrash = subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip) && (subCluster.maxDown-1)>=0;
-					boolean canReboot = subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip);
+				IOPoint ioPointToInject = q.ioSeq.get(curIO);
+				if(subCluster.aliveGroup.contains(ioPointToInject.ip)
+						|| subCluster.deadGroup.contains(ioPointToInject.ip)) {
+					boolean canCrash = subCluster.aliveGroup.contains(ioPointToInject.ip) && (subCluster.maxDown-1)>=0;
+					boolean canReboot = subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(ioPointToInject.ip);
+					boolean canDisconnectNetwork = checkCanDisconnectNetwork(network, ioPointToInject);
 					if(canCrash) {
-						FaultPoint p  = new FaultPoint();
-						p.ioPt = q.ioSeq.get(curIO);
-						p.ioPtIdx = curIO;
-						p.pos = FaultPos.BEFORE;
-						p.tarNodeIp = p.ioPt.ip;
-						p.stat = FaultStat.CRASH;
-						p.actualNodeIp = null;
+						FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.CRASH, FaultPos.BEFORE, ioPointToInject.ip, null);
 						result.add(p);
 					}
 					if(canReboot) {
 						for(String rebootNode:subCluster.deadGroup) {
-							FaultPoint p  = new FaultPoint();
-							p.ioPt = q.ioSeq.get(curIO);
-							p.ioPtIdx = curIO;
-							p.pos = FaultPos.BEFORE;
-							p.tarNodeIp = rebootNode;
-							p.stat = FaultStat.REBOOT;
-							p.actualNodeIp = null;
+							FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.REBOOT, FaultPos.BEFORE, rebootNode, null);
 							result.add(p);
 						}
+					}
+					if (canDisconnectNetwork) {
+						FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.NETWORK_DISCONNECT, FaultPos.BEFORE, ioPointToInject.ip, null);
+						result.add(p);
 					}
 				}
 			}
 		}
-
 		return result;
 	}
+
+	public static boolean checkCanDisconnectNetwork(Network network, IOPoint ioPt) {
+		boolean result = false;
+		if (!ioPt.PATH.startsWith("FAVMSG:")) {
+			result = false;
+			return result;
+		}
+		List<String> msgInfo = ioPt.getTotalInformationAboutMsgFromPath();
+		if (msgInfo.get(0).equals("READ")) {
+			result = false;
+			return result;
+		}
+		// NetworkPath np = new NetworkPath();
+		String sourceIp = msgInfo.get(1);
+		String destIp = msgInfo.get(2);
+		if (network.isConnected(sourceIp, destIp)) {
+			result = true;
+		}
+		return result;
+	}
+
+	
 
 	public static void initializeFaultPointsToMutate(QueueEntry q, Conf conf) {
 		List<FaultPoint> faults = findFaultPointToInject(q, conf);

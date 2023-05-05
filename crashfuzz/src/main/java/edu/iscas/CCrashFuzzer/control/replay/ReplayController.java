@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -21,23 +20,22 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
 import edu.iscas.CCrashFuzzer.AflCli;
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
+import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.IOPoint;
 import edu.iscas.CCrashFuzzer.MaxDownNodes;
+import edu.iscas.CCrashFuzzer.Network;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.RunCommand;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
-import edu.iscas.CCrashFuzzer.AflCli.AflException;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.control.AbstractController;
-import edu.iscas.CCrashFuzzer.control.NormalController;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
 import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
-import edu.iscas.CCrashFuzzer.control.NormalController.ClientHandler;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class ReplayController 
@@ -46,7 +44,9 @@ extends AbstractController
 {
 	public Thread serverThread;
 	public ServerSocket serverSocket;
+
 	public List<MaxDownNodes> currentCluster = new ArrayList<MaxDownNodes>();
+	public Network network;
 
 	public Set<ReplayCilentHandler> replayClients;
 
@@ -71,6 +71,7 @@ extends AbstractController
 		super(cluster, port, favconfig);
 
 		currentCluster = MaxDownNodes.cloneCluster(favconfig.maxDownGroup);
+		network = Network.constructNetworkFromMaxDOwnNodes(currentCluster);
 
 		replayClients = Collections.synchronizedSet(new HashSet<ReplayCilentHandler>());
 		faultPointList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
@@ -438,6 +439,15 @@ extends AbstractController
 				outStream = new DataOutputStream(socket.getOutputStream());
 				replyToNode(outStream, "REBOOT", fIndex.get(), p.curAppear);
 				MaxDownNodes.buildClusterStatus(currentCluster, p.actualNodeIp, FaultStat.REBOOT);
+			} else if (p.stat.equals(FaultStat.NETWORK_DISCONNECT)) {
+				List<String> msgInfo = p.ioPt.getTotalInformationAboutMsgFromPath();
+				String sourceIp = msgInfo.get(1);
+				String destIp = msgInfo.get(2);
+				List<String> disConnectRst = cluster.networkDisConnect(sourceIp, destIp);
+				rst.addAll(disConnectRst);
+				rst.add(Stat.log("network from  " + sourceIp + " to "+ destIp + " was disconnected!"));
+				outStream = new DataOutputStream(socket.getOutputStream());
+				replyToNode(outStream, "CONTI", fIndex.get(), p.curAppear);
 			} else {
 				replyToNode(outStream, "CONTI", fIndex.get(), p.curAppear);
 			}

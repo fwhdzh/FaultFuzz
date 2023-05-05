@@ -62,6 +62,20 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 		public String tarNodeIp;
 		public String actualNodeIp;  //fill at run time
 		public int curAppear;
+
+		public FaultPoint() {
+		}
+
+		public FaultPoint(IOPoint ioPt, int ioPtIdx, FaultStat stat, FaultPos pos, String tarNodeIp,
+				String actualNodeIp) {
+			this.ioPt = ioPt;
+			this.ioPtIdx = ioPtIdx;
+			this.stat = stat;
+			this.pos = pos;
+			this.tarNodeIp = tarNodeIp;
+			this.actualNodeIp = actualNodeIp;
+		}
+
 		public String toString() {
 			return "FaultPoint=[ IOPoint=["+ioPt.toString()+"]"+", FaultStat=["+stat+"], "+", FaultPos=["+pos+"], "
 		+"tarNodeIp=["+tarNodeIp+"], actualNodeIp=["+actualNodeIp+"] ]";
@@ -83,7 +97,9 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 	}
 	public enum FaultStat {
 		NO, //we may not use this stat
-		CRASH, REBOOT
+		CRASH, 
+		REBOOT,
+		NETWORK_DISCONNECT
 	}
 	public enum FaultPos {
 		BEFORE,AFTER

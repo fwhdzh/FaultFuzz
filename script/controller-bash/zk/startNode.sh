@@ -27,6 +27,10 @@ function start {
 
         docker start $nodeName
         docker cp zkhosts $nodeName:/etc/
+        docker exec -t $nodeName /bin/bash -ic "cat /etc/zkhosts >> /etc/hosts"
+
+        docker exec -t $nodeName /bin/bash -ic "iptables-restore < /home/gaoyu/iptables-rules"
+
         docker exec -t $nodeName /bin/bash -ic 'cd /home/gaoyu/evaluation/zk-3.6.3/ && bin/zkServer.sh start'
         sh waitNormal.sh $nodeName
 }

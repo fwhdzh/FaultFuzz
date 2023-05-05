@@ -105,5 +105,26 @@ public class Cluster {
 		}
 	}
 
+	public ArrayList<String> networkDisConnect(String sourceIP, String targetIP) {
+		if(favconfig.NETWORK_DISCONNECT != null) {
+			String path = favconfig.NETWORK_DISCONNECT.getAbsolutePath();
+			String workingDir = path.substring(0, path.lastIndexOf("/"));
+			return RunCommand.run(path + " "+sourceIP + " " + targetIP, workingDir);
+			//return RunCommand.run(path+" "+nodeName);
+		} else {
+			return null;
+		}
+	}
+
+	public ArrayList<String> networkConnect(String sourceIP, String targetIP) {
+		if(favconfig.NETWORK_CONNECT != null) {
+			String path = favconfig.NETWORK_CONNECT.getAbsolutePath();
+			String workingDir = path.substring(0, path.lastIndexOf("/"));
+			return RunCommand.run(path + " "+sourceIP + " " + targetIP, workingDir);
+			//return RunCommand.run(path+" "+nodeName);
+		} else {
+			return null;
+		}
+	}
 	
 }

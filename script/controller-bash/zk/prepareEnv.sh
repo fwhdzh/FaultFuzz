@@ -14,6 +14,7 @@ sh $SCRIPT_DIR/clearLogs.sh
 sh $SCRIPT_DIR/clearZK.sh
 
 sh $SCRIPT_DIR/clear-checker-process.sh
+sh $SCRIPT_DIR/clear-network-condition.sh
 
 #sh clearRst.sh
 
