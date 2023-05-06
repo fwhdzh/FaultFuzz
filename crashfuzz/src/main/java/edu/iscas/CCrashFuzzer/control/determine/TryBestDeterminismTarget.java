@@ -4,15 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.iscas.CCrashFuzzer.AflCli;
-import edu.iscas.CCrashFuzzer.Cluster;
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
 import edu.iscas.CCrashFuzzer.Fuzzer;
-import edu.iscas.CCrashFuzzer.QueueEntry;
+import edu.iscas.CCrashFuzzer.RunCommand;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget;
-import edu.iscas.CCrashFuzzer.control.AbstractTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismController.TryBestDeterminismControllerResult;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
@@ -51,6 +49,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		AflCli.executeUtilSuccess(controllerResult.finalCluster, mConf, AflCommand.DETERMINE_NO_SEND, 300000);
 		// For replay target, we should collect run-time information for all scenarios.
 		String runInfoPath = collectRuntimeInfo(controllerResult.finalCluster);
+		copyLogsToControllerWithTestId(mTestID);
 		boolean findBug = checkIfABugExist(runInfoPath);
 		mResult = generateTryBestDeterminismTResult(finishWorkload, controllerResult.allFaultsAreInjected , findBug);
 		Stat.log("TryBestDeterminismTResult is "+mResult.result);
@@ -74,6 +73,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		// final ReplayController dController = new ReplayController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(tbdController.cluster.prepareCluster());
+		tbdController.cluster.copyEnvToCluster();
 		logInfo.add(Stat.log("Prepare current fault sequence ..."));
 		// dController.prepareFaultSeq(seq);
 		tbdController.prepareFaultSeqAndIOSeq(seqPair);
@@ -222,6 +222,22 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 			faultMode = 0;
 		}
 		return faultMode;
+	}
+
+	public ArrayList<String> copyLogsToController(String logsDir) {
+		if (mConf.COPY_LOGS_TO_CONTROLLER != null) {
+			String path = mConf.COPY_LOGS_TO_CONTROLLER.getAbsolutePath();
+			String workingDir = path.substring(0, path.lastIndexOf("/"));
+			return RunCommand.run(path + " " + logsDir, workingDir);
+		} else {
+			return null;
+		}
+	}
+
+	public ArrayList<String> copyLogsToControllerWithTestId(String testID) {
+		ArrayList<String> result = null;
+		result = copyLogsToController(mConf.CLUSTER_LOGS_IN_CONTROLLER_DIR + "/" + testID);
+		return result;
 	}
 
 }

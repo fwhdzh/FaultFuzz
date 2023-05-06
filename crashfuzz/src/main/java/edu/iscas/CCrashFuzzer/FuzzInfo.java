@@ -214,4 +214,32 @@ public class FuzzInfo {
 		result = JSONObject.toJSONString(record);
 		return result;
 	}
+
+    public static void updateTimeToFaulsHangsNum(QueueEntry q) {
+    	HashMap<Integer, Integer> faultsToHangs = timeToFaulsHangsNum.computeIfAbsent((int) (getUsedSeconds()/(reportWindow*60)), k -> new HashMap<Integer, Integer>());
+    	faultsToHangs.computeIfAbsent(q.faultSeq.seq.size(), key -> 0);
+    	faultsToHangs.computeIfPresent(q.faultSeq.seq.size(), (key, value) -> value + 1);
+    }
+
+    public static void updateTimeToFaulsToTestsNum(QueueEntry q) {
+    	FuzzInfo.updateTimeToFaulsToTestsNum(q.faultSeq);
+    }
+
+    public static void updateTimeToFaulsToTestsNum(FaultSequence fs) {
+    	HashMap<Integer, Integer> faultsToTests = timeToFaulsToTestsNum.computeIfAbsent((int) (getUsedSeconds()/(reportWindow*60)), k -> new HashMap<Integer, Integer>());
+    	faultsToTests.computeIfAbsent(fs.seq.size(), key -> 0);
+    	faultsToTests.computeIfPresent(fs.seq.size(), (key, value) -> value + 1);
+    }
+
+    public static void updateTimeToFaulsToNewCovTestsNum(QueueEntry q) {
+    	HashMap<Integer, Integer> faultsToNewCovTests = timeToFaulsToNewCovTestsNum.computeIfAbsent((int) (getUsedSeconds()/(reportWindow*60)), k -> new HashMap<Integer, Integer>());
+    	faultsToNewCovTests.computeIfAbsent(q.faultSeq.seq.size(), key -> 0);
+    	faultsToNewCovTests.computeIfPresent(q.faultSeq.seq.size(), (key, value) -> value + 1);
+    }
+
+    public static void updateTimeToFaulsBugsNum(QueueEntry q) {
+    	HashMap<Integer, Integer> faultsToBugs = timeToFaulsBugsNum.computeIfAbsent((int) (getUsedSeconds()/(reportWindow*60)), k -> new HashMap<Integer, Integer>());
+    	faultsToBugs.computeIfAbsent(q.faultSeq.seq.size(), key -> 0);
+    	faultsToBugs.computeIfPresent(q.faultSeq.seq.size(), (key, value) -> value + 1);
+    }
 }
