@@ -26,12 +26,17 @@ echo "$(date "+%Y-%m-%d %H:%M:%S") FAV: start normal test (test1)!"
 
 #get alive nodes in the cluster
 servers=$(sh aliveServers.sh)
-
+echo $servers
 #run workload
 java -cp zkcases-0.jar edu.iscas.ZKCases.ZK1Cli "$servers" check nullcrash nullstart $workdir/failTest.sh
 
+echo "exec edu.iscas.ZKCases.ZK1Cli finished!"
+
 servers=$(sh aliveServers.sh)
+echo $servers
 java -cp zkcases-0.jar edu.iscas.ZKCases.ZK1Cli2 "$servers" check nullcrash nullstart $workdir/failTest.sh
+
+echo "exec edu.iscas.ZKCases.ZK1Cli2 finished!"
 
 END_TIME=`date +%s`
 EXECUTING_TIME=`expr $END_TIME - $START_TIME`

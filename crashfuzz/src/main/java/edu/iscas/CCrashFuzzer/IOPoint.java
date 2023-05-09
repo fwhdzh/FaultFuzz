@@ -8,7 +8,9 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 public class IOPoint {
 	public int ioID;
 	public int appearIdx;
-	
+
+	public int fwhIndex;
+
 	public long TIMESTAMP;
 	public long THREADID;
 	public int THREADOBJ;
@@ -19,8 +21,10 @@ public class IOPoint {
     public int newCovs = 0;
     public FaultPos pos;//before or after
 	public String toString() {
-		return "IOID=["+ioID+"]"+", IOIP=["+ip+"], AppearIdx=["+appearIdx+"]"+", CallStack="+CALLSTACK
-				+", Path="+PATH;
+		return "IOID=[" + ioID + "]" + ", IOIP=[" + ip + "], AppearIdx=[" + appearIdx + "]"
+				+ ", FwhIndex=[" + fwhIndex + "]"
+				+ ", CallStack=" + CALLSTACK
+				+ ", Path=" + PATH;
 	}
 	public int computeIoID() {
 		return CALLSTACK.toString().hashCode();

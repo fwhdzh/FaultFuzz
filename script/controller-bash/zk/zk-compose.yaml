@@ -15,6 +15,7 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1ZK1
+    hostname: C1ZK1
     cap_add:
       - NET_ADMIN
     # env_file: ~/code/crashfuzz-ctrl/script/raft-java/.env
@@ -33,6 +34,7 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1ZK2
+    hostname: C1ZK2
     cap_add:
       - NET_ADMIN
 
@@ -46,6 +48,7 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1ZK3
+    hostname: C1ZK3
     cap_add:
       - NET_ADMIN
 
@@ -59,6 +62,7 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1ZK4
+    hostname: C1ZK4
     cap_add:
       - NET_ADMIN
 
@@ -72,6 +76,7 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1ZK5
+    hostname: C1ZK5
     cap_add:
       - NET_ADMIN
     

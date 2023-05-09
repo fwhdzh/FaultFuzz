@@ -1,11 +1,11 @@
 package edu.iscas.tcse.favtrigger.tracing;
 
-import edu.columbia.cs.psl.phosphor.Configuration;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+
+import edu.columbia.cs.psl.phosphor.Configuration;
 
 public class RecordsHandler {
     public static ConcurrentHashMap<String, ArrayList<FAVEntry>> traces = new ConcurrentHashMap<String, ArrayList<FAVEntry>>();
@@ -37,9 +37,9 @@ public class RecordsHandler {
             */
         }
     }
-    public enum FaultPos {
-		BEFORE,AFTER
-	}
+    // public enum FaultPos {
+	// 	BEFORE,AFTER
+	// }
     public static void recordAnEntry(FileOutputStream out, FAVEntry entry) {
         try {
         	out.write((TraceItem.START.toString()).getBytes());

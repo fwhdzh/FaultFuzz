@@ -100,7 +100,8 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 			public void run() {
 				// TODO Auto-generated method stub
 				logInfo.add(Stat.log("The workload is running ..."));
-				logInfo.addAll(tbdController.cluster.runWorkload());
+				// logInfo.addAll(tbdController.cluster.runWorkload());
+				tbdController.cluster.runWorkload();
 				logInfo.add(Stat.log("The workload was finished."));
 			}
 		};
@@ -132,6 +133,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		// 	e.printStackTrace();
 		// }
 
+		// wait for workload finish
 		// terriable implementation for thread synchronous
 		int workloadIdx = 0;
 		int workloadSecond = 20;

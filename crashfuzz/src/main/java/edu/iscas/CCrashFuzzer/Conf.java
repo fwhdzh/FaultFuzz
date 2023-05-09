@@ -1,21 +1,18 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class Conf {
@@ -65,7 +62,7 @@ public class Conf {
     public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_ctrl/queue/3_1f";
     public long REPLAY_HANG_TIME = 40;
     public String REPLAY_ACTUAL_FPB_LIST_PATH = "/data/fengwenhan/data/crashfuzz_fwh/actualFPBList.txt";
-    public int MUTATE_CHOOSE = 3;
+    public int FAULT_SEQUENCE_BATCH_SIZE = 1;
 
     public int DETERMINE_WAIT_TIME = 10000;
     public File WRITE_FAV_ENV = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/write-fav-env.sh");
@@ -77,6 +74,8 @@ public class Conf {
     public File NETWORK_DISCONNECT;  // disconnect the network from sourceNode to targetNode
     public File NETWORK_CONNECT;  // connect the network from sourceNode to targetNode
 
+    public static List<FaultStat> s = Arrays.asList(FaultStat.values());
+    // public static List<FaultStat> s = Arrays.asList(FaultStat.CRASH, FaultStat.REBOOT);
 
 	
 	public Conf(File configFile) {

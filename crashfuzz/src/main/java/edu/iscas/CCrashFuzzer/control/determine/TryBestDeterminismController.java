@@ -1,23 +1,18 @@
 package edu.iscas.CCrashFuzzer.control.determine;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.List;
 
-import com.alibaba.fastjson.JSONObject;
-
 import edu.iscas.CCrashFuzzer.AflCli;
+import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
+import edu.iscas.CCrashFuzzer.AflCli.AflException;
 import edu.iscas.CCrashFuzzer.Cluster;
 import edu.iscas.CCrashFuzzer.Conf;
-import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.IOPoint;
 import edu.iscas.CCrashFuzzer.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
-import edu.iscas.CCrashFuzzer.AflCli.AflException;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
 import edu.iscas.CCrashFuzzer.control.replay.ReplayController;
 
@@ -110,6 +105,32 @@ public class TryBestDeterminismController extends ReplayController{
 
         public int maxWaitInternalInNormalIOPoint = favconfig.DETERMINE_WAIT_TIME;
 
+		public int[] indexOfFaultPoint;
+
+		public void printTheIndexOfFaultPoint() {
+			indexOfFaultPoint = new int[faultSeq.seq.size()];
+			for (int t = 0; t < faultSeq.seq.size(); t++) {
+				FaultPoint fp = faultSeq.seq.get(t);
+				int currentAppear = 0;
+				int index = -1;
+				for (int i = 0; i < ioSeq.size(); i++) {
+					if (ioSeq.get(i).ioID == fp.ioPt.ioID) {
+						currentAppear++;
+					}
+					if (currentAppear == fp.ioPt.appearIdx) {
+						index = i;
+						break;
+					}
+				}
+				if (currentAppear == fp.ioPt.appearIdx) {
+					Stat.log("the " + t + "th fault point index is: " + index);
+					indexOfFaultPoint[t] = index;
+				} else {
+					Stat.log("the " + t + "th fault point couldn't be found in faultSeq!");
+				}
+			}
+		}
+
         @Override
         public void run() {
             Stat.log("ListScanner start...");
@@ -117,6 +138,7 @@ public class TryBestDeterminismController extends ReplayController{
             Stat.log("ioList size is: " + ioSeq.size());
 			// Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
             Stat.log("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
+			printTheIndexOfFaultPoint();
             boolean needToTurnToNormalController = false;
 			try {
 				// boolean timeOut = false;
@@ -166,18 +188,20 @@ public class TryBestDeterminismController extends ReplayController{
 							handleFPB(b);
 							actualFPBList.add(b);
 						}
+						// we won't wait so long time to ensure the bug is not triggered.
+						// Give up some accuracy, get more effience
+						if (actualFPBList.size() > Math.min(indexOfFaultPoint[indexOfFaultPoint.length-1] * 6, ioSeq.size() * 4 )) {
+							break;
+						}
 					}
-                    // while (faultPointList.size() > 0 && !arriveAllFaultPoint) {
-                    //     FaultPointBlocked b = faultPointList.get(0);
-                    //     faultPointList.remove(0);
-                    //     handleFPB(b);
-                    //     actualFPBList.add(b);
-                    // }
                 }
-				Stat.log("All of faults have been replayed!");
 
-				finishFlag = true;
-
+				if (arriveAllFaultPoint) {
+					Stat.log("All of faults have been replayed!");
+				} else {
+					Stat.log("We will give up this test since the I/O point to inject fault didn't appear for now...");
+				}
+				
 				AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NO_SEND, 300000);
 				while (faultPointList.size() > 0) {
 					FaultPointBlocked b = faultPointList.get(0);
@@ -185,6 +209,8 @@ public class TryBestDeterminismController extends ReplayController{
 					handleFPB(b);
 					actualFPBList.add(b);
 				}
+
+				finishFlag = true;
 
 				// if (timeOut) {
 				// result = 1;
@@ -195,8 +221,55 @@ public class TryBestDeterminismController extends ReplayController{
 			}
         }
 
-        
+		@Override
+        public void handleFPB(FaultPointBlocked b) throws IOException, AflException, AbortFaultException {
+            if (!arriveAllFaultPoint) {
+                
+				updataIOAppearIdxInFaultSeq(faultSeq, fIndex.get(), b.ioID);
+                FaultPoint fp = faultSeq.seq.get(fIndex.get());
 
+				if (checkAFaultCouldNotArrive(fp, b)) {
+
+				} 
+
+				
+                if (checkFaultPointMatchFPBAndAppearIdx(fp, b)
+					|| checkFaultPointMatchFPBAndAppearIdxWithCrashFuzzMode(fp, b) 	// this is the approach for CrashFuzz. Need to modify in future!!!
+				) {
+					fp.actualNodeIp = fp.tarNodeIp;
+                    // fp.actualNodeIp = b.reportNodeIp;
+                    Stat.log("A FaultPoint is found! The faultPoint is: " + fp.stat + ", ioID: " + fp.ioPt.ioID
+                            + ", ip: " + fp.ioPt.ip + ", path: " + fp.ioPt.PATH);
+                    b.cilentHander.doOperationToCluster(fp);
+                    int nf = fIndex.incrementAndGet();
+                    Stat.log(
+                            "Next faultPoint index: " + nf + ", faultPoint size: " + faultSeq.seq.size());
+                    if (nf >= faultSeq.seq.size()) {
+                        Stat.log("Arrive all FaultPoint!");
+                        arriveAllFaultPoint = true;
+                        // break;
+                    } else {
+                        Stat.log("Next faultPoint is: " + faultSeq.seq.get(nf).stat + ", ioID: "
+                                + faultSeq.seq.get(nf).ioPt.ioID + ", ip: "
+                                + faultSeq.seq.get(nf).ioPt.ip + ", path: "
+                                + faultSeq.seq.get(nf).ioPt.PATH);
+                    }
+                } else {
+                    b.cilentHander.doOperationToCluster(b);
+                }
+            } else {
+                b.cilentHander.doOperationToCluster(b);
+            }
+        }
+
+		public boolean checkAFaultCouldNotArrive(FaultPoint fp, FaultPointBlocked fpb) {
+            boolean result = false;
+            // if (fp.ioPt.ioID == fpb.ioID && fp.ioPt.appearIdx == fp.curAppear) {
+            //     result = true;
+            // }
+
+            return result;
+        }
         
     }
 

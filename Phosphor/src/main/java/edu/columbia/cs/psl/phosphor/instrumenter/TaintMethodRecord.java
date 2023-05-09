@@ -1,34 +1,53 @@
 package edu.columbia.cs.psl.phosphor.instrumenter;
 
-import edu.columbia.cs.psl.phosphor.TaintUtils;
-import edu.columbia.cs.psl.phosphor.control.ControlFlowStack;
-import edu.columbia.cs.psl.phosphor.runtime.ReflectionMasker;
-import edu.columbia.cs.psl.phosphor.runtime.Taint;
-import edu.columbia.cs.psl.phosphor.struct.*;
-import edu.columbia.cs.psl.phosphor.struct.multid.MultiDTaintedArray;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import static edu.columbia.cs.psl.phosphor.Configuration.TAINT_TAG_OBJ_ARRAY_CLASS;
+import static edu.columbia.cs.psl.phosphor.Configuration.TAINT_TAG_OBJ_CLASS;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 
 import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-
-import static edu.columbia.cs.psl.phosphor.Configuration.TAINT_TAG_OBJ_CLASS;
-import static edu.columbia.cs.psl.phosphor.Configuration.TAINT_TAG_OBJ_ARRAY_CLASS;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-
-import edu.iscas.tcse.favtrigger.taint.FAVTaint;
-import edu.iscas.tcse.favtrigger.tracing.RecordTaint;
-import edu.iscas.tcse.favtrigger.instrumenter.AppRunMode;
-import edu.iscas.tcse.favtrigger.instrumenter.yarn.YarnInstrument;
-import edu.iscas.tcse.favtrigger.instrumenter.yarn.YarnRunMode;
-import edu.iscas.tcse.favtrigger.instrumenter.jdk.JRERunMode;
-import edu.iscas.tcse.favtrigger.instrumenter.mapred.MRRunMode;
-
 import java.nio.ByteBuffer;
 //import java.net.DatagramPacket;
 //import java.util.List;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+
+import edu.columbia.cs.psl.phosphor.TaintUtils;
+import edu.columbia.cs.psl.phosphor.control.ControlFlowStack;
+import edu.columbia.cs.psl.phosphor.runtime.ReflectionMasker;
+import edu.columbia.cs.psl.phosphor.runtime.Taint;
+import edu.columbia.cs.psl.phosphor.struct.LazyArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyBooleanArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyByteArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyCharArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyDoubleArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyFloatArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyIntArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyLongArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyReferenceArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.LazyShortArrayObjTags;
+import edu.columbia.cs.psl.phosphor.struct.MethodInvoke;
+import edu.columbia.cs.psl.phosphor.struct.TaintedBooleanWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedByteWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedCharWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedDoubleWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedFloatWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedIntWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedLongWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedPrimitiveWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedReferenceWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.TaintedShortWithObjTag;
+import edu.columbia.cs.psl.phosphor.struct.multid.MultiDTaintedArray;
+import edu.iscas.tcse.favtrigger.instrumenter.AppRunMode;
+import edu.iscas.tcse.favtrigger.instrumenter.jdk.JRERunMode;
+import edu.iscas.tcse.favtrigger.instrumenter.mapred.MRRunMode;
+import edu.iscas.tcse.favtrigger.instrumenter.yarn.YarnInstrument;
+import edu.iscas.tcse.favtrigger.instrumenter.yarn.YarnRunMode;
+import edu.iscas.tcse.favtrigger.taint.FAVTaint;
+import edu.iscas.tcse.favtrigger.tracing.RecordTaint;
 
 /**
  * Represents some method to which Phosphor adds calls during instrumentation.
@@ -106,8 +125,8 @@ public enum TaintMethodRecord implements MethodRecord {
     FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ(INVOKESTATIC, YarnInstrument.class, "combineIpWithLogicClockMsgForRead", String.class, false, String.class, String.class),
     FAV_TRANSFORM_STRING_TO_BYTEARRAY(INVOKESTATIC, YarnInstrument.class, "transformStrToByteArr", byte[].class, false, String.class),
     FAV_TRANSFORM_BYTEARRAY_TO_STRING(INVOKESTATIC, YarnInstrument.class, "transformByteArrToStr", String.class, false, byte[].class),
-    FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG(INVOKESTATIC, YarnInstrument.class, "getRemoteAddrFromSourceLogicClockMsg", String.class, false, String.class),
-    FAV_GET_MSG_ID_FROM_SOURCE_LOGIC_CLOCK_MSG(INVOKESTATIC, YarnInstrument.class, "getMsgIdFromSourceLogicClockMsg", String.class, false, String.class),
+    FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX(INVOKESTATIC, YarnInstrument.class, "getRemoteAddrFromSourceLogicClockMsg", String.class, false, String.class),
+    FAV_GET_MSG_ID_FROM_MSG_WITH_NO_FAV_PREFIX(INVOKESTATIC, YarnInstrument.class, "getMsgIdFromSourceLogicClockMsg", String.class, false, String.class),
 
     //YarnRunMode
     FAV_YARN_RECORD_OR_TRIGGER(INVOKESTATIC, YarnRunMode.class, "recordYarnRpcOrTrigger", Void.TYPE, false, long.class, FileOutputStream.class, String.class, LazyByteArrayObjTags.class),

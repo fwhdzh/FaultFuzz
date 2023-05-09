@@ -1,12 +1,8 @@
 package edu.iscas.CCrashFuzzer;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-import java.io.File;
 import java.io.IOException;
+
+import org.junit.Test;
 
 public class ConfTest {
     
@@ -23,5 +19,17 @@ public class ConfTest {
         //     Assert.assertEquals(conf.RECOVERY_FUZZINFO_PATH, "/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt");
         // }
         
+    }
+
+    @Test
+    public void fwhTest() throws IOException {
+        // Conf.s = new HashSet<>();
+        // Conf.s.add(FaultStat.CRASH);
+        // Conf.s.add(FaultStat.REBOOT);
+        // Conf.s.add(FaultStat.NETWORK_DISCONNECT);
+        // Conf.s.add(FaultStat.CRASH);
+        // Conf.s.add(FaultStat.REBOOT);
+        // Stat.log(Conf.s.size());
+        // Assert.assertEquals(Conf.s.size(), 3);
     }
 }

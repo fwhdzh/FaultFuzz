@@ -59,9 +59,16 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 		public int ioPtIdx;
 		public FaultStat stat;
 		public FaultPos pos;//before or after
+		// field tarNodeIp will be replcaed by field params since there are some faults that
+		// need more than one parameter, such as networkConnect.
+		@Deprecated
 		public String tarNodeIp;
 		public String actualNodeIp;  //fill at run time
 		public int curAppear;
+
+		public int curFWhAppear;
+
+		public List<String> params;
 
 		public FaultPoint() {
 		}
@@ -77,8 +84,12 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 		}
 
 		public String toString() {
-			return "FaultPoint=[ IOPoint=["+ioPt.toString()+"]"+", FaultStat=["+stat+"], "+", FaultPos=["+pos+"], "
-		+"tarNodeIp=["+tarNodeIp+"], actualNodeIp=["+actualNodeIp+"] ]";
+			return "FaultPoint=[ IOPoint=[" + ioPt.toString() + "]" + ", FaultStat=[" + stat + "], "
+					+ ", FaultPos=[" + pos + "]"
+					+ ", tarNodeIp=[" + tarNodeIp + "]"
+					+ ", actualNodeIp=[" + actualNodeIp + "]"
+					+ ", curFWhAppear=[" + curFWhAppear + "]"
+					+ " ]";
 		}
 		
 		public String getFaultInfo() {
@@ -99,7 +110,8 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 		NO, //we may not use this stat
 		CRASH, 
 		REBOOT,
-		NETWORK_DISCONNECT
+		NETWORK_DISCONNECT,
+		NETWORK_CONNECT
 	}
 	public enum FaultPos {
 		BEFORE,AFTER

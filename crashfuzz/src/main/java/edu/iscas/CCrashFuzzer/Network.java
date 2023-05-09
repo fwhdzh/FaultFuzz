@@ -7,9 +7,9 @@ public class Network {
 
     public static class NetworkPath {
         public String src;
-        public String dst;
+        public String dest;
         public String toString() {
-            return src + " -> " + dst;
+            return src + " -> " + dest;
         }
 
         private NetworkPath() {
@@ -22,7 +22,7 @@ public class Network {
                 return false;
             }
             NetworkPath other = (NetworkPath) obj;
-            if (src.equals(other.src) && dst.equals(other.dst)) {
+            if (src.equals(other.src) && dest.equals(other.dest)) {
                 result = true;
             } else {
                 result = false;
@@ -41,7 +41,7 @@ public class Network {
             for (int j = 0; j < nodes.size(); j++) {
                 NetworkPath path = new NetworkPath();
                 path.src = nodes.get(i);
-                path.dst = nodes.get(j);
+                path.dest = nodes.get(j);
                 connectedPath.add(path);
             }
         }
@@ -67,7 +67,7 @@ public class Network {
     private NetworkPath getPath(String src, String dst) {
         NetworkPath path = new NetworkPath();
         path.src = src;
-        path.dst = dst;
+        path.dest = dst;
         return path;
     }
 

@@ -3,13 +3,11 @@ package edu.iscas.CCrashFuzzer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +24,24 @@ public class TraceReader {
 	public List<IOPoint> ioPoints = new ArrayList<IOPoint>();
 
 	public ConcurrentHashMap<Integer, AtomicInteger> uniqueEntryToAppearIdx = new ConcurrentHashMap<Integer, AtomicInteger>();
+
+	// public static class WrapperInformation{
+	// 	public int ioPointType;
+
+	// 	public int ioId;
+	// 	public String reportNode;
+
+	// 	public String destFile;
+
+	// 	public String sourceNode;
+	// 	public String destNode;
+
+	// }
+
+	public int mapIOPointToAnIDForFWHIndex(IOPoint p) {
+		int result = 0;
+		return result;
+	}
 
 	public TraceReader(String traceDir) {
 		File file = new File(traceDir);

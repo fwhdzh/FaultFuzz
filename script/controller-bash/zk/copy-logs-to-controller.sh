@@ -18,3 +18,6 @@ docker cp C1ZK2:/home/gaoyu/evaluation/zk-3.6.3/logs $1/C1ZK2
 docker cp C1ZK3:/home/gaoyu/evaluation/zk-3.6.3/logs $1/C1ZK3
 docker cp C1ZK4:/home/gaoyu/evaluation/zk-3.6.3/logs $1/C1ZK4
 docker cp C1ZK5:/home/gaoyu/evaluation/zk-3.6.3/logs $1/C1ZK5
+
+# docker exec -t C1ZK1 /bin/bash -ic "cd /home/gaoyu/evaluation/zk-3.6.3/logs &&  du -h --max-depth=1"
+

@@ -1,20 +1,30 @@
 package edu.iscas.tcse.favtrigger.instrumenter.hdfs;
 
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.APP_FAULT_BEFORE;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_CURRENT_IP;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_MSG_ID_FROM_MSG_WITH_NO_FAV_PREFIX;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_RECORD_OUT;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_TIMESTAMP;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_NEW_LOGIC_CLOCK_MSGID;
+
+import java.net.InetSocketAddress;
+
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.FrameNode;
+
 import edu.columbia.cs.psl.phosphor.Configuration;
 import edu.columbia.cs.psl.phosphor.TaintUtils;
-
-import org.objectweb.asm.tree.FrameNode;
 import edu.columbia.cs.psl.phosphor.instrumenter.TaintAdapter;
 import edu.columbia.cs.psl.phosphor.instrumenter.analyzer.NeverNullArgAnalyzerAdapter;
 import edu.iscas.tcse.favtrigger.taint.FAVTaintType;
 import edu.iscas.tcse.favtrigger.taint.Source.FAVTagType;
-import edu.iscas.tcse.favtrigger.tracing.FAVPathType;
 import edu.iscas.tcse.favtrigger.tracing.RecordTaint;
-
-import org.objectweb.asm.*;
-import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.*;
-
-import java.net.InetSocketAddress;
 
 public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
     private final String desc;
@@ -135,7 +145,7 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
 
                 // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
                 //         "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
-                FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+                FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
 
                 remoteIpVar = lvs.createPermanentLocalVariable(String.class, "FAV_REMOTE_IP");
                 super.visitVarInsn(ASTORE, remoteIpVar);
@@ -145,10 +155,11 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             // super.visitVarInsn(ALOAD, stringsource);
             // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
             //         "appendRead", "(Ljava/lang/String;)Ljava/lang/String;", false);
+            
             super.visitVarInsn(ALOAD, stringsource);
-            FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
             super.visitVarInsn(ALOAD, stringsource);
-            FAV_GET_MSG_ID_FROM_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            FAV_GET_MSG_ID_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
             FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ.delegateVisit(mv);
 
             lvs.freeTmpLV(stringsource);
@@ -189,7 +200,7 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
 
                 // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
                 //         "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
-                FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+                FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
 
                 remoteIpVar = lvs.createPermanentLocalVariable(String.class, "FAV_REMOTE_IP");
                 super.visitVarInsn(ASTORE, remoteIpVar);
@@ -198,10 +209,11 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             // super.visitVarInsn(ALOAD, stringsource);
             // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
             //         "appendRead", "(Ljava/lang/String;)Ljava/lang/String;", false);
+            
             super.visitVarInsn(ALOAD, stringsource);
-            FAV_GET_REMOTE_DIR_FROME_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
             super.visitVarInsn(ALOAD, stringsource);
-            FAV_GET_MSG_ID_FROM_SOURCE_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            FAV_GET_MSG_ID_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
             FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ.delegateVisit(mv);
 
             lvs.freeTmpLV(stringsource);

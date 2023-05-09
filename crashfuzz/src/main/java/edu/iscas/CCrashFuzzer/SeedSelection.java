@@ -2,7 +2,6 @@ package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -13,7 +12,7 @@ public class SeedSelection {
 
     static Random rand = new Random();
 
-    public static QueueEntry retrieveSeed(List<QueueEntry> candidate_queue) {
+    public static QueueEntry retrieveSeedInTranditionalFuzzingProcess(List<QueueEntry> candidate_queue) {
     	QueueEntry result = null;
     	if(candidate_queue == null ||candidate_queue.isEmpty()) {
     		return null;
@@ -87,26 +86,6 @@ public class SeedSelection {
                 e.score = e.score + e.score / 2;
             }
         }
-        
-        // int min = Integer.MAX_VALUE;
-        // int max = Integer.MIN_VALUE;
-        // for (EntryAndScore e : list) {
-        //     QueueEntry q = e.entry;
-        //     int score = q.getPerfScore();
-        //     if (score < min) {
-        //         min = score;
-        //     }
-        //     if (score > max) {
-        //         max = score;
-        //     }
-        // }
-        
-         
-         
-        // for (EntryAndScore e : list) {
-        //     QueueEntry q = e.entry;
-        //     if (s)
-        // }
     }
 
     

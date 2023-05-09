@@ -15,6 +15,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1HM1
+    hostname: C1HM1
+    cap_add:
+      - NET_ADMIN
     # env_file: ~/code/crashfuzz-ctrl/script/raft-java/.env
     # deploy:
     #   mode: replicated
@@ -31,6 +34,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1HM2
+    hostname: C1HM2
+    cap_add:
+      - NET_ADMIN
 
   C1RS1:
     image: fwhdzh/c1rs1
@@ -42,6 +48,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1RS1
+    hostname: C1RS1
+    cap_add:
+      - NET_ADMIN
 
   C1RS2:
     image: fwhdzh/c1rs2
@@ -53,6 +62,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1RS2
+    hostname: C1RS2
+    cap_add:
+      - NET_ADMIN
 
   C1RS3:
     image: fwhdzh/c1rs3
@@ -64,6 +76,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1RS3
+    hostname: C1RS3
+    cap_add:
+      - NET_ADMIN
 
   C1hb-hdfs:
     image: fwhdzh/c1hb-hdfs
@@ -75,6 +90,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1hb-hdfs
+    hostname: C1hb-hdfs
+    cap_add:
+      - NET_ADMIN
 
   C1hb-zk:
     image: fwhdzh/c1hb-zk
@@ -86,6 +104,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1hb-zk
+    hostname: C1hb-zk
+    cap_add:
+      - NET_ADMIN
 
 networks:
   fav-hbase:

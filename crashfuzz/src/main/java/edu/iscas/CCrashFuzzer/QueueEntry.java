@@ -19,9 +19,38 @@ public class QueueEntry {
 	public int max_match_fault;
 
 	public boolean was_tested; // Had been tested at least for one time
-
 	public boolean was_fuzzed; // Had any fuzzing done yet?
 	public int fuzzed_time; // count to retrieve it from the queue
+
+	public List<QueueEntry> mutates;
+
+	public List<QueueEntry> favored_mutates;
+	public List<QueueEntry> on_recovery_mutates;
+
+	// public int recoveryMutatesIndex;
+	// public List<QueueEntry> globalNewIOMutates;
+	// public int globalNewIOMutatesIndex;
+	// public List<Integer> mutatesSocre;
+	// public int[] mutatesScore;
+
+
+	public Set<Integer> unique_io_id;
+	public Set<Integer> recovery_io_id;
+	public Set<Integer> not_tested_fault_id;
+	public boolean has_new_cov; /* Triggers new coverage? */
+	public boolean favored; // gy for mutate favored /* Currently favored? */
+	// public boolean fs_redundant; /* Marked as redundant in the fs? */
+
+	public int bitmap_size; /* Number of bits set in bitmap */
+	// public int exec_cksum; /* Checksum of the execution trace */
+	public int new_cov_contribution;
+
+	public long exec_s; /* Execution time (seconds) */
+	public int handicap; /* Number of queue cycles behind */
+	// public long depth; /* Path depth */
+
+	public List<FaultPoint> faultPointsToMutate;
+	public QueueEntry father;
 
 	public QueueEntry() {
 		mutates = new ArrayList<QueueEntry>();
@@ -45,38 +74,6 @@ public class QueueEntry {
 		this.handicap = handicap;
 	}
 
-
-
-	public List<QueueEntry> mutates;
-	public List<QueueEntry> favored_mutates;
-
-	public List<QueueEntry> on_recovery_mutates;
-	// public int recoveryMutatesIndex;
-
-	// public List<QueueEntry> globalNewIOMutates;
-	// public int globalNewIOMutatesIndex;
-
-	// public List<Integer> mutatesSocre;
-	public int[] mutatesScore;
-
-
-
-	public Set<Integer> unique_io_id;
-	public Set<Integer> recovery_io_id;
-	public Set<Integer> not_tested_fault_id;
-	public boolean has_new_cov; /* Triggers new coverage? */
-	public boolean favored; // gy for mutate favored /* Currently favored? */
-	// public boolean fs_redundant; /* Marked as redundant in the fs? */
-
-	public int bitmap_size; /* Number of bits set in bitmap */
-	// public int exec_cksum; /* Checksum of the execution trace */
-	public int new_cov_contribution;
-
-	public long exec_s; /* Execution time (seconds) */
-	public int handicap; /* Number of queue cycles behind */
-	// public long depth; /* Path depth */
-
-	public List<FaultPoint> faultPointsToMutate;
 
 	public String toJSONString() {
 		String result = "transform QueueEntry to JSONString fail";
@@ -111,8 +108,14 @@ public class QueueEntry {
 				}
 				this.candidate_io++;
 			}
-			this.ioSeq.subList(this.candidate_io, this.ioSeq.size());
-			this.candidate_io = 0;
+
+			/*
+			 * Wenhan Feng
+			 * I think we should not make candidate_io to 0
+			 * I comment it.
+			 */
+			// this.ioSeq.subList(this.candidate_io, this.ioSeq.size());
+			// this.candidate_io = 0;
 		}
 
 		this.faultSeq.reset();

@@ -29,6 +29,9 @@ function start {
         docker exec -t $nodeName /bin/bash -ic '/etc/init.d/ssh start'
         docker cp hbhosts $nodeName:/etc/
         docker exec -t $nodeName /bin/bash -ic "cat /etc/hbhosts >> /etc/hosts"
+        
+        docker exec -t $nodeName /bin/bash -ic "iptables-restore < /home/gaoyu/iptables-rules"
+
         docker exec -t $nodeName /bin/bash -ic 'cd /home/gaoyu/evaluation/hbase-2.4.8/ && bin/hbase-daemon.sh start '$daemonName' && jps'
 
         sh waitNormal.sh $nodeName

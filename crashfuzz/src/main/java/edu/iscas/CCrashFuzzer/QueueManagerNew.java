@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class QueueManagerNew {
 	public static class QueuePair {
@@ -41,6 +39,16 @@ public class QueueManagerNew {
 		return result;
 	}
 
+	public static List<QueuePair> retrievePairListInFAVFuzzingProcess(List<QueueEntry> candidate_queue, Conf conf) {
+		// List<QueuePair> result = new ArrayList<QueuePair>();
+		// QueuePair p = retrieveAnEntry(candidate_queue);
+		// if (p != null) {
+		// 	result.add(p);
+		// }
+		List<QueuePair> result = QueueEntryPairSelection.retrieveAPairList(candidate_queue, conf);
+		return result;
+	}
+
 	// public static class EntryAndScoreSelection {
 	// 	public QueueEntry entry;
 	// 	public int score;
@@ -50,9 +58,9 @@ public class QueueManagerNew {
 	// 	}
 	// }
 
-	public static List<QueuePair> retrievePairListFWH(List<QueueEntry> candidate_queue, Conf conf) {
+	public static List<QueuePair> retrievePairListInTranditionFuzzingProcess(List<QueueEntry> candidate_queue, Conf conf) {
 		List<QueuePair> result = new ArrayList<QueuePair>();
-		QueueEntry seed = SeedSelection.retrieveSeed(candidate_queue);
+		QueueEntry seed = SeedSelection.retrieveSeedInTranditionalFuzzingProcess(candidate_queue);
 		int seedIdx = candidate_queue.indexOf(seed);
 		Stat.log(QueueManagerNew.class , "Select seed: " + seedIdx);
 		if (!seed.was_fuzzed) {

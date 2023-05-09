@@ -1,6 +1,7 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -9,6 +10,7 @@ import java.util.Set;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
+import edu.iscas.CCrashFuzzer.Network.NetworkPath;
 
 public class Mutation {
 
@@ -161,6 +163,8 @@ public class Mutation {
 			new_q.bitmap_size = q.bitmap_size;
 			new_q.handicap = 0;
 
+			new_q.father = q;
+
 			result.add(new_q);
 		}
 
@@ -210,9 +214,11 @@ public class Mutation {
 				IOPoint ioPointToInject = q.ioSeq.get(curIO);
 				if(subCluster.aliveGroup.contains(ioPointToInject.ip)
 						|| subCluster.deadGroup.contains(ioPointToInject.ip)) {
-					boolean canCrash = subCluster.aliveGroup.contains(ioPointToInject.ip) && (subCluster.maxDown-1)>=0;
-					boolean canReboot = subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(ioPointToInject.ip);
-					boolean canDisconnectNetwork = checkCanDisconnectNetwork(network, ioPointToInject);
+					
+					boolean canCrash = Conf.s.contains(FaultStat.CRASH) ? (subCluster.aliveGroup.contains(ioPointToInject.ip) && (subCluster.maxDown-1)>=0) : false;
+					boolean canReboot =  Conf.s.contains(FaultStat.REBOOT) ? (subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(ioPointToInject.ip)) : false;
+					boolean canDisconnectNetwork = Conf.s.contains(FaultStat.NETWORK_DISCONNECT) ? checkCanDisconnectNetwork(network, ioPointToInject, subCluster) : false;
+					boolean canConnectNetwork = Conf.s.contains(FaultStat.NETWORK_CONNECT) ? checkCanConnectNetwork(network, ioPointToInject, subCluster) : false;
 					if(canCrash) {
 						FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.CRASH, FaultPos.BEFORE, ioPointToInject.ip, null);
 						result.add(p);
@@ -227,14 +233,26 @@ public class Mutation {
 						FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.NETWORK_DISCONNECT, FaultPos.BEFORE, ioPointToInject.ip, null);
 						result.add(p);
 					}
+					if (canConnectNetwork) {
+						for (NetworkPath path: network.disconnectedPath) {
+							if (subCluster.deadGroup.contains(path.src)) {
+								continue;
+							}
+							FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.NETWORK_CONNECT, FaultPos.BEFORE, path.src, null);
+							p.params = Arrays.asList(path.src, path.dest);
+							result.add(p);
+						}
+					}
 				}
 			}
 		}
 		return result;
 	}
 
-	public static boolean checkCanDisconnectNetwork(Network network, IOPoint ioPt) {
+	public static boolean checkCanDisconnectNetwork(Network network, IOPoint ioPt, MaxDownNodes cluster) {
 		boolean result = false;
+		// Injecting disconnection before a send msg is enough to
+		// present all scenarios
 		if (!ioPt.PATH.startsWith("FAVMSG:")) {
 			result = false;
 			return result;
@@ -244,16 +262,31 @@ public class Mutation {
 			result = false;
 			return result;
 		}
-		// NetworkPath np = new NetworkPath();
 		String sourceIp = msgInfo.get(1);
 		String destIp = msgInfo.get(2);
+		// Since we use iptables in source node, 
+		// we only inject disconnection to alive nodes.
+		if (cluster.deadGroup.contains(sourceIp)) {
+			result = false;
+			return result;
+		}
 		if (network.isConnected(sourceIp, destIp)) {
 			result = true;
 		}
 		return result;
 	}
 
-	
+	public static boolean checkCanConnectNetwork(Network network, IOPoint ioPt, MaxDownNodes cluster) {
+		boolean result = false;
+		for (Network.NetworkPath path: network.disconnectedPath) {
+			String sourceIp = path.src;
+			if (!cluster.deadGroup.contains(sourceIp)) {
+				result = true;
+				break;
+			}
+		}
+		return result;
+	}
 
 	public static void initializeFaultPointsToMutate(QueueEntry q, Conf conf) {
 		List<FaultPoint> faults = findFaultPointToInject(q, conf);
@@ -320,6 +353,26 @@ public class Mutation {
 			int result = this.score - o.score;
 			// result = 0 - result;
 			return result;
+		}
+
+		public static List<QueueEntry> retriveAEntryListAndScoreBasedOnScore(List<Mutation.EntryAndScore> list, int k) {
+		    List<QueueEntry> result = new ArrayList<>();
+		    if (list.size() == 0) {
+		        return result;
+		    }
+		    if (list.size() < k) {
+				for (Mutation.EntryAndScore e: list) {
+					result.add(e.entry);
+				}
+		        return result;
+		    }
+			List<Mutation.EntryAndScore> mList = new ArrayList<>(list);
+			for (int i = 0; i < k; i++) {
+				Mutation.EntryAndScore e = Mutation.EntryAndScore.retriveAnEntryAndScoreBasedOnScore(mList);
+				result.add(e.entry);
+				mList.remove(e);
+			}
+		    return result;
 		}
 
 		public static EntryAndScore retriveAnEntryAndScoreBasedOnScore(List<EntryAndScore> list) {
@@ -504,7 +557,6 @@ public class Mutation {
 		for (QueueEntry entry : seed.mutates) {
 			mList.add(new EntryAndScore(entry, 0));
 		}
-		;
 
 		appendGlobalNewIOSocre(mList);
 		appendRecoveryScore(mList);
@@ -524,28 +576,8 @@ public class Mutation {
 		// 	result.add(mList.get(i).entry);
 		// }
 
-		int k = conf.MUTATE_CHOOSE;
-		result = selectRandomEntries(mList, k);
+		int k = conf.FAULT_SEQUENCE_BATCH_SIZE;
+		result = EntryAndScore.retriveAEntryListAndScoreBasedOnScore(mList, k);
 		return result;
 	}
-
-	public static List<QueueEntry> selectRandomEntries(List<EntryAndScore> list, int k) {
-        List<QueueEntry> result = new ArrayList<>();
-        if (list.size() == 0) {
-            return result;
-        }
-        if (list.size() < k) {
-			for (EntryAndScore e: list) {
-				result.add(e.entry);
-			}
-            return result;
-        }
-		List<EntryAndScore> mList = new ArrayList<>(list);
-		for (int i = 0; i < k; i++) {
-			EntryAndScore e = EntryAndScore.retriveAnEntryAndScoreBasedOnScore(mList);
-			result.add(e.entry);
-			mList.remove(e);
-		}
-        return result;
-    }
 }

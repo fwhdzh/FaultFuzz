@@ -18,8 +18,10 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 source $SCRIPT_DIR/cluster-info.sh
 
-for ((i=0; i<${#imageName[@]}; i++))
+echo "rm images of cluster..."
+for name in "${imageName[@]}"
 do
-    echo "docker image rm $imageName"
-    docker image rm $imageName
+  echo "docker image rm $name"
+  docker image rm $name
 done
+

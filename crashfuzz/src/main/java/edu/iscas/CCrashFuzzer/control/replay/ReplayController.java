@@ -67,6 +67,8 @@ extends AbstractController
 
 	public boolean finishFlag;
 
+	public boolean existFaultNotMeet;
+
 	public ReplayController(Cluster cluster, int port, Conf favconfig) {
 		super(cluster, port, favconfig);
 
@@ -82,6 +84,8 @@ extends AbstractController
 		actualFPBList = Collections.synchronizedList(new ArrayList<FaultPointBlocked>());
 		counter = 0;
 		finishFlag = false;
+
+		existFaultNotMeet = false;
 	}
 
 	public static class ReplayControllerResult {
@@ -153,6 +157,7 @@ extends AbstractController
 			return result;
 		}
 
+		@Deprecated
 		public static boolean equalInPathPreFix(String path1, String path2) {
 			// return path1.split("&")[0].equals(path2.split("&")[0]);
 			boolean result = false;
@@ -171,28 +176,62 @@ extends AbstractController
 						result = false;
 						break;
 					}
-					String nodeMsgIndex1 = sList1.get(2).split("#")[1];
-					String nodeMsgIndex2 = sList2.get(2).split("#")[1];
-					result = nodeMsgIndex1.equals(nodeMsgIndex2);
+					// String nodeMsgIndex1 = sList1.get(2).split("#")[1];
+					// String nodeMsgIndex2 = sList2.get(2).split("#")[1];
+					// result = nodeMsgIndex1.equals(nodeMsgIndex2);
+
+					result = true;
 					break;
 			}
 			return result;
 		}
 
-		public boolean equalInPathInDeterministicControl(String path) {
-			// return this.path.equals(path);
-			// return this.path.split("&")[0].equals(path.split("&")[0]);
-			return equalInPathPreFix(this.path, path);
+		public static boolean equalInPathInformation(String reportNode1, String path1, String reportNode2, String path2) {
+			boolean result = false;
+			List<String> sList1 = tansformPathToStrList(path1, reportNode1);
+			List<String> sList2 = tansformPathToStrList(path2, reportNode2);
+			if (sList1.size() != sList2.size()) {
+				return false;
+			}
+			switch (sList1.get(0)) {
+				case "not msg":
+					// result = sList1.get(1).equals(sList2.get(1));
+					result = true;
+					break;
+				case "write":
+				case "read":
+					if (!sList1.get(1).equals(sList2.get(1))) {
+						result = false;
+						break;
+					}
+					if (!sList1.get(2).equals(sList2.get(2))) {
+						result = false;
+						break;
+					}
+					// String nodeMsgIndex1 = sList1.get(2).split("#")[1];
+					// String nodeMsgIndex2 = sList2.get(2).split("#")[1];
+					// result = nodeMsgIndex1.equals(nodeMsgIndex2);
+
+					result = true;
+					break;
+			}
+			return result;
 		}
 
-		public boolean equalInDeterministicControl(FaultPointBlocked b) {
-			if ((this.ioID == b.ioID)
-					&& (this.reportNodeIp.equals(b.reportNodeIp))
-					&& (equalInPathInDeterministicControl(b.path))) {
-				return true;
-			}
-			return false;
-		}
+		// public boolean equalInPathInDeterministicControl(String path) {
+		// 	// return this.path.equals(path);
+		// 	// return this.path.split("&")[0].equals(path.split("&")[0]);
+		// 	return equalInPathPreFix(this.path, path);
+		// }
+
+		// public boolean equalInDeterministicControl(FaultPointBlocked b) {
+		// 	if ((this.ioID == b.ioID)
+		// 			&& (this.reportNodeIp.equals(b.reportNodeIp))
+		// 			&& (equalInPathInDeterministicControl(b.path))) {
+		// 		return true;
+		// 	}
+		// 	return false;
+		// }
 
 	}
 
@@ -362,6 +401,7 @@ extends AbstractController
 				info = info + "recieve cliID: " + cliID + " for ioID " + ioID + ", " + "\n";
 				info = info + "recieve path: " + path + "\n";
 				info = info + "recieve threadInfo: " + threadInfo + "\n";
+				info = info + "handle information: " + JSONObject.toJSONString(tansformPathToStrList(path, reportNodeIp));
 				Stat.log(info);
 				FaultPointBlocked b = new FaultPointBlocked(ioID, reportNodeIp, cliID, path, this);
 				faultPointList.add(b);
@@ -376,21 +416,21 @@ extends AbstractController
 			}
 		}
 
-		public int addOrReplaceFPBtoList(FaultPointBlocked b) {
-			int result = -1;
-			for (int i = 0; i < faultPointList.size(); i++) {
-				FaultPointBlocked lb = faultPointList.get(i);
-				if (lb.equalInDeterministicControl(b)) {
-					faultPointList.set(i, b);
-					result = i;
-					break;
-				}
-			}
-			if (result == -1) {
-				faultPointList.add(b);
-			}
-			return result;
-		}
+		// public int addOrReplaceFPBtoList(FaultPointBlocked b) {
+		// 	int result = -1;
+		// 	for (int i = 0; i < faultPointList.size(); i++) {
+		// 		FaultPointBlocked lb = faultPointList.get(i);
+		// 		if (lb.equalInDeterministicControl(b)) {
+		// 			faultPointList.set(i, b);
+		// 			result = i;
+		// 			break;
+		// 		}
+		// 	}
+		// 	if (result == -1) {
+		// 		faultPointList.add(b);
+		// 	}
+		// 	return result;
+		// }
 
 		public void replyToNode(DataOutputStream outStream, String command, int curFault, int curAppear)
 				throws IOException {
@@ -444,8 +484,23 @@ extends AbstractController
 				String sourceIp = msgInfo.get(1);
 				String destIp = msgInfo.get(2);
 				List<String> disConnectRst = cluster.networkDisConnect(sourceIp, destIp);
-				rst.addAll(disConnectRst);
+				if (disConnectRst != null) {
+					rst.addAll(disConnectRst);
+				}
 				rst.add(Stat.log("network from  " + sourceIp + " to "+ destIp + " was disconnected!"));
+				outStream = new DataOutputStream(socket.getOutputStream());
+				replyToNode(outStream, "CONTI", fIndex.get(), p.curAppear);
+			} else if (p.stat.equals(FaultStat.NETWORK_CONNECT)) {
+				if (p.params == null || p.params.size() != 2) {
+					throw new AflException("NETWORK_CONNECT fault should have two parameters!");
+				}
+				String sourceIp = p.params.get(0);
+				String destIp = p.params.get(1);
+				List<String> connectRst = cluster.networkConnect(sourceIp, destIp);
+				if (connectRst != null) {
+					rst.addAll(connectRst);
+				}
+				rst.add(Stat.log("network from  " + sourceIp + " to "+ destIp + " was connected!"));
 				outStream = new DataOutputStream(socket.getOutputStream());
 				replyToNode(outStream, "CONTI", fIndex.get(), p.curAppear);
 			} else {
@@ -568,6 +623,7 @@ extends AbstractController
 				if (p.ioPt.ioID == ioID && p.curAppear < p.ioPt.appearIdx) {
 					// meet the a fault point, check appear indexes
 					p.curAppear++;
+					Stat.log("The " + i + "fault point curAppear is updated to " + p.curAppear);
 				}
 			}
 		}
@@ -593,11 +649,21 @@ extends AbstractController
             return result;
         }
 
+		public boolean checkFaultPointMatchFPBAndAppearIdxWithCrashFuzzMode(FaultPoint fp, FaultPointBlocked fpb) {
+            boolean result = false;
+            if (fp.ioPt.ioID == fpb.ioID && fp.ioPt.appearIdx <= fp.curAppear) {
+                result = true;
+            }
+            return result;
+        }
+
 		public void handleFPB(FaultPointBlocked b) throws IOException, AflException, AbortFaultException {
             if (!arriveAllFaultPoint) {
                 
 				updataIOAppearIdxInFaultSeq(faultSeq, fIndex.get(), b.ioID);
                 FaultPoint fp = faultSeq.seq.get(fIndex.get());
+				
+
                 if (checkFaultPointMatchFPBAndAppearIdx(fp, b)) {
 					fp.actualNodeIp = fp.tarNodeIp;
                     // fp.actualNodeIp = b.reportNodeIp;
@@ -714,7 +780,9 @@ extends AbstractController
 		if ((nIOID == ioID) && (nip.equals(reportNodeIp))
 			// && (nPath.equals(path))
 			// && (nPath.split("&")[0].equals(path.split("&")[0]))
-			&& (FaultPointBlocked.equalInPathPreFix(path, nPath))) {
+			// && (FaultPointBlocked.equalInPathPreFix(path, nPath))
+			&& (FaultPointBlocked.equalInPathInformation(reportNodeIp, path, nip, nPath))
+			) {
 			result = true;
 		}
 		return result;

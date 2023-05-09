@@ -3,7 +3,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source $SCRIPT_DIR/cluster-info.sh
 
 # 循环遍历数组，对每个元素执行命令
-echo "instrument jre to cluster..."
+echo "clear error file on cluster..."
 for name in "${clusterName[@]}"
 do
   if [[ "$name" == "C1hd-zk" ]]; then
