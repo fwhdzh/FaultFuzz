@@ -1,5 +1,28 @@
 package edu.iscas.tcse.favtrigger.instrumenter;
 
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_RECORD_OUT;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_TIMESTAMP;
+import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.JRE_FAULT_BEFORE;
+//import static edu.columbia.cs.psl.phosphor.Configuration.controlFlowManager;
+import static org.objectweb.asm.Opcodes.ALOAD;
+
+import java.io.Closeable;
+import java.io.FileOutputStream;
+import java.lang.reflect.Method;
+import java.net.DatagramPacket;
+
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LocalVariableNode;
+import org.objectweb.asm.tree.MethodNode;
+
 import edu.columbia.cs.psl.phosphor.Configuration;
 import edu.columbia.cs.psl.phosphor.Instrumenter;
 import edu.columbia.cs.psl.phosphor.TaintUtils;
@@ -16,8 +39,13 @@ import edu.columbia.cs.psl.phosphor.instrumenter.PrimitiveArrayAnalyzer;
 import edu.columbia.cs.psl.phosphor.instrumenter.SpecialOpcodeRemovingMV;
 //import edu.columbia.cs.psl.phosphor.instrumenter.TaintTagFieldCastMV;
 import edu.columbia.cs.psl.phosphor.instrumenter.analyzer.NeverNullArgAnalyzerAdapter;
-import edu.columbia.cs.psl.phosphor.runtime.*;
-import edu.columbia.cs.psl.phosphor.struct.harmony.util.*;
+import edu.columbia.cs.psl.phosphor.runtime.TaintInstrumented;
+import edu.columbia.cs.psl.phosphor.struct.harmony.util.HashMap;
+import edu.columbia.cs.psl.phosphor.struct.harmony.util.HashSet;
+import edu.columbia.cs.psl.phosphor.struct.harmony.util.LinkedList;
+import edu.columbia.cs.psl.phosphor.struct.harmony.util.List;
+import edu.columbia.cs.psl.phosphor.struct.harmony.util.Map;
+import edu.columbia.cs.psl.phosphor.struct.harmony.util.Set;
 import edu.iscas.tcse.favtrigger.instrumenter.hbase.HBaseTrackingMV;
 import edu.iscas.tcse.favtrigger.instrumenter.hdfs.HDFSTrackingMV;
 import edu.iscas.tcse.favtrigger.instrumenter.jdk.FileOperationMV;
@@ -27,23 +55,9 @@ import edu.iscas.tcse.favtrigger.instrumenter.mapred.MRProtocols;
 //import edu.iscas.tcse.favtrigger.instrumenter.mapred.MRTrackingMV;
 import edu.iscas.tcse.favtrigger.instrumenter.rocksdb.RocksDBWriteBatchPutMV;
 import edu.iscas.tcse.favtrigger.instrumenter.yarn.YarnProtocols;
-//import edu.iscas.tcse.favtrigger.instrumenter.yarn.YarnTrackingMV;
-import edu.iscas.tcse.favtrigger.instrumenter.zk.ZKTrackingMV;
+import edu.iscas.tcse.favtrigger.instrumenter.zk.FWHZKTrackingMV;
 import edu.iscas.tcse.favtrigger.tracing.CheckPath.LinkType;
 import edu.iscas.tcse.favtrigger.tracing.FAVPathType;
-
-import org.objectweb.asm.*;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.tree.*;
-
-import java.io.Closeable;
-import java.io.FileOutputStream;
-import java.lang.reflect.Method;
-import java.net.DatagramPacket;
-
-import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.*;
-//import static edu.columbia.cs.psl.phosphor.Configuration.controlFlowManager;
-import static org.objectweb.asm.Opcodes.ALOAD;
 
 /**
  * CV responsibilities: Add a field to classes to track each instance's taint
@@ -216,7 +230,8 @@ public class IOTrackingClassVisitor extends ClassVisitor {
             HBaseTrackingMV hbmv = new HBaseTrackingMV(dfsmv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);
             hbmv.setFields(fields);
 
-     		ZKTrackingMV zkmv = new ZKTrackingMV(hbmv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);
+     		FWHZKTrackingMV zkmv = new FWHZKTrackingMV(hbmv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);
+            // ZKTrackingMV zkmv = new ZKTrackingMV(hbmv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);
             zkmv.setFields(fields);
 
 //            TestMV tmv = new TestMV(niomv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);

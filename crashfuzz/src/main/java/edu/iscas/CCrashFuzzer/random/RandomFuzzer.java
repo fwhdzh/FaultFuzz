@@ -2,34 +2,28 @@ package edu.iscas.CCrashFuzzer.random;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.CoverageCollector;
 import edu.iscas.CCrashFuzzer.FaultSequence;
-import edu.iscas.CCrashFuzzer.random.RandomFaultSequence;
-import edu.iscas.CCrashFuzzer.random.RandomFaultSequence.RandomFaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.FuzzInfo;
 import edu.iscas.CCrashFuzzer.MaxDownNodes;
 import edu.iscas.CCrashFuzzer.Monitor;
-import edu.iscas.CCrashFuzzer.QueueEntry;
-import edu.iscas.CCrashFuzzer.random.RandomQueueEntry;
+import edu.iscas.CCrashFuzzer.Network;
 import edu.iscas.CCrashFuzzer.Stat;
+import edu.iscas.CCrashFuzzer.random.RandomFaultSequence.RandomFaultPoint;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class RandomFuzzer {
@@ -348,6 +342,8 @@ public class RandomFuzzer {
 			servers.addAll(sub.aliveGroup);
 			servers.addAll(sub.deadGroup);
 		}
+
+		Network network = Network.constructNetworkFromMaxDOwnNodes(MaxDownNodes.cloneCluster(conf.maxDownGroup));
 		
 		if(Conf.MANUAL) {
         	Scanner scan = new Scanner(System.in);
@@ -376,63 +372,227 @@ public class RandomFuzzer {
 					Stat.log(subCluster.aliveGroup+" "+subCluster.aliveGroup.contains(tarNodeIp));
 					Stat.log(subCluster.deadGroup+" "+subCluster.deadGroup.contains(tarNodeIp));
 				}
+
+				
+
 				
 				if(subCluster.aliveGroup.contains(tarNodeIp)
 						|| subCluster.deadGroup.contains(tarNodeIp)) {
 					canCrash = subCluster.aliveGroup.contains(tarNodeIp) && (subCluster.maxDown-1)>=0;
 					canReboot = subCluster.deadGroup.size()>0 && subCluster.deadGroup.contains(tarNodeIp);
-					
-					if(Conf.DEBUG) {
-						Stat.log(i+"th can crash "+canCrash+", can reboot "+canReboot);
-						Stat.log(i+"th cur time offset is  "+timeOffSet);
-					}
-					
-					if(canCrash) {
-						RandomFaultPoint p  = new RandomFaultPoint();
-						p.pos = FaultPos.BEFORE;
-						p.tarNodeIp = tarNodeIp;
-						p.stat = FaultStat.CRASH;
-						p.actualNodeIp = null;
-						int range = (int)(avg_exec_us*1000-timeOffSet-faultNum+i);
-						range = range > 0? range: (int)(20000-timeOffSet-faultNum+i);
-						if(Conf.DEBUG) {
-							Stat.log(i+"th range is "+range);
-						}
-						p.waitTimeMillions = random.nextInt(range);
-						timeOffSet = timeOffSet+p.waitTimeMillions;
-						randomFaults.seq.add(p);
-						
-						faultInjected = true;
 
-						if(Conf.DEBUG) {
-							Stat.log(i+"Crash node "+tarNodeIp+" after "+timeOffSet);
-						}
-						MaxDownNodes.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.CRASH);
-						break;
-					} else if(canReboot) {
-						RandomFaultPoint p  = new RandomFaultPoint();
-						p.pos = FaultPos.BEFORE;
-						p.tarNodeIp = tarNodeIp;
-						p.stat = FaultStat.REBOOT;
-						p.actualNodeIp = null;
-						int range = (int)(avg_exec_us*1000-timeOffSet-faultNum+i);
-						range = range > 0? range: (int)(20000-timeOffSet-faultNum+i);
-						if(Conf.DEBUG) {
-							Stat.log(i+"th range is "+range);
-						}
-						p.waitTimeMillions = random.nextInt(range);
-						timeOffSet = timeOffSet+p.waitTimeMillions;
-						randomFaults.seq.add(p);
-						
-						faultInjected = true;
-						
-						if(Conf.DEBUG) {
-							Stat.log(i+"Reboot node "+tarNodeIp+" after "+timeOffSet);
-						}
-						
-						MaxDownNodes.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.REBOOT);
-						break;
+					boolean canDisconnectNetwork = Conf.s.contains(FaultStat.NETWORK_DISCONNECT) ? checkCanDisconnectNetwork(network, subCluster, tarNodeIp) : false;
+					boolean canConnectNetwork = Conf.s.contains(FaultStat.NETWORK_CONNECT) ? checkCanConnectNetwork(network, subCluster, tarNodeIp) : false;
+
+					List<FaultStat> faultStateCouldInject = new ArrayList<>();
+
+					if (Conf.DEBUG) {
+						Stat.log(i + "th can crash " + canCrash + ", can reboot " + canReboot + ", can disnectNetwork "
+								+ canDisconnectNetwork + ", can connectNetwork " + canConnectNetwork);
+						Stat.log(i + "th cur time offset is  " + timeOffSet);
 					}
+
+					if (canCrash) {
+						faultStateCouldInject.add(FaultStat.CRASH);
+					}
+					if (canReboot) {
+						faultStateCouldInject.add(FaultStat.REBOOT);
+					}
+					if (canDisconnectNetwork) {
+						faultStateCouldInject.add(FaultStat.NETWORK_DISCONNECT);
+					}
+					if (canConnectNetwork) {
+						faultStateCouldInject.add(FaultStat.NETWORK_CONNECT);
+					}
+
+					if (faultStateCouldInject.size() == 0) {
+						continue;
+					} 
+
+					FaultStat stat = faultStateCouldInject.get(random.nextInt(faultStateCouldInject.size()));
+
+					int waitTimeMillions = computeWaitTimeMillions(random, faultNum, avg_exec_us, timeOffSet, i);
+					RandomFaultPoint p = null;
+					switch (stat) {
+						case CRASH:
+							p = generateCrashPoint(tarNodeIp, waitTimeMillions);
+							break;
+						case REBOOT:
+							p = generateRebootPoint(tarNodeIp, waitTimeMillions);
+							break;
+						case NETWORK_DISCONNECT:
+							String sourceIp = tarNodeIp;
+							String destIp = randomChooseATargetNodeToDisconnect(network, subCluster, sourceIp);
+							p = generateNetworkDisconnectPoint(sourceIp, destIp, waitTimeMillions);
+							break;
+						case NETWORK_CONNECT:
+							String sourceIpInConnect = tarNodeIp;
+							String destIpInConnect = randomChooseATargetNodeToConnect(network, subCluster, sourceIpInConnect);
+							p = generateNetworkConnectPoint(sourceIpInConnect, destIpInConnect, waitTimeMillions);
+							break;
+						default:
+							break;
+					}
+
+					timeOffSet = timeOffSet+waitTimeMillions;
+					randomFaults.seq.add(p);
+
+					switch (stat) {
+						case CRASH:
+							MaxDownNodes.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.CRASH);
+							if (Conf.DEBUG) {
+								Stat.log(i + "Crash node " + tarNodeIp + " after " + timeOffSet);
+							}
+							break;
+						case REBOOT:
+							MaxDownNodes.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.REBOOT);
+							if (Conf.DEBUG) {
+								Stat.log(i + "Reboot node " + tarNodeIp + " after " + timeOffSet);
+							}
+							break;
+						case NETWORK_DISCONNECT:
+							String sourceIp = p.paras.get(0);
+							String destIp = p.paras.get(1);
+							network.disconnect(sourceIp, destIp);
+							if (Conf.DEBUG) {
+								Stat.log(i + " Network disconnection from " + sourceIp + " to " + tarNodeIp);
+							}
+							break;
+						case NETWORK_CONNECT:
+							String sourceIpInConnect = p.paras.get(0);
+							String destIpInConnect = p.paras.get(1);
+							network.connect(sourceIpInConnect, destIpInConnect);
+							if (Conf.DEBUG) {
+								Stat.log(i + " Network connection from " + sourceIpInConnect + " to " + destIpInConnect);
+							}
+							break;
+						default:
+							break;
+					}
+
+					faultInjected = true;
+					break;
+					
+					
+					// if(canCrash) {
+					// 	int waitTimeMillions = computeWaitTimeMillions(random, faultNum, avg_exec_us, timeOffSet, i);
+
+					// 	// RandomFaultPoint p  = new RandomFaultPoint();
+					// 	// p.pos = FaultPos.BEFORE;
+					// 	// p.tarNodeIp = tarNodeIp;
+					// 	// p.stat = FaultStat.CRASH;
+					// 	// p.actualNodeIp = null;
+					// 	// p.waitTimeMillions = waitTimeMillions;
+					// 	RandomFaultPoint p = generateCrashPoint(tarNodeIp, waitTimeMillions);
+						
+					// 	timeOffSet = timeOffSet+waitTimeMillions;
+					// 	randomFaults.seq.add(p);
+						
+					// 	faultInjected = true;
+
+					// 	if(Conf.DEBUG) {
+					// 		Stat.log(i+"Crash node "+tarNodeIp+" after "+timeOffSet);
+					// 	}
+					// 	MaxDownNodes.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.CRASH);
+					// 	break;
+					// } else if(canReboot) {
+
+					// 	// int range = (int)(avg_exec_us*1000-timeOffSet-faultNum+i);
+					// 	// range = range > 0? range: (int)(20000-timeOffSet-faultNum+i);
+					// 	// if(Conf.DEBUG) {
+					// 	// 	Stat.log(i+"th range is "+range);
+					// 	// }
+
+					// 	// RandomFaultPoint p  = new RandomFaultPoint();
+					// 	// p.pos = FaultPos.BEFORE;
+					// 	// p.tarNodeIp = tarNodeIp;
+					// 	// p.stat = FaultStat.REBOOT;
+					// 	// p.actualNodeIp = null;
+					// 	// p.waitTimeMillions = random.nextInt(range);
+
+					// 	int waitTimeMillions = computeWaitTimeMillions(random, faultNum, avg_exec_us, timeOffSet, i);
+					// 	RandomFaultPoint p = generateRebootPoint(tarNodeIp, waitTimeMillions);
+
+					// 	timeOffSet = timeOffSet+p.waitTimeMillions;
+					// 	randomFaults.seq.add(p);
+						
+					// 	faultInjected = true;
+						
+					// 	if(Conf.DEBUG) {
+					// 		Stat.log(i+"Reboot node "+tarNodeIp+" after "+timeOffSet);
+					// 	}
+						
+					// 	MaxDownNodes.buildClusterStatus(currentCluster, tarNodeIp, FaultStat.REBOOT);
+					// 	break;
+					// } else if (canDisconnectNetwork) {
+
+					// 	// int range = (int)(avg_exec_us*1000-timeOffSet-faultNum+i);
+					// 	// range = range > 0? range: (int)(20000-timeOffSet-faultNum+i);
+					// 	// if(Conf.DEBUG) {
+					// 	// 	Stat.log(i+"th range is "+range);
+					// 	// }
+
+					// 	String sourceIp = tarNodeIp;
+					// 	String destIp = randomChooseATargetNodeToDisconnect(network, subCluster, sourceIp);
+
+					// 	// RandomFaultPoint p  = new RandomFaultPoint();
+					// 	// p.pos = FaultPos.BEFORE;
+					// 	// p.tarNodeIp = tarNodeIp;
+					// 	// p.stat = FaultStat.NETWORK_DISCONNECT;
+					// 	// p.actualNodeIp = null;
+
+					// 	// p.paras = new ArrayList<>();
+					// 	// p.paras.add(sourceIp);
+					// 	// p.paras.add(destIp);
+					// 	// p.waitTimeMillions = random.nextInt(range);
+
+					// 	int waitTimeMillions = computeWaitTimeMillions(random, faultNum, avg_exec_us, timeOffSet, i);
+					// 	RandomFaultPoint p = generateNetworkDisconnectPoint(sourceIp, destIp, waitTimeMillions);
+
+					// 	timeOffSet = timeOffSet+p.waitTimeMillions;
+					// 	randomFaults.seq.add(p);
+						
+					// 	faultInjected = true;
+
+					// 	if(Conf.DEBUG) {
+					// 		Stat.log(i+" Network disconnection from " + sourceIp+" to "+tarNodeIp);
+					// 	}
+					// 	network.disconnect(sourceIp, destIp);
+					// } else if (canConnectNetwork) {
+
+					// 	// int range = (int)(avg_exec_us*1000-timeOffSet-faultNum+i);
+					// 	// range = range > 0? range: (int)(20000-timeOffSet-faultNum+i);
+					// 	// if(Conf.DEBUG) {
+					// 	// 	Stat.log(i+"th range is "+range);
+					// 	// }
+
+					// 	String sourceIp = tarNodeIp;
+					// 	String destIp = randomChooseATargetNodeToConnect(network, subCluster, sourceIp);
+
+					// 	// RandomFaultPoint p  = new RandomFaultPoint();
+					// 	// p.pos = FaultPos.BEFORE;
+					// 	// p.tarNodeIp = tarNodeIp;
+					// 	// p.stat = FaultStat.NETWORK_CONNECT;
+					// 	// p.actualNodeIp = null;
+						
+					// 	// p.paras = new ArrayList<>();
+					// 	// p.paras.add(sourceIp);
+					// 	// p.paras.add(destIp);
+					// 	// p.waitTimeMillions = random.nextInt(range);
+
+					// 	int waitTimeMillions = computeWaitTimeMillions(random, faultNum, avg_exec_us, timeOffSet, i);
+					// 	RandomFaultPoint p = generateNetworkConnectPoint(sourceIp, destIp, waitTimeMillions);
+
+					// 	timeOffSet = timeOffSet+p.waitTimeMillions;
+					// 	randomFaults.seq.add(p);
+						
+					// 	faultInjected = true;
+
+					// 	if(Conf.DEBUG) {
+					// 		Stat.log(i+" Network connection from " + sourceIp+" to "+tarNodeIp);
+					// 	}
+					// 	network.connect(sourceIp, destIp);
+					// }
 				}
 			}
 			if(faultInjected) {
@@ -444,6 +604,166 @@ public class RandomFuzzer {
 	        }
 		}
 		return randomFaults;
+	}
+
+	private int computeWaitTimeMillions(Random random, int faultNum, long avg_exec_us, long timeOffSet, int i) {
+		int range = (int)(avg_exec_us*1000-timeOffSet-faultNum+i);
+		range = range > 0? range: (int)(20000-timeOffSet-faultNum+i);
+		if(Conf.DEBUG) {
+			Stat.log(i+"th range is "+range);
+		}
+		int waitTimeMillions = random.nextInt(range);
+		return waitTimeMillions;
+	}
+
+	public static boolean checkCanDisconnectNetwork(Network network, MaxDownNodes cluster) {
+		if (cluster.aliveGroup.size() < 2) {
+			return false;
+		}
+		for (String s: cluster.aliveGroup) {
+			for (String s2: cluster.aliveGroup) {
+				if (s.equals(s2)) {
+					continue;
+				}
+				if (network.isConnected(s, s2)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean checkCanDisconnectNetwork(Network network, MaxDownNodes cluster, String sourceIp) {
+		if (cluster.aliveGroup.size() < 2) {
+			return false;
+		}
+		if (cluster.deadGroup.contains(sourceIp)) {
+			return false;
+		}
+		for (String s: cluster.aliveGroup) {
+			if (s.equals(sourceIp)) {
+				continue;
+			}
+			if (network.isConnected(sourceIp, s)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static String randomChooseATargetNodeToDisconnect(Network network, MaxDownNodes cluster, String sourceIp) {
+		String result = null;
+		Random r = new Random();
+		List<String> candidateTarget = new ArrayList<>();
+		for (String s: cluster.aliveGroup) {
+			if (s.equals(sourceIp)) {
+				continue;
+			}
+			if (network.isConnected(sourceIp, s)) {
+				candidateTarget.add(s);
+			}
+		}
+		if (candidateTarget.size() > 0) {
+			int index = r.nextInt(candidateTarget.size());
+			result = candidateTarget.get(index);
+		}
+		return result;
+	}
+
+	public static boolean checkCanConnectNetwork(Network network, MaxDownNodes cluster, String sourceIp) {
+		if (cluster.aliveGroup.size() < 2) {
+			return false;
+		}
+		if (cluster.deadGroup.contains(sourceIp)) {
+			return false;
+		}
+		for (String s: cluster.aliveGroup) {
+			if (s.equals(sourceIp)) {
+				continue;
+			}
+			if (!network.isConnected(sourceIp, s)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean checkCanConnectNetwork(Network network, MaxDownNodes cluster) {
+		boolean result = false;
+		for (String sourceIP: cluster.aliveGroup) {
+			if (checkCanConnectNetwork(network, cluster, sourceIP)) {
+				return true;
+			}
+		}
+		return result;
+	}
+
+	public static String randomChooseATargetNodeToConnect(Network network, MaxDownNodes cluster, String sourceIp) {
+		String result = null;
+		Random r = new Random();
+		List<String> candidateTarget = new ArrayList<>();
+		for (String s: cluster.aliveGroup) {
+			if (s.equals(sourceIp)) {
+				continue;
+			}
+			if (!network.isConnected(sourceIp, s)) {
+				candidateTarget.add(s);
+			}
+		}
+		if (candidateTarget.size() > 0) {
+			int index = r.nextInt(candidateTarget.size());
+			result = candidateTarget.get(index);
+		}
+		return result;
+	}
+
+	public static RandomFaultPoint generateCrashPoint(String tarNodeIp, int waitTimeMillions) {
+		RandomFaultPoint p = new RandomFaultPoint();
+		p.pos = FaultPos.BEFORE;
+		p.tarNodeIp = tarNodeIp;
+		p.stat = FaultStat.CRASH;
+		p.actualNodeIp = null;
+		p.waitTimeMillions = waitTimeMillions;
+		return p;
+	}
+
+	public static RandomFaultPoint generateRebootPoint(String tarNodeIp, int waitTimeMillions) {
+		RandomFaultPoint p = new RandomFaultPoint();
+		p.pos = FaultPos.BEFORE;
+		p.tarNodeIp = tarNodeIp;
+		p.stat = FaultStat.REBOOT;
+		p.actualNodeIp = null;
+		p.waitTimeMillions = waitTimeMillions;
+		return p;
+	}
+
+	public static RandomFaultPoint generateNetworkDisconnectPoint(String sourceIp, String destIp,
+			int waitTimeMillions) {
+		RandomFaultPoint p = new RandomFaultPoint();
+		p.pos = FaultPos.BEFORE;
+		p.tarNodeIp = sourceIp;
+		p.stat = FaultStat.NETWORK_DISCONNECT;
+		p.actualNodeIp = null;
+
+		p.paras = new ArrayList<>();
+		p.paras.add(sourceIp);
+		p.paras.add(destIp);
+		p.waitTimeMillions = waitTimeMillions;
+		return p;
+	}
+
+	public static RandomFaultPoint generateNetworkConnectPoint(String sourceIp, String destIp, int waitTimeMillions) {
+		RandomFaultPoint p = new RandomFaultPoint();
+		p.pos = FaultPos.BEFORE;
+		p.tarNodeIp = sourceIp;
+		p.stat = FaultStat.NETWORK_CONNECT;
+		p.actualNodeIp = null;
+
+		p.paras = new ArrayList<>();
+		p.paras.add(sourceIp);
+		p.paras.add(destIp);
+		p.waitTimeMillions = waitTimeMillions;
+		return p;
 	}
 	
 	public void recordGlobalInfo() {

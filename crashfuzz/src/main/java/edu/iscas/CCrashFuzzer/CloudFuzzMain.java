@@ -1,11 +1,9 @@
 package edu.iscas.CCrashFuzzer;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.util.Arrays;
 
 import org.apache.commons.io.FileUtils;
 

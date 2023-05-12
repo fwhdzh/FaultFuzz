@@ -85,7 +85,25 @@ public class RandomController {
 			                rst.add(Stat.log("node "+fault.actualNodeIp+" was restarted!"));
 				            
 			                MaxDownNodes.buildClusterStatus(currentCluster, fault.actualNodeIp, FaultStat.REBOOT);
-						} 
+						} else if (fault.stat.equals(FaultStat.NETWORK_DISCONNECT)) {
+							fault.actualNodeIp = fault.tarNodeIp;
+							rst.add(Stat.log("Meet "+cur_Fault+"th fault point[NETWORK_DISCONNECT]:"+fault));
+							String sourceIp = fault.paras.get(0);
+							String targetIp = fault.paras.get(1);
+							rst.add(Stat.log("Prepare to disconnect network from "+ sourceIp + " to " + targetIp));
+			                List<String> networkDisconnectRst = cluster.networkDisConnect(sourceIp, targetIp);
+			                rst.addAll(networkDisconnectRst);
+							rst.add(Stat.log("network from "+ sourceIp + " to " + targetIp + " was disconnected!"));
+						}  else if (fault.stat.equals(FaultStat.NETWORK_CONNECT)) {
+							fault.actualNodeIp = fault.tarNodeIp;
+							rst.add(Stat.log("Meet "+cur_Fault+"th fault point[NETWORK_CONNECT]:"+fault));
+							String sourceIp = fault.paras.get(0);
+							String targetIp = fault.paras.get(1);
+							rst.add(Stat.log("Prepare to connect network from "+ sourceIp + " to " + targetIp));
+			                List<String> networkConnectRst = cluster.networkConnect(sourceIp, targetIp);
+			                rst.addAll(networkConnectRst);
+							rst.add(Stat.log("network from "+ sourceIp + " to " + targetIp + " was connected!"));
+						}
 				    }
 					faultInjected = true;
 		         } catch(Exception e) {

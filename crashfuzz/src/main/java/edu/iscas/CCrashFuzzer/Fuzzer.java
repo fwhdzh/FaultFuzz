@@ -252,7 +252,6 @@ public class Fuzzer {
 		target.beforeTarget(faultSeqAndIOSeq, conf, testID, waitTime);
 		target.doTarget();
 		TryBestDeterminismTResult tbdResult = target.afterTarget();
-		// rst = tbdResult.result;
 		rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.result);
 
 		// NormalTarget target = new NormalTarget();
@@ -441,6 +440,10 @@ public class Fuzzer {
 			if (faultMode != 0) return false;
 			if (nb>0) return true;
 			result = q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH;
+			if (result == true) {
+				return result;
+			}
+			result = q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.NETWORK_DISCONNECT;
 			// result = (faultMode == 0) && (nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH);
 			return result;
 		}
@@ -664,10 +667,15 @@ public class Fuzzer {
 			// doARun(q);
 
 			// List<QueuePair> pairList = QueueManagerNew.retrievePairListInTranditionFuzzingProcess(candidate_queue, conf);
-			List<QueuePair> pairList = QueueManagerNew.retrievePairListInFAVFuzzingProcess(candidate_queue, conf);
+
+			// List<QueuePair> pairList = QueueManagerNew.retrievePairListInFAVFuzzingProcess(candidate_queue, conf);
+			List<QueuePair> pairList = QueueManagerBruteForce.retrieveAPairList(candidate_queue, conf);
 			for (QueuePair pair : pairList) {
 				doARun(pair);
 			}
+
+			// QueuePair pair = QueueManagerNew.retrieveAnEntry(candidate_queue);
+			// doARun(pair);
 
 			
         	// Stat.log("Going to test queue entry"+q.seedIdx+"'s mutation:"+q.mutateIdx);

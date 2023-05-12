@@ -5,8 +5,6 @@ import edu.columbia.cs.psl.phosphor.TaintUtils;
 import edu.columbia.cs.psl.phosphor.instrumenter.TaintAdapter;
 import edu.columbia.cs.psl.phosphor.instrumenter.analyzer.NeverNullArgAnalyzerAdapter;
 import edu.columbia.cs.psl.phosphor.runtime.Taint;
-import edu.iscas.tcse.favtrigger.debugger.DebuggerConf;
-import edu.iscas.tcse.favtrigger.debugger.ZKStartAndEndRecordDebugger;
 
 import java.net.InetAddress;
 
@@ -65,7 +63,6 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
     int readMsgId = -1;
     int shouldTaintMsg = -1;
     int remoteAddr = -1;
-
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean isInterface) {
     	if (Configuration.FOR_ZK && isRecord(this.ownerSuperCname,this.ownerInterfaces)
     			&& this.name.equals("deserialize")
@@ -111,14 +108,6 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
     			&& this.name.equals("serialize")
     			&& owner.equals("org/apache/jute/OutputArchive")
     			&& name.startsWith("startRecord")) {
-
-			if (DebuggerConf.ZK_START_AND_END_RECORD_DEBUGGER) {
-				super.visitLdcInsn("zk start write record begin: " + name);
-				super.visitMethodInsn(INVOKESTATIC, ZKStartAndEndRecordDebugger.getInternalName(), "debugWithCallStack", "(Ljava/lang/String;)V", false);	
-			}
-			
-			
-
         	Label done = new Label();
     		org.objectweb.asm.tree.FrameNode fn = getCurrentFrameNode();
 
@@ -131,27 +120,6 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
     		super.visitMethodInsn(INVOKEVIRTUAL, "org/apache/jute/BinaryOutputArchive",
     				"getAddr$$FAV", "()Ljava/net/InetAddress;", false);
     		super.visitJumpInsn(Opcodes.IFNULL, done);
-
-			if (DebuggerConf.ZK_START_AND_END_RECORD_DEBUGGER) {
-				super.visitLdcInsn("into the if statement...");
-				super.visitMethodInsn(INVOKESTATIC, ZKStartAndEndRecordDebugger.getInternalName(), "debug",
-						"(Ljava/lang/String;)V", false);
-			}
-
-			super.visitVarInsn(ALOAD, 1);
-    		super.visitTypeInsn(CHECKCAST, "org/apache/jute/BinaryOutputArchive");
-    		super.visitMethodInsn(INVOKEVIRTUAL, "org/apache/jute/BinaryOutputArchive",
-    				"getAddr$$FAV", "()Ljava/net/InetAddress;", false);
-    		super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/net/InetAddress", "getHostAddress", "()Ljava/lang/String;", false);
-
-			int targetNode = lvs.getTmpLV();
-			super.visitVarInsn(Opcodes.ASTORE, targetNode);
-
-			super.visitVarInsn(Opcodes.ALOAD, targetNode);
-			FAV_NEW_LOGIC_CLOCK_MSGID.delegateVisit(mv);
-			int fwhmsg = lvs.getTmpLV();
-			super.visitVarInsn(Opcodes.ASTORE, fwhmsg);
-
 
 	        FAV_GET_RECORD_OUT.delegateVisit(mv);
             int fileOutStream = lvs.getTmpLV();
@@ -173,26 +141,17 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
     		int msgid = lvs.getTmpLV();
             super.visitVarInsn(ISTORE, msgid);
 
-			if (DebuggerConf.ZK_START_AND_END_RECORD_DEBUGGER) {
-				super.visitLdcInsn("before recordOrTrigger");
-				super.visitMethodInsn(INVOKESTATIC, ZKStartAndEndRecordDebugger.getInternalName(), "debug", "(Ljava/lang/String;)V", false);	
-			}
-			
             FAV_GET_TIMESTAMP.delegateVisit(mv);
             super.visitVarInsn(Opcodes.ALOAD, fileOutStream);
 
-            // super.visitVarInsn(ALOAD, 1);
-    		// super.visitTypeInsn(CHECKCAST, "org/apache/jute/BinaryOutputArchive");
-    		// super.visitMethodInsn(INVOKEVIRTUAL, "org/apache/jute/BinaryOutputArchive",
-    		// 		"getAddr$$FAV", "()Ljava/net/InetAddress;", false);
-    		// super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/net/InetAddress", "getHostAddress", "()Ljava/lang/String;", false);
-			// super.visitVarInsn(ILOAD, msgid);
-			// super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-            //         "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
-			
-			super.visitVarInsn(ALOAD, targetNode);
-			super.visitVarInsn(ALOAD, fwhmsg);
-			FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG.delegateVisit(mv);
+            super.visitVarInsn(ALOAD, 1);
+    		super.visitTypeInsn(CHECKCAST, "org/apache/jute/BinaryOutputArchive");
+    		super.visitMethodInsn(INVOKEVIRTUAL, "org/apache/jute/BinaryOutputArchive",
+    				"getAddr$$FAV", "()Ljava/net/InetAddress;", false);
+    		super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/net/InetAddress", "getHostAddress", "()Ljava/lang/String;", false);
+            super.visitVarInsn(ILOAD, msgid);
+            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+                    "combineIpWithMsgid", "(Ljava/lang/String;I)Ljava/lang/String;", false);
 
             /*
             super.visitTypeInsn(NEW, "org/apache/jute/ToStringOutputArchive");
@@ -238,25 +197,11 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
 //            lvs.freeTmpLV(arrayOut);
 //	        lvs.freeTmpLV(stringOut);
 
-			
-
-    		// super.visitVarInsn(Opcodes.ALOAD, 1);
-            // super.visitVarInsn(ILOAD, msgid);
-    		// super.visitLdcInsn("favmsg");
-    		// super.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, "writeInt", "(ILjava/lang/String;)V", true);
-
-			super.visitVarInsn(Opcodes.ALOAD, 1);
-			super.visitVarInsn(ALOAD, fwhmsg);
-			// FWH_TRANSFORM_STRING_TO_BYTEARRAY.delegateVisit(mv);
+    		super.visitVarInsn(Opcodes.ALOAD, 1);
+            super.visitVarInsn(ILOAD, msgid);
     		super.visitLdcInsn("favmsg");
-    		// super.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, "writeBuffer", "([BLjava/lang/String;)V", true);
-			
-			super.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, "writeString", "(Ljava/lang/String;Ljava/lang/String;)V", true);
-
+    		super.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, "writeInt", "(ILjava/lang/String;)V", true);
     		lvs.freeTmpLV(msgid);
-
-			lvs.freeTmpLV(fwhmsg);
-			lvs.freeTmpLV(targetNode);
 
     		super.visitLabel(done);
     		acceptFn(fn);
@@ -264,24 +209,12 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
     			&& this.name.equals("deserialize")
     			&& owner.equals("org/apache/jute/InputArchive")) {
         	if(name.startsWith("startRecord")) {
-
-				if (DebuggerConf.ZK_START_AND_END_RECORD_DEBUGGER) {
-					super.visitLdcInsn("zk start read record begin: " + name);
-					super.visitMethodInsn(INVOKESTATIC, ZKStartAndEndRecordDebugger.getInternalName(), "debugWithCallStack", "(Ljava/lang/String;)V", false);	
-				}
-				
         		super.visitInsn(Opcodes.ICONST_0);
             	shouldTaintMsg = lvs.createPermanentLocalVariable(boolean.class, "FAV_TAINT_MSG");
                 super.visitVarInsn(ISTORE, shouldTaintMsg);
-
-                // super.visitLdcInsn(Integer.MAX_VALUE);
-                // readMsgId = lvs.createPermanentLocalVariable(int.class, "FAV_READ_MSGID");
-                // super.visitVarInsn(ISTORE, readMsgId);
-
-				super.visitLdcInsn("");
-                int readFWHMsg = lvs.createPermanentLocalVariable(String.class, "FAV_READ_MSGID");
-                super.visitVarInsn(ASTORE, readFWHMsg);
-
+                super.visitLdcInsn(Integer.MAX_VALUE);
+                readMsgId = lvs.createPermanentLocalVariable(int.class, "FAV_READ_MSGID");
+                super.visitVarInsn(ISTORE, readMsgId);
 //                super.visitInsn(Opcodes.ACONST_NULL);
                 super.visitLdcInsn("");
                 remoteAddr = lvs.createPermanentLocalVariable(String.class, "FAV_RM_ADDR");
@@ -310,17 +243,10 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
         		super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/net/InetAddress", "getHostAddress", "()Ljava/lang/String;", false);
                 super.visitVarInsn(ASTORE, remoteAddr);
 
-        		// super.visitVarInsn(Opcodes.ALOAD, 1);
-        		// super.visitLdcInsn("favmsg");
-        		// super.visitMethodInsn(INVOKEINTERFACE, owner, "readInt", "(Ljava/lang/String;)I", true);
-        		// super.visitVarInsn(ISTORE, readMsgId);
-
-				super.visitVarInsn(Opcodes.ALOAD, 1);
+        		super.visitVarInsn(Opcodes.ALOAD, 1);
         		super.visitLdcInsn("favmsg");
-        		// super.visitMethodInsn(INVOKEINTERFACE, owner, "readBuffer", "(Ljava/lang/String;)[B", true);
-				super.visitMethodInsn(INVOKEINTERFACE, owner, "readString", "(Ljava/lang/String;)Ljava/lang/String;", true);
-				// FWH_TRANSFORM_BYTEARRAY_TO_STRING.delegateVisit(mv);
-        		super.visitVarInsn(ASTORE, readFWHMsg);
+        		super.visitMethodInsn(INVOKEINTERFACE, owner, "readInt", "(Ljava/lang/String;)I", true);
+        		super.visitVarInsn(ISTORE, readMsgId);
 
         		FAV_GET_RECORD_OUT.delegateVisit(mv);
                 int fileOutStream = lvs.getTmpLV();
@@ -341,19 +267,13 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
                 FAV_GET_TIMESTAMP.delegateVisit(mv);
                 super.visitVarInsn(Opcodes.ALOAD, fileOutStream);
             	super.visitVarInsn(ALOAD, remoteAddr);
-
-            	// super.visitVarInsn(ILOAD, readMsgId);
-                // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                //         "combineIpWithMsgidForRead", "(Ljava/lang/String;I)Ljava/lang/String;", false);
-				
-				super.visitVarInsn(ALOAD, readFWHMsg);
-                FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ.delegateVisit(mv);
+            	super.visitVarInsn(ILOAD, readMsgId);
+                super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+                        "combineIpWithMsgidForRead", "(Ljava/lang/String;I)Ljava/lang/String;", false);
 
                 APP_FAULT_BEFORE.delegateVisit(mv);
 
                 lvs.freeTmpLV(fileOutStream);
-
-				// lvs.freeTmpLV(readFWHMsg);
 
         		super.visitLabel(done);
         		acceptFn(fn);
@@ -380,33 +300,7 @@ public class ZKTrackingMV extends TaintAdapter implements Opcodes {
 //        		super.visitLabel(done);
 //        		acceptFn(fn);
         	}
-			
         }
-		// super.visitMethodInsn(opcode, owner, name, desc, isInterface);
-
-		if (Configuration.FOR_ZK && isRecord(this.ownerSuperCname, this.ownerInterfaces)
-				&& this.name.equals("serialize")
-				&& owner.equals("org/apache/jute/OutputArchive")
-				&& name.startsWith("endRecord")) {
-
-			if (DebuggerConf.ZK_START_AND_END_RECORD_DEBUGGER) {
-				super.visitLdcInsn("zk end write record end: " + name);
-				super.visitMethodInsn(INVOKESTATIC, ZKStartAndEndRecordDebugger.getInternalName(), "debugWithCallStack", "(Ljava/lang/String;)V", false);
-			}
-		}
-		if (Configuration.FOR_ZK && isRecord(this.ownerSuperCname, this.ownerInterfaces)
-				&& this.name.equals("deserialize")
-				&& owner.equals("org/apache/jute/InputArchive") &&
-				name.startsWith("endRecord")) {
-
-			if (DebuggerConf.ZK_START_AND_END_RECORD_DEBUGGER) {
-				super.visitLdcInsn("zk end read record end: " + name);
-				super.visitMethodInsn(INVOKESTATIC, ZKStartAndEndRecordDebugger.getInternalName(), "debugWithCallStack",
-						"(Ljava/lang/String;)V", false);
-			}
-			
-		}
-		
     }
 
     public static void record(Taint addr) {

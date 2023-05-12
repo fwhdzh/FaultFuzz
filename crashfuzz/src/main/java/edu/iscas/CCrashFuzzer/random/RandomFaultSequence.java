@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.iscas.CCrashFuzzer.FaultSequence;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 
@@ -46,6 +45,9 @@ public class RandomFaultSequence {
 		public String actualNodeIp;  //fill at run time
 		public int curAppear;
 		public long waitTimeMillions;
+
+		public List<String> paras;
+		
 		public String toString() {
 			return "FaultPoint=[ WaitTime=["+waitTimeMillions+"]"+", FaultStat=["+stat+"], "+", FaultPos=["+pos+"], "
 		+"tarNodeIp=["+tarNodeIp+"], actualNodeIp=["+actualNodeIp+"] ]";

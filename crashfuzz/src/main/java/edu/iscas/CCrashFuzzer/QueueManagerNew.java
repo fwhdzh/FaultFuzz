@@ -11,8 +11,14 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 public class QueueManagerNew {
 	public static class QueuePair {
 		public QueueEntry seed;
-		public int seedIdx;
 		public QueueEntry mutate;
+
+		/*
+		 * Don't use this to remove QueueEntry from queue!
+		 * If we test more than one QueueEntry as a batch, the index could be changed！
+		 * Use indexOf(seed) or indexOf(mutate) instead!
+		 */
+		public int seedIdx;
 		public int mutateIdx;
 	}
 	public static Set<Integer> tested_fault_id = new HashSet<Integer>();
