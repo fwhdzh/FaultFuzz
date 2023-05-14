@@ -17,4 +17,6 @@ do
   fi
   echo "docker cp $SCRIPT_DIR/fav-env.sh $name:/home/gaoyu/evaluation/hbase-2.5.4"
   docker cp $SCRIPT_DIR/fav-env.sh $name:/home/gaoyu/evaluation/hbase-2.5.4
+  echo "docker cp $SCRIPT_DIR/denylist $name:/home/gaoyu/evaluation/hbase-2.5.4"
+  docker cp $SCRIPT_DIR/denylist $name:/home/gaoyu/evaluation/hbase-2.5.4
 done
