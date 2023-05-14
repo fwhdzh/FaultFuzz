@@ -480,9 +480,14 @@ extends AbstractController
 				replyToNode(outStream, "REBOOT", fIndex.get(), p.curAppear);
 				MaxDownNodes.buildClusterStatus(currentCluster, p.actualNodeIp, FaultStat.REBOOT);
 			} else if (p.stat.equals(FaultStat.NETWORK_DISCONNECT)) {
-				List<String> msgInfo = p.ioPt.getTotalInformationAboutMsgFromPath();
-				String sourceIp = msgInfo.get(1);
-				String destIp = msgInfo.get(2);
+				// List<String> msgInfo = p.ioPt.getTotalInformationAboutMsgFromPath();
+				// String sourceIp = msgInfo.get(1);
+				// String destIp = msgInfo.get(2);
+				if (p.params == null || p.params.size() != 2) {
+					throw new AflException("NETWORK_DISCONNECT fault should have two parameters!");
+				}
+				String sourceIp = p.params.get(0);
+				String destIp = p.params.get(1);
 				List<String> disConnectRst = cluster.networkDisConnect(sourceIp, destIp);
 				if (disConnectRst != null) {
 					rst.addAll(disConnectRst);

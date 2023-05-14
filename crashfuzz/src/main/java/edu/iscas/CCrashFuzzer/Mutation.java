@@ -113,7 +113,12 @@ public class Mutation {
 						}
 					}
 					if (canDisconnectNetwork) {
-						FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.NETWORK_DISCONNECT, FaultPos.BEFORE, ioPointToInject.ip, null);
+						List<String> msgInfo = ioPointToInject.getTotalInformationAboutMsgFromPath();
+						String sourceIp = msgInfo.get(1);
+						String destIp = msgInfo.get(2);
+						FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.NETWORK_DISCONNECT,
+								FaultPos.BEFORE, ioPointToInject.ip, null);
+						p.params = Arrays.asList(sourceIp, destIp);
 						result.add(p);
 					}
 					if (canConnectNetwork) {
