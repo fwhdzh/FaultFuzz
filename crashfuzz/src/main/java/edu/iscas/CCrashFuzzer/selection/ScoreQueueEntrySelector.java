@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.selection;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,11 +6,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import edu.iscas.CCrashFuzzer.Conf;
+import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.Mutation;
+import edu.iscas.CCrashFuzzer.QueueEntry;
+import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.Mutation.EntryAndScore;
-import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
 
-public class QueueEntryPairSelection {
+public class ScoreQueueEntrySelector {
 
     // public static class ScoreField {
     //     public String desc;
@@ -60,7 +65,7 @@ public class QueueEntryPairSelection {
         public static void computeNodeSymmetrySocreInMap(List<EntryAndScoreMap> list) {
             for (EntryAndScoreMap es: list) {
                 FaultPoint lastInjectFaultPoint = es.entry.faultSeq.seq.get(es.entry.faultSeq.seq.size()-1);
-                if (QueueManagerNew.tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
+                if (OldQueueEntrySelector.tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
                     es.scoreMap.put("nodeSymmetry", 20);
                 } else {
                     es.scoreMap.put("nodeSymmetry", 1);
@@ -158,7 +163,7 @@ public class QueueEntryPairSelection {
         public static void decreaseNodeSymmetrySocre(List<EntryAndScore> list) {
             for (EntryAndScore es: list) {
                 FaultPoint lastInjectFaultPoint = es.entry.faultSeq.seq.get(es.entry.faultSeq.seq.size()-1);
-                if (QueueManagerNew.tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
+                if (OldQueueEntrySelector.tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
                     es.score /= 2;
                 }
             }

@@ -1,11 +1,13 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.selection;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
+import edu.iscas.CCrashFuzzer.Conf;
+import edu.iscas.CCrashFuzzer.QueueEntry;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
 
-public class QueueManagerBruteForce {
+public class FIFOQueueEntrySelector {
     public static QueuePair retrieveAnEntry(List<QueueEntry> candidate_queue) {
         QueuePair result = new QueuePair();;
         if (candidate_queue == null || candidate_queue.size() == 0) {

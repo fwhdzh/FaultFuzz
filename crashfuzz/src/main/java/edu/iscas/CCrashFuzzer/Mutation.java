@@ -11,6 +11,7 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.Network.NetworkPath;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
 
 public class Mutation {
 
@@ -420,7 +421,7 @@ public class Mutation {
 		boolean result = false;
 		FaultPoint lastFault = entry.faultSeq.seq.get(entry.faultSeq.seq.size() - 1);
 		int id = lastFault.getFaultID();
-		result = !QueueManagerNew.tested_fault_id.contains(id);
+		result = !OldQueueEntrySelector.tested_fault_id.contains(id);
 		return result;
 	}
 

@@ -11,11 +11,12 @@ import java.util.Scanner;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
-import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
 import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismTarget.TryBestDeterminismTResult;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class Fuzzer {
@@ -172,7 +173,7 @@ public class Fuzzer {
     	FaultPoint tmpLastFault = q.mutate.faultSeq.seq.get(q.mutate.faultSeq.seq.size()-1);
 		int tmpID = tmpLastFault.getFaultID();
 		q.seed.not_tested_fault_id.remove(tmpID);
-		QueueManagerNew.tested_fault_id.add(tmpID);
+		OldQueueEntrySelector.tested_fault_id.add(tmpID);
     	
 		FaultPoint injected_fault = tmpLastFault;
 		
@@ -449,6 +450,13 @@ public class Fuzzer {
 		}
 	}
 
+	public static class CrashFuzzerMinusFilter {
+		public static boolean checkIfInteresting(int faultMode, int nb, QueueEntry q) {
+			if (faultMode != 0) return false;
+			return true;
+		}
+	}
+
 	//0 triggered, no bug
 	//1 triggered, non-hang bug
 	//2 triggered, hang bug
@@ -466,6 +474,7 @@ public class Fuzzer {
 		updateQInSaveIfInterestring(q, faultMode, testID, seedQ, nb, exec_seconds);
 		
 		if (CoverageFilter.checkIfInteresting(faultMode, nb, q)) {
+		// if (CrashFuzzerMinusFilter.checkIfInteresting(faultMode, nb, q)) {
 			updateQWithTrace(q, testID);
 			addToQueueAndMutateInSaveIfInterestring(q, testID, seedQ);
 		}
@@ -668,8 +677,8 @@ public class Fuzzer {
 
 			// List<QueuePair> pairList = QueueManagerNew.retrievePairListInTranditionFuzzingProcess(candidate_queue, conf);
 
-			// List<QueuePair> pairList = QueueManagerNew.retrievePairListInFAVFuzzingProcess(candidate_queue, conf);
-			List<QueuePair> pairList = QueueManagerBruteForce.retrieveAPairList(candidate_queue, conf);
+			List<QueuePair> pairList = OldQueueEntrySelector.retrievePairListInFAVFuzzingProcess(candidate_queue, conf);
+			// List<QueuePair> pairList = QueueManagerBruteForce.retrieveAPairList(candidate_queue, conf);
 			for (QueuePair pair : pairList) {
 				doARun(pair);
 			}

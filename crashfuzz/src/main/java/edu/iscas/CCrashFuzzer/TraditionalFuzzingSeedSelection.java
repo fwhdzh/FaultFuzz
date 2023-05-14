@@ -7,8 +7,9 @@ import java.util.Random;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.Mutation.EntryAndScore;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
 
-public class SeedSelection {
+public class TraditionalFuzzingSeedSelection {
 
     static Random rand = new Random();
 
@@ -22,8 +23,8 @@ public class SeedSelection {
     		list.add(new EntryAndScore(entry, 0));
     	}
 
-    	SeedSelection.appendGlobalNewIOSocre(list);
-        SeedSelection.appendPerfSocre(list);
+    	TraditionalFuzzingSeedSelection.appendGlobalNewIOSocre(list);
+        TraditionalFuzzingSeedSelection.appendPerfSocre(list);
 
         EntryAndScore.logScoresList("seeds", list);
 
@@ -60,7 +61,7 @@ public class SeedSelection {
             List<FaultPoint> faultPointsToMutates = q.faultPointsToMutate;
             
             for (FaultPoint fp : faultPointsToMutates) {
-                if (!QueueManagerNew.tested_fault_id.contains(fp.getFaultID())) {
+                if (!OldQueueEntrySelector.tested_fault_id.contains(fp.getFaultID())) {
                     e.score += 1;
                 }
             }

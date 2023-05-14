@@ -11,6 +11,8 @@ import java.util.Set;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
+
 public class RecoveryManagerFWH {
 
     // private Conf conf;
@@ -99,7 +101,7 @@ public class RecoveryManagerFWH {
     }
 
     public void recordTestedFaultId(String filepath) {
-    	String message = JSONObject.toJSONString(QueueManagerNew.tested_fault_id);
+    	String message = JSONObject.toJSONString(OldQueueEntrySelector.tested_fault_id);
     	FileOutputStream out;
     	try {
     		out = new FileOutputStream(filepath, false);
@@ -125,7 +127,7 @@ public class RecoveryManagerFWH {
     		String s = oriList.get(0);
     		Set<Integer> c = (Set)JSON.parseObject(s, Set.class);
     		Stat.log(JSONObject.toJSONString(c));
-    		QueueManagerNew.tested_fault_id = c;
+    		OldQueueEntrySelector.tested_fault_id = c;
     	} catch (IOException e) {
     		e.printStackTrace();
     	}

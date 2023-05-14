@@ -10,14 +10,15 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.QueueManagerNew.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
 
 public class QueueManagerNewTest {
 
     public static List<QueueEntry> prepareEntryAndTestFaultIdSet() {
         List<QueueEntry> result = new ArrayList<QueueEntry>();
-        QueueManagerNew.tested_fault_id.add(1);
-        QueueManagerNew.tested_fault_id.add(3);
+        OldQueueEntrySelector.tested_fault_id.add(1);
+        OldQueueEntrySelector.tested_fault_id.add(3);
         FaultPoint fp1 = Mockito.mock(FaultPoint.class);
         when(fp1.getFaultID()).thenReturn(1);
         FaultPoint fp2 = Mockito.mock(FaultPoint.class);
@@ -50,7 +51,7 @@ public class QueueManagerNewTest {
         List<QueueEntry> list = new ArrayList<QueueEntry>();
         list.add(seedEntry1);
         list.add(seedEntry2);
-        QueuePair pair = QueueManagerNew.tryToGetAQueueEntryWithGlobalNewPoint(list);
+        QueuePair pair = OldQueueEntrySelector.tryToGetAQueueEntryWithGlobalNewPoint(list);
         Stat.log(pair.mutate.faultSeq.seq.get(0).getFaultID());
         Assert.assertEquals(entry1.faultSeq, pair.mutate.faultSeq);
         Assert.assertEquals(seedEntry1.faultSeq, pair.seed.faultSeq);

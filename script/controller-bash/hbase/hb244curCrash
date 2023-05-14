@@ -1,0 +1,9 @@
+fault point=-824555953
+event=NETWORK_DISCONNECT
+pos=BEFORE
+nodeIp=172.27.0.2
+ioID=-1999728394
+ioCallStack=[org.apache.hadoop.hbase.shaded.protobuf.generated.ClientProtos$ClientService$BlockingStub.multi(ClientProtos.java), org.apache.hadoop.hbase.client.MultiServerCallable.rpcCall(MultiServerCallable.java:128), org.apache.hadoop.hbase.client.MultiServerCallable.rpcCall(MultiServerCallable.java:48), org.apache.hadoop.hbase.client.RegionServerCallable.call(RegionServerCallable.java:127), org.apache.hadoop.hbase.client.CancellableRegionServerCallable.call(CancellableRegionServerCallable.java:67), org.apache.hadoop.hbase.client.RpcRetryingCallerImpl.callWithoutRetries(RpcRetryingCallerImpl.java:193), org.apache.hadoop.hbase.client.AsyncRequestFutureImpl$SingleServerRequestRunnable.run(AsyncRequestFutureImpl.java:207), java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511), java.util.concurrent.FutureTask.run(FutureTask.java:266), java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149), java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624), java.lang.Thread.run(Thread.java:748)]
+path=FAVMSG:172.27.0.4&202#44
+ioAppearIdx=4
+end

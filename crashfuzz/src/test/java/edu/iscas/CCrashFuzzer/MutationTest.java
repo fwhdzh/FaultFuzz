@@ -11,14 +11,15 @@ import org.mockito.Mockito;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.Mutation.EntryAndScore;
+import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
 
 public class MutationTest {
 
     @Test
     public void testIntergerHashSet() {
-        QueueManagerNew.tested_fault_id.add(1);
-        QueueManagerNew.tested_fault_id.add(3);
-        Assert.assertTrue(QueueManagerNew.tested_fault_id.contains(new Integer(1)));
+        OldQueueEntrySelector.tested_fault_id.add(1);
+        OldQueueEntrySelector.tested_fault_id.add(3);
+        Assert.assertTrue(OldQueueEntrySelector.tested_fault_id.contains(new Integer(1)));
     }
 
     @Test

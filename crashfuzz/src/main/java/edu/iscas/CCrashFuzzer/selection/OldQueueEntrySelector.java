@@ -1,4 +1,4 @@
-package edu.iscas.CCrashFuzzer;
+package edu.iscas.CCrashFuzzer.selection;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -6,9 +6,15 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import edu.iscas.CCrashFuzzer.Conf;
+import edu.iscas.CCrashFuzzer.FuzzConf;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
+import edu.iscas.CCrashFuzzer.Mutation;
+import edu.iscas.CCrashFuzzer.QueueEntry;
+import edu.iscas.CCrashFuzzer.Stat;
+import edu.iscas.CCrashFuzzer.TraditionalFuzzingSeedSelection;
 
-public class QueueManagerNew {
+public class OldQueueEntrySelector {
 	public static class QueuePair {
 		public QueueEntry seed;
 		public QueueEntry mutate;
@@ -51,7 +57,7 @@ public class QueueManagerNew {
 		// if (p != null) {
 		// 	result.add(p);
 		// }
-		List<QueuePair> result = QueueEntryPairSelection.retrieveAPairList(candidate_queue, conf);
+		List<QueuePair> result = ScoreQueueEntrySelector.retrieveAPairList(candidate_queue, conf);
 		return result;
 	}
 
@@ -64,11 +70,12 @@ public class QueueManagerNew {
 	// 	}
 	// }
 
+	@Deprecated
 	public static List<QueuePair> retrievePairListInTranditionFuzzingProcess(List<QueueEntry> candidate_queue, Conf conf) {
 		List<QueuePair> result = new ArrayList<QueuePair>();
-		QueueEntry seed = SeedSelection.retrieveSeedInTranditionalFuzzingProcess(candidate_queue);
+		QueueEntry seed = TraditionalFuzzingSeedSelection.retrieveSeedInTranditionalFuzzingProcess(candidate_queue);
 		int seedIdx = candidate_queue.indexOf(seed);
-		Stat.log(QueueManagerNew.class , "Select seed: " + seedIdx);
+		Stat.log(OldQueueEntrySelector.class , "Select seed: " + seedIdx);
 		if (!seed.was_fuzzed) {
 			Mutation.mutateFaultSequence(seed, conf);
 		}
@@ -88,7 +95,7 @@ public class QueueManagerNew {
 	public static QueuePair tryToGetAQueueEntryWithGlobalNewPoint(List<QueueEntry> candidate_queue) {
 		QueuePair result = null;
 		int totalSum = 0;
-	    if(QueueManagerNew.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
+	    if(OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
 	    	Stat.log("Check entry in global not_tested");
 	    	totalSum = 0;
 	    	for(QueueEntry q:candidate_queue) {
@@ -159,7 +166,7 @@ public class QueueManagerNew {
 	private static QueuePair tryToGetAQueueEntryWithRecovery(List<QueueEntry> candidate_queue) {
 		QueuePair result = null;
 		int totalSum = 0;
-		if(QueueManagerNew.getRandomNumber(100) < FuzzConf.SKIP_NFAV_OLD_PROB) {
+		if(OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_NFAV_OLD_PROB) {
 	    	Stat.log("Check entry on_recovery");
 	    	totalSum = 0;
 	    	for(QueueEntry q:candidate_queue) {
@@ -209,7 +216,7 @@ public class QueueManagerNew {
 	private static QueuePair tryToGetAQueueEntryWithLocalNewPoint(List<QueueEntry> candidate_queue) {
 		QueuePair result = null;
 		int totalSum = 0;
-		if(QueueManagerNew.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
+		if(OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
 	    	Stat.log("Check entry in local not_tested_fault_id");
 	    	totalSum = 0;
 	    	for(QueueEntry q:candidate_queue) {
@@ -254,7 +261,7 @@ public class QueueManagerNew {
 	private static QueuePair tryToGetAQueueEntryWithFavoredMutates(List<QueueEntry> candidate_queue) {
 		QueuePair result = null;
 		int totalSum = 0;
-		if(QueueManagerNew.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
+		if(OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
 	    	Stat.log("Check favored entries");
 	    	totalSum = 0;
 		    
@@ -362,7 +369,7 @@ public class QueueManagerNew {
 			
 			if(favored> 0 || untested_io > 0 || !q.on_recovery_mutates.isEmpty()) {
 				//long no new coverage
-				int rand_num = QueueManagerNew.getRandomNumber(100);
+				int rand_num = OldQueueEntrySelector.getRandomNumber(100);
 				if(no_new_cov_pro > 0.5 && rand_num < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
 					return -1;
 				} else if (no_new_cov_pro > 0.4 && rand_num < FuzzConf.SKIP_TO_OTHER_ENTRY_4) {
@@ -376,11 +383,11 @@ public class QueueManagerNew {
 				}
 				
 				if((!tmp.favored || q.was_fuzzed) &&
-				         QueueManagerNew.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
+				         OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
 					continue;
 				}
 			} else if (!tmp.favored) {
-				int rand_num = QueueManagerNew.getRandomNumber(100);
+				int rand_num = OldQueueEntrySelector.getRandomNumber(100);
 				if (queue_cycle> 1 && !q.was_fuzzed && rand_num < FuzzConf.SKIP_NFAV_NEW_PROB) {
 					return -1;
 				} else if (rand_num < FuzzConf.SKIP_NFAV_OLD_PROB) {
@@ -404,12 +411,12 @@ public class QueueManagerNew {
 			//retrive a mutation or skip to queue
 			QueueEntry tmp = mutates.get(pick);
 			if(!tmp.favored && favored> 0 &&
-			         QueueManagerNew.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
+			         OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
 				continue;
 			}
 			
 			if(favored == 0) {
-				int rand_num = QueueManagerNew.getRandomNumber(100);
+				int rand_num = OldQueueEntrySelector.getRandomNumber(100);
 				if (rand_num < FuzzConf.SKIP_NFAV_NEW_PROB) {
 					return -1;
 				}
