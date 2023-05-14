@@ -17,127 +17,12 @@ public class Mutation {
 
 	static Random random = new Random();
 
-	// public static void mutateFaultSequenceOld(QueueEntry q, Conf conf) {
-	// 	List<QueueEntry> mutates = new ArrayList<QueueEntry>();
-	// 	FaultSequence original_faults = q.faultSeq;
-		
-	// 	int io_index = q.candidate_io;
-	// 	int fault_index = q.max_match_fault;
-		
-	// 	if(io_index == q.ioSeq.size() || fault_index < original_faults.seq.size() || original_faults.seq.size() >= conf.MAX_FAULTS) {
-	// 		//no I/O points to inject a new fault
-	// 		//or current I/O points do not match with the fault sequence
-	// 		q.mutates = mutates;
-	// 		// q.favored_mutates = q.mutates;
-	// 		q.favored_mutates = new ArrayList<QueueEntry>(mutates);
-	// 		return;
-	// 	}
-
-
-	// 	List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(conf.maxDownGroup);
-	// 	for(FaultPoint fault:original_faults.seq) {
-	// 		MaxDownNodes.buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
-	// 	}
-		
-	// 	int lastIO = q.ioSeq.size();
-	// 	Stat.log("Start to check fault point from "+io_index+" th I/O point for "+q.ioSeq.size()+" I/O points.");
-		
-	// 	for(int curIO = io_index; curIO< lastIO; curIO++) {
-	// 		for(MaxDownNodes subCluster:currentCluster) {
-	// 			if(subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip)
-	// 					|| subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip)) {
-	// 				boolean canCrash = subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip) && (subCluster.maxDown-1)>=0;
-	// 				boolean canReboot = subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(q.ioSeq.get(curIO).ip);
-
-	// 				boolean canDisconnectNetwork = subCluster.aliveGroup.contains(q.ioSeq.get(curIO).ip) && (q.ioSeq.get(curIO).PATH.startsWith("FAVMSG"))
-	// 					&& (!q.ioSeq.get(curIO).PATH.startsWith("FAVMSG:READ"));
-
-	// 				if(canCrash) {
-
-	// 					IOPoint ioPt = q.ioSeq.get(curIO);
-	// 					FaultPoint p = new FaultPoint(ioPt, curIO, FaultStat.CRASH, FaultPos.BEFORE, ioPt.ip, null);
-
-	// 					FaultSequence faults = new FaultSequence();
-	// 					prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(original_faults, p, faults);
-
-	// 					QueueEntry new_q = new QueueEntry(faults, q.ioSeq, true, q.bitmap_size, q.exec_s, 0);
-						
-	// 					updateUntestedFaultInformationField(q, p);
-	// 					updateRecoveryInformationField(q, p, faults, new_q);
-						
-	// 					mutates.add(new_q);
-	// 				}
-	// 				if(canReboot) {
-	// 					for(String rebootNode:subCluster.deadGroup) {
-														
-	// 						FaultPoint p = new FaultPoint(q.ioSeq.get(curIO), curIO, FaultStat.REBOOT, FaultPos.BEFORE, rebootNode, null);
-
-	// 						FaultSequence faults = new FaultSequence();
-	// 						prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(original_faults, p, faults);
-							
-	// 						QueueEntry new_q = new QueueEntry(faults, q.ioSeq, true, q.bitmap_size, q.exec_s, 0);
-
-	// 						updateUntestedFaultInformationField(q, p);
-	// 						updateRecoveryInformationField(q, p, faults, new_q);
-							
-	// 						mutates.add(new_q);
-	// 					}
-	// 				}	
-	// 				if (canDisconnectNetwork) {
-
-	// 					IOPoint ioPt = q.ioSeq.get(curIO);
-	// 					FaultPoint p = new FaultPoint(ioPt, curIO, FaultStat.NETWORK_DISCONNECT, FaultPos.BEFORE, ioPt.ip, null);
-
-	// 					FaultSequence faults = new FaultSequence();
-	// 					prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(original_faults, p, faults);
-
-	// 					QueueEntry new_q = new QueueEntry(faults, q.ioSeq, true, q.bitmap_size, q.exec_s, 0);
-
-	// 					updateUntestedFaultInformationField(q, p);
-	// 					updateRecoveryInformationField(q, p, faults, new_q);
-
-	// 					mutates.add(new_q);
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	Stat.log("Got "+mutates.size()+" mutations.");
-
-	// 	q.mutates = mutates;
-
-	// 	// initializeLocalNotTestedFaultId(q);
-	// 	// initializeOnRecoveryMutates(q);
-	
-	// 	q.favored_mutates = new ArrayList<QueueEntry>(mutates);
-	// 	// q.globalNewIOMutates = collectGlobelNewIOMutates(q.favored_mutates);
-	// }
-
 	private static void prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(FaultSequence original_faults, FaultPoint p, FaultSequence faults) {
 		faults.seq = new ArrayList<FaultPoint>();
 		faults.seq.addAll(original_faults.seq);
 		faults.seq.add(p);
 		faults.reset();
 	}
-
-	// private static void updateRecoveryInformationField(QueueEntry q, FaultPoint p, FaultSequence faults, QueueEntry new_q) {
-	// 	if(q.on_recovery_mutates == null) {
-	// 		q.on_recovery_mutates = new ArrayList<QueueEntry>();
-	// 	}
-	// 	if(q.recovery_io_id.contains(p.ioPt.ioID)) {
-	// 		faults.on_recovery = true;
-	// 	}
-	// 	if(faults.on_recovery) {
-	// 		q.on_recovery_mutates.add(new_q);
-	// 	}
-	// }
-
-	// private static void updateUntestedFaultInformationField(QueueEntry q, FaultPoint p) {
-	// 	if(q.not_tested_fault_id == null) {
-	// 		q.not_tested_fault_id = new HashSet<Integer>();
-	// 	}
-	// 	int faultid = p.getFaultID();
-	// 	q.not_tested_fault_id.add(faultid);
-	// }
 
 	public static void mutateFaultSequence(QueueEntry q, Conf conf) {
 		
@@ -191,7 +76,6 @@ public class Mutation {
 			return result;
 		}
 
-
 		List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(conf.maxDownGroup);
 		for(FaultPoint fault:original_faults.seq) {
 			MaxDownNodes.buildClusterStatus(currentCluster, fault.tarNodeIp, fault.stat);
@@ -215,7 +99,6 @@ public class Mutation {
 				IOPoint ioPointToInject = q.ioSeq.get(curIO);
 				if(subCluster.aliveGroup.contains(ioPointToInject.ip)
 						|| subCluster.deadGroup.contains(ioPointToInject.ip)) {
-					
 					boolean canCrash = Conf.s.contains(FaultStat.CRASH) ? (subCluster.aliveGroup.contains(ioPointToInject.ip) && (subCluster.maxDown-1)>=0) : false;
 					boolean canReboot =  Conf.s.contains(FaultStat.REBOOT) ? (subCluster.deadGroup.size()>0 && !subCluster.deadGroup.contains(ioPointToInject.ip)) : false;
 					boolean canDisconnectNetwork = Conf.s.contains(FaultStat.NETWORK_DISCONNECT) ? checkCanDisconnectNetwork(network, ioPointToInject, subCluster) : false;
@@ -338,85 +221,6 @@ public class Mutation {
 	// 	return result;
 	// }
 
-	public static class EntryAndScore implements Comparable<EntryAndScore> {
-
-		static Random rand = new Random();
-
-		public QueueEntry entry;
-		public int score;
-		public EntryAndScore(QueueEntry entry, int score) {
-			this.entry = entry;
-			this.score = score;
-		}
-		@Override
-		public int compareTo(EntryAndScore o) {
-			// TODO Auto-generated method stub
-			int result = this.score - o.score;
-			// result = 0 - result;
-			return result;
-		}
-
-		public static List<QueueEntry> retriveAEntryListAndScoreBasedOnScore(List<Mutation.EntryAndScore> list, int k) {
-		    List<QueueEntry> result = new ArrayList<>();
-		    if (list.size() == 0) {
-		        return result;
-		    }
-		    if (list.size() < k) {
-				for (Mutation.EntryAndScore e: list) {
-					result.add(e.entry);
-				}
-		        return result;
-		    }
-			List<Mutation.EntryAndScore> mList = new ArrayList<>(list);
-			for (int i = 0; i < k; i++) {
-				Mutation.EntryAndScore e = Mutation.EntryAndScore.retriveAnEntryAndScoreBasedOnScore(mList);
-				result.add(e.entry);
-				mList.remove(e);
-			}
-		    return result;
-		}
-
-		public static EntryAndScore retriveAnEntryAndScoreBasedOnScore(List<EntryAndScore> list) {
-            EntryAndScore result = null;
-            if (list.size() == 0) {
-                return null;
-            }
-            int totalSum = 0;
-            for (EntryAndScore e:list) {
-                totalSum = totalSum + e.score;
-            }
-            if (totalSum == 0) {
-                return list.get(rand.nextInt(list.size()));
-            }
-            int bound = rand.nextInt(totalSum);
-			Stat.log(EntryAndScore.class, "bound selected is: " + bound);
-            int nTotal = 0;
-            int index = -1;
-            for (int i = 0; i < list.size(); i++) {
-                nTotal = nTotal + list.get(i).score;
-                if (nTotal > bound) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index >= 0) {
-                result = list.get(index);
-            }
-			Stat.log(EntryAndScore.class, "selected index is: " + index);
-            return result;
-        }
-
-        public static void logScoresList(String title, List<EntryAndScore> list) {
-		    String logInfo = title + " score: {";
-		    for (int i = 0; i < list.size(); i++) {
-		        logInfo = logInfo + i + ":" + list.get(i).score + ",";
-		    }
-		    logInfo = logInfo + "}";
-		    Stat.log(EntryAndScore.class , logInfo);
-		}
-		
-	}
-
 	public static boolean checkIfEntryIsGlobalNewIO(QueueEntry entry) {
 		boolean result = false;
 		FaultPoint lastFault = entry.faultSeq.seq.get(entry.faultSeq.seq.size() - 1);
@@ -425,64 +229,8 @@ public class Mutation {
 		return result;
 	}
 
-	public static void appendGlobalNewIOSocre(List<QueueEntry> mutates, List<Integer> scores) {
-		if (mutates.size() != scores.size()) return;
-		for (int i = 0; i < mutates.size(); i++) {
-			QueueEntry entry = mutates.get(i);
-			if (checkIfEntryIsGlobalNewIO(entry)) {
-				int s = scores.get(i);
-				s = s + 1;
-				scores.set(i, s);
-			}
-		}
-	}
-
-	public static void appendGlobalNewIOSocre(List<QueueEntry> mutates, int[] scores) {
-		if (mutates.size() != scores.length)
-			return;
-		for (int i = 0; i < mutates.size(); i++) {
-			if (checkIfEntryIsGlobalNewIO(mutates.get(i))) {
-				scores[i]++;
-			}
-		}
-	}
-
-	public static void appendGlobalNewIOSocre(List<EntryAndScore> list) {
-		for (EntryAndScore es: list) {
-			if (checkIfEntryIsGlobalNewIO(es.entry)) {
-				es.score++;
-			}
-		}
-	}
-
-	public static boolean checkIfEntryIsRecovery(QueueEntry entry) {
-		boolean result = false;
-		result = entry.faultSeq.on_recovery;
-		return result;
-	}
-
-	public static void appendRecoveryScore(List<EntryAndScore> list) {
-		for (EntryAndScore es: list) {
-			if (checkIfEntryIsRecovery(es.entry)) {
-				es.score++;
-			}
-		}
-	}
-
-	public static void appendLocalNewIOScore(QueueEntry oriEntry, List<EntryAndScore> list) {
-		for (EntryAndScore es : list) {
-			List<FaultPoint> seq = es.entry.faultSeq.seq;
-			FaultPoint lastFault = seq.get(seq.size() - 1);
-			int id = lastFault.getFaultID();
-			if (oriEntry.not_tested_fault_id.contains(id)) {
-				es.score++;
-			}
-		}
-	}
-
-
-	
-	public static List<QueueEntry> mutateFaultSequence_backup(QueueEntry q) {
+	@Deprecated
+	private static List<QueueEntry> mutateFaultSequence_backup(QueueEntry q) {
 		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
 //		int random = getRandomNumber(q.ioSeq.size());
 		for(IOPoint pickedPt:q.ioSeq) {
@@ -504,7 +252,9 @@ public class Mutation {
 		}
 		return mutates;
 	}
-	public static List<QueueEntry> mutateTwoSimilarSeq(QueueEntry q){
+
+	@Deprecated
+	private static List<QueueEntry> mutateTwoSimilarSeq(QueueEntry q){
 		List<QueueEntry> mutates = new ArrayList<QueueEntry>();
 //		int random = getRandomNumber(q.ioSeq.size());
 		for(int i = 0; i<q.ioSeq.size()-1; i++) {
@@ -550,35 +300,5 @@ public class Mutation {
 	public static int getRandomNumber(int limit) {
 		int num = (int) (Math.random() * limit);
 		return num;
-	}
-
-	public static List<QueueEntry> getMutationEntry(QueueEntry seed, Conf conf) {
-		List<QueueEntry> result = new ArrayList<QueueEntry>();
-		List<EntryAndScore> mList = new ArrayList<EntryAndScore>();
-		for (QueueEntry entry : seed.mutates) {
-			mList.add(new EntryAndScore(entry, 0));
-		}
-
-		appendGlobalNewIOSocre(mList);
-		appendRecoveryScore(mList);
-		appendLocalNewIOScore(seed, mList);
-
-		EntryAndScore.logScoresList("mutates", mList);
-
-		// mList.sort(new Comparator<EntryAndScore>() {
-		// 	@Override
-		// 	public int compare(EntryAndScore o1, EntryAndScore o2) {
-		// 		return o2.score - o1.score;
-		// 	}
-		// });
-
-		// int k = conf.MUTATE_CHOOSE;
-		// for (int i = 0; i < k; i++) {
-		// 	result.add(mList.get(i).entry);
-		// }
-
-		int k = conf.FAULT_SEQUENCE_BATCH_SIZE;
-		result = EntryAndScore.retriveAEntryListAndScoreBasedOnScore(mList, k);
-		return result;
 	}
 }

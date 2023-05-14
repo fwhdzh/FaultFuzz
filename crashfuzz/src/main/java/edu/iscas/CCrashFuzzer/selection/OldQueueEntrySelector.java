@@ -9,10 +9,12 @@ import java.util.Set;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FuzzConf;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
+import edu.iscas.CCrashFuzzer.selection.score.ScoreQueueEntrySelector;
+import edu.iscas.CCrashFuzzer.traditionalworkflow.TraditionalFuzzingSeedSelection;
+import edu.iscas.CCrashFuzzer.traditionalworkflow.TranditionalFuzzingMutationSelector;
 import edu.iscas.CCrashFuzzer.Mutation;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.TraditionalFuzzingSeedSelection;
 
 public class OldQueueEntrySelector {
 	public static class QueuePair {
@@ -69,28 +71,6 @@ public class OldQueueEntrySelector {
 	// 		this.score = score;
 	// 	}
 	// }
-
-	@Deprecated
-	public static List<QueuePair> retrievePairListInTranditionFuzzingProcess(List<QueueEntry> candidate_queue, Conf conf) {
-		List<QueuePair> result = new ArrayList<QueuePair>();
-		QueueEntry seed = TraditionalFuzzingSeedSelection.retrieveSeedInTranditionalFuzzingProcess(candidate_queue);
-		int seedIdx = candidate_queue.indexOf(seed);
-		Stat.log(OldQueueEntrySelector.class , "Select seed: " + seedIdx);
-		if (!seed.was_fuzzed) {
-			Mutation.mutateFaultSequence(seed, conf);
-		}
-		List<QueueEntry> mutations = Mutation.getMutationEntry(seed, conf);
-		for (QueueEntry mutate: mutations) {
-			QueuePair pair = new QueuePair();
-			pair.seed = seed;
-			pair.mutate = mutate;
-			pair.seedIdx = seedIdx;
-			pair.mutateIdx = seed.mutates.indexOf(mutate);
-			Stat.log("Retrieve entry in retrievePairListFWH:"+pair.seedIdx+":"+pair.mutateIdx);
-			result.add(pair);
-		}
-		return result;
-	}
 
 	public static QueuePair tryToGetAQueueEntryWithGlobalNewPoint(List<QueueEntry> candidate_queue) {
 		QueuePair result = null;
@@ -172,7 +152,7 @@ public class OldQueueEntrySelector {
 	    	for(QueueEntry q:candidate_queue) {
 		    	for(QueueEntry m:q.on_recovery_mutates) {
 
-					if (Mutation.checkIfEntryIsRecovery(m)) {
+					if (TranditionalFuzzingMutationSelector.checkIfEntryIsRecovery(m)) {
 						totalSum += m.getPerfScore();
 					}
 
@@ -191,7 +171,7 @@ public class OldQueueEntrySelector {
 		        	 for(j = 0; j<candidate_queue.get(i).on_recovery_mutates.size() && sum < index; j++) {
 
 						QueueEntry e = candidate_queue.get(i).on_recovery_mutates.get(j);
-						if (Mutation.checkIfEntryIsRecovery(e)) {
+						if (TranditionalFuzzingMutationSelector.checkIfEntryIsRecovery(e)) {
 							sum = sum + e.getPerfScore();
 						}
 

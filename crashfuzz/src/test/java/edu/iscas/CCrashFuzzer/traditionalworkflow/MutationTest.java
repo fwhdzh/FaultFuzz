@@ -1,16 +1,13 @@
-package edu.iscas.CCrashFuzzer;
-
-import static org.mockito.Mockito.when;
+package edu.iscas.CCrashFuzzer.traditionalworkflow;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.Mutation.EntryAndScore;
+import edu.iscas.CCrashFuzzer.QueueEntry;
+import edu.iscas.CCrashFuzzer.QueueManagerNewTest;
 import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
 
 public class MutationTest {
@@ -34,7 +31,7 @@ public class MutationTest {
         scores.add(0);
         scores.add(0);
         
-        Mutation.appendGlobalNewIOSocre(mutates, scores);
+        TranditionalFuzzingMutationSelector.appendGlobalNewIOSocre(mutates, scores);
         Assert.assertEquals(1, (int) scores.get(0));
         Assert.assertEquals(0, (int) scores.get(1));
     }
@@ -48,7 +45,7 @@ public class MutationTest {
         mutates.add(entry1);
         mutates.add(entry2);
         int[] scores = new int[mutates.size()];
-        Mutation.appendGlobalNewIOSocre(mutates, scores);
+        TranditionalFuzzingMutationSelector.appendGlobalNewIOSocre(mutates, scores);
         Assert.assertEquals(1, scores[0]);
         Assert.assertEquals(0, scores[1]);
     }
@@ -57,10 +54,10 @@ public class MutationTest {
     public void testEntryAndScoreComparable() {
         QueueEntry entry1 = new QueueEntry();
         QueueEntry entry2 = new QueueEntry();
-        EntryAndScore e1 = new EntryAndScore(entry1, 1);
-        EntryAndScore e2 = new EntryAndScore(entry2, 2);
+        TranditionalFuzzingMutationSelector.EntryAndScore e1 = new TranditionalFuzzingMutationSelector.EntryAndScore(entry1, 1);
+        TranditionalFuzzingMutationSelector.EntryAndScore e2 = new TranditionalFuzzingMutationSelector.EntryAndScore(entry2, 2);
         Assert.assertTrue(e1.compareTo(e2) < 0);
-        List<EntryAndScore> list = new ArrayList<EntryAndScore>();
+        List<TranditionalFuzzingMutationSelector.EntryAndScore> list = new ArrayList<TranditionalFuzzingMutationSelector.EntryAndScore>();
         list.add(e2);
         list.add(e1);
         list.sort(null);
