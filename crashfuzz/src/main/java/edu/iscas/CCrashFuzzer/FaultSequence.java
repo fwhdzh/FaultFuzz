@@ -18,6 +18,7 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 	public boolean isEmpty() {
 		return this.equals(empty);
 	}
+
 	public void reset() {
 		if(seq == null || seq.isEmpty()) {
 			curFault.set(-1);;
@@ -63,6 +64,14 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 		// need more than one parameter, such as networkConnect.
 		@Deprecated
 		public String tarNodeIp;
+
+		/**
+		 * Crashfuzz only use this field to determine which node to inject 
+		 * in runtime. But not stored in fault sequence.
+		 * In paricular, if in a test, targerNode is node 1 and actual node is node 2.
+		 * After this test, the fault sequence is still thought to inject fault to node 1.
+		 * And the actualNode will be reset to null in reset function. 
+		 */
 		public String actualNodeIp;  //fill at run time
 		public int curAppear;
 
@@ -98,6 +107,11 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 
 		public int getFaultID() {
 			int result = (ioPt.CALLSTACK+stat.toString()+tarNodeIp).hashCode();
+			return result;
+		}
+
+		public int getFaultIDWithOutIPInfo() {
+			int result = (ioPt.CALLSTACK+stat.toString()).hashCode();
 			return result;
 		}
 

@@ -53,6 +53,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		boolean findBug = checkIfABugExist(runInfoPath);
 		mResult = generateTryBestDeterminismTResult(finishWorkload, controllerResult.allFaultsAreInjected , findBug);
 		Stat.log("TryBestDeterminismTResult is "+mResult.result);
+		Stat.log("a_exec_seconds is "+a_exec_seconds + "seconds");
 		return mResult;
     }
 

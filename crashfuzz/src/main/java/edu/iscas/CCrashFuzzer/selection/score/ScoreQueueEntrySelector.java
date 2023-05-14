@@ -1,14 +1,12 @@
 package edu.iscas.CCrashFuzzer.selection.score;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
 
 public class ScoreQueueEntrySelector {
 
@@ -17,16 +15,6 @@ public class ScoreQueueEntrySelector {
     //     public int score;
     // } 
 
-    public static class EntryAndScoreMap {
-        public QueueEntry entry;
-        public Map<String, Long> scoreMap = new HashMap<>();
-
-        public EntryAndScoreMap(QueueEntry entry) {
-            this.entry = entry; 
-        }
-    }
-
-    
     public static EntryAndScore retriveAnEntryAndScoreBasedOnScore(List<EntryAndScore> list) {
         EntryAndScore result = null;
         if (list.size() == 0) {
@@ -78,8 +66,8 @@ public class ScoreQueueEntrySelector {
         return result;
     }
 
-    public static List<QueuePair> retrieveAPairList(List<QueueEntry> candidate_queue, Conf conf) {
-        List<QueuePair> result = new ArrayList<QueuePair>();
+    public static List<SelectionInfo.QueuePair> retrieveAPairList(List<QueueEntry> candidate_queue, Conf conf) {
+        List<SelectionInfo.QueuePair> result = new ArrayList<SelectionInfo.QueuePair>();
         List<QueueEntry> queue = new ArrayList<QueueEntry>();
         for (QueueEntry seed: candidate_queue) {
             for (QueueEntry m:seed.mutates) {
@@ -88,13 +76,14 @@ public class ScoreQueueEntrySelector {
         }
 
         // List<EntryAndScore> list = ScoreAddedStrategy.computeTotalScore(queue);
-        List<EntryAndScore> list = ScoreCombinedStrategy.computeTotalScore(queue);
+        // List<EntryAndScore> list = ScoreCombinedStrategy.computeTotalScore(queue);
+        List<EntryAndScore> list = FWHScoreStrategy.computeTotalScore(queue);
 
         EntryAndScore.logScoresList("retrieveAPairList", list);
         int k = conf.FAULT_SEQUENCE_BATCH_SIZE;
         List<QueueEntry> entryList = retriveAEntryListAndScoreBasedOnScore(list, k);
         for (QueueEntry m: entryList) {
-            QueuePair pair = new QueuePair();
+            SelectionInfo.QueuePair pair = new SelectionInfo.QueuePair();
             pair.seed = m.father;
             pair.seedIdx = candidate_queue.indexOf(pair.seed);
             pair.mutate = m;

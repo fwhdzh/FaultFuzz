@@ -6,9 +6,9 @@ import java.util.Random;
 
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.Mutation;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
 
 // import edu.iscas.CCrashFuzzer.Mutation.EntryAndScore;
 
@@ -45,7 +45,7 @@ public class TranditionalFuzzingMutationSelector {
 
     public static void appendGlobalNewIOSocre(List<EntryAndScore> list) {
     	for (EntryAndScore es: list) {
-    		if (Mutation.checkIfEntryIsGlobalNewIO(es.entry)) {
+    		if (SelectionInfo.checkIfEntryIsGlobalNewIO(es.entry)) {
     			es.score++;
     		}
     	}
@@ -55,7 +55,7 @@ public class TranditionalFuzzingMutationSelector {
     	if (mutates.size() != scores.size()) return;
     	for (int i = 0; i < mutates.size(); i++) {
     		QueueEntry entry = mutates.get(i);
-    		if (Mutation.checkIfEntryIsGlobalNewIO(entry)) {
+    		if (SelectionInfo.checkIfEntryIsGlobalNewIO(entry)) {
     			int s = scores.get(i);
     			s = s + 1;
     			scores.set(i, s);
@@ -67,7 +67,7 @@ public class TranditionalFuzzingMutationSelector {
     	if (mutates.size() != scores.length)
     		return;
     	for (int i = 0; i < mutates.size(); i++) {
-    		if (Mutation.checkIfEntryIsGlobalNewIO(mutates.get(i))) {
+    		if (SelectionInfo.checkIfEntryIsGlobalNewIO(mutates.get(i))) {
     			scores[i]++;
     		}
     	}

@@ -1,44 +1,25 @@
 package edu.iscas.CCrashFuzzer.selection;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.Conf;
-import edu.iscas.CCrashFuzzer.FuzzConf;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.selection.score.ScoreQueueEntrySelector;
-import edu.iscas.CCrashFuzzer.traditionalworkflow.TraditionalFuzzingSeedSelection;
-import edu.iscas.CCrashFuzzer.traditionalworkflow.TranditionalFuzzingMutationSelector;
-import edu.iscas.CCrashFuzzer.Mutation;
+import edu.iscas.CCrashFuzzer.FuzzConf;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
+import edu.iscas.CCrashFuzzer.selection.score.ScoreQueueEntrySelector;
+import edu.iscas.CCrashFuzzer.traditionalworkflow.TranditionalFuzzingMutationSelector;
 
 public class OldQueueEntrySelector {
-	public static class QueuePair {
-		public QueueEntry seed;
-		public QueueEntry mutate;
-
-		/*
-		 * Don't use this to remove QueueEntry from queue!
-		 * If we test more than one QueueEntry as a batch, the index could be changed！
-		 * Use indexOf(seed) or indexOf(mutate) instead!
-		 */
-		public int seedIdx;
-		public int mutateIdx;
-	}
-	public static Set<Integer> tested_fault_id = new HashSet<Integer>();
-
 	static Random rand = new Random();
 
 
-	public static QueuePair retrieveAnEntry(List<QueueEntry> candidate_queue) {
+	public static SelectionInfo.QueuePair retrieveAnEntry(List<QueueEntry> candidate_queue) {
 		if(candidate_queue == null ||candidate_queue.isEmpty()) {
 			return null;
 		}
-		QueuePair result = null;
+		SelectionInfo.QueuePair result = null;
 		result = tryToGetAQueueEntryWithGlobalNewPoint(candidate_queue);
 		if (result != null) return result;
 		result = tryToGetAQueueEntryWithRecovery(candidate_queue);
@@ -53,13 +34,13 @@ public class OldQueueEntrySelector {
 		return result;
 	}
 
-	public static List<QueuePair> retrievePairListInFAVFuzzingProcess(List<QueueEntry> candidate_queue, Conf conf) {
+	public static List<SelectionInfo.QueuePair> retrievePairListInFAVFuzzingProcess(List<QueueEntry> candidate_queue, Conf conf) {
 		// List<QueuePair> result = new ArrayList<QueuePair>();
 		// QueuePair p = retrieveAnEntry(candidate_queue);
 		// if (p != null) {
 		// 	result.add(p);
 		// }
-		List<QueuePair> result = ScoreQueueEntrySelector.retrieveAPairList(candidate_queue, conf);
+		List<SelectionInfo.QueuePair> result = ScoreQueueEntrySelector.retrieveAPairList(candidate_queue, conf);
 		return result;
 	}
 
@@ -72,8 +53,8 @@ public class OldQueueEntrySelector {
 	// 	}
 	// }
 
-	public static QueuePair tryToGetAQueueEntryWithGlobalNewPoint(List<QueueEntry> candidate_queue) {
-		QueuePair result = null;
+	public static SelectionInfo.QueuePair tryToGetAQueueEntryWithGlobalNewPoint(List<QueueEntry> candidate_queue) {
+		SelectionInfo.QueuePair result = null;
 		int totalSum = 0;
 	    if(OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_TO_NEW_PROB) {
 	    	Stat.log("Check entry in global not_tested");
@@ -81,7 +62,7 @@ public class OldQueueEntrySelector {
 	    	for(QueueEntry q:candidate_queue) {
 	    		for(QueueEntry m:q.mutates) {
 					
-					if (Mutation.checkIfEntryIsGlobalNewIO(m)) {
+					if (SelectionInfo.checkIfEntryIsGlobalNewIO(m)) {
 						totalSum += m.getPerfScore();
 					}
 
@@ -103,7 +84,7 @@ public class OldQueueEntrySelector {
 		        	for(j = 0; j<candidate_queue.get(i).mutates.size() && sum < index; j++) {
 
 						QueueEntry e = candidate_queue.get(i).mutates.get(j);
-						if (Mutation.checkIfEntryIsGlobalNewIO(e)) {
+						if (SelectionInfo.checkIfEntryIsGlobalNewIO(e)) {
 							sum = sum + e.getPerfScore();
 						}
 
@@ -127,15 +108,15 @@ public class OldQueueEntrySelector {
 		return result;
 	}
 
-	private static QueuePair updateHandicapAndConstructQueuePair(List<QueueEntry> candidate_queue, int seedIdx, int mutateIdx) {
-		QueuePair result = null;
+	private static SelectionInfo.QueuePair updateHandicapAndConstructQueuePair(List<QueueEntry> candidate_queue, int seedIdx, int mutateIdx) {
+		SelectionInfo.QueuePair result = null;
 		if (candidate_queue.get(seedIdx).mutates.get(mutateIdx).handicap >= 4) {
 			candidate_queue.get(seedIdx).mutates.get(mutateIdx).handicap -= 4;
 		} else if (candidate_queue.get(seedIdx).mutates.get(mutateIdx).handicap > 0) {
 			candidate_queue.get(seedIdx).mutates.get(mutateIdx).handicap--;
 		}
 		
-		result = new QueuePair();
+		result = new SelectionInfo.QueuePair();
 		result.seedIdx = seedIdx;
 		result.seed = candidate_queue.get(result.seedIdx);
 		result.mutateIdx = mutateIdx;
@@ -143,8 +124,8 @@ public class OldQueueEntrySelector {
 		return result;
 	}
 
-	private static QueuePair tryToGetAQueueEntryWithRecovery(List<QueueEntry> candidate_queue) {
-		QueuePair result = null;
+	private static SelectionInfo.QueuePair tryToGetAQueueEntryWithRecovery(List<QueueEntry> candidate_queue) {
+		SelectionInfo.QueuePair result = null;
 		int totalSum = 0;
 		if(OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_NFAV_OLD_PROB) {
 	    	Stat.log("Check entry on_recovery");
@@ -193,8 +174,8 @@ public class OldQueueEntrySelector {
 		return result;
 	}
 
-	private static QueuePair tryToGetAQueueEntryWithLocalNewPoint(List<QueueEntry> candidate_queue) {
-		QueuePair result = null;
+	private static SelectionInfo.QueuePair tryToGetAQueueEntryWithLocalNewPoint(List<QueueEntry> candidate_queue) {
+		SelectionInfo.QueuePair result = null;
 		int totalSum = 0;
 		if(OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
 	    	Stat.log("Check entry in local not_tested_fault_id");
@@ -238,8 +219,8 @@ public class OldQueueEntrySelector {
 		return result;
 	}
 
-	private static QueuePair tryToGetAQueueEntryWithFavoredMutates(List<QueueEntry> candidate_queue) {
-		QueuePair result = null;
+	private static SelectionInfo.QueuePair tryToGetAQueueEntryWithFavoredMutates(List<QueueEntry> candidate_queue) {
+		SelectionInfo.QueuePair result = null;
 		int totalSum = 0;
 		if(OldQueueEntrySelector.getRandomNumber(100) < FuzzConf.SKIP_TO_OTHER_ENTRY_5) {
 	    	Stat.log("Check favored entries");
@@ -277,8 +258,8 @@ public class OldQueueEntrySelector {
 		return result;
 	}
 
-	private static QueuePair tryToGetAQueueEntryWithRandom(List<QueueEntry> candidate_queue) {
-		QueuePair result = null;
+	private static SelectionInfo.QueuePair tryToGetAQueueEntryWithRandom(List<QueueEntry> candidate_queue) {
+		SelectionInfo.QueuePair result = null;
 		int totalSum = 0;
 		totalSum = 0;
 	    for(QueueEntry q:candidate_queue) {

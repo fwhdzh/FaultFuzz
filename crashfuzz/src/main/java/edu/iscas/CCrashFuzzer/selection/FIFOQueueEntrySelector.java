@@ -5,11 +5,11 @@ import java.util.List;
 
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.QueueEntry;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo.QueuePair;
 
 public class FIFOQueueEntrySelector {
-    public static QueuePair retrieveAnEntry(List<QueueEntry> candidate_queue) {
-        QueuePair result = new QueuePair();;
+    public static SelectionInfo.QueuePair retrieveAnEntry(List<QueueEntry> candidate_queue) {
+        SelectionInfo.QueuePair result = new SelectionInfo.QueuePair();;
         if (candidate_queue == null || candidate_queue.size() == 0) {
             return null;
         }
@@ -20,8 +20,8 @@ public class FIFOQueueEntrySelector {
         return result;
     }
 
-    public static List<QueuePair> retrieveAPairList(List<QueueEntry> candidate_queue, Conf conf) {
-        List<QueuePair> result = new ArrayList<QueuePair>();
+    public static List<SelectionInfo.QueuePair> retrieveAPairList(List<QueueEntry> candidate_queue, Conf conf) {
+        List<SelectionInfo.QueuePair> result = new ArrayList<SelectionInfo.QueuePair>();
         List<QueueEntry> queue = new ArrayList<QueueEntry>();
         for (QueueEntry seed: candidate_queue) {
             for (QueueEntry m:seed.mutates) {
@@ -32,7 +32,7 @@ public class FIFOQueueEntrySelector {
         int k = conf.FAULT_SEQUENCE_BATCH_SIZE;
         for (int i = 0; i < Math.min(queue.size(), k); i++) {
             QueueEntry entry = queue.get(i);
-            QueuePair pair = new QueuePair();
+            SelectionInfo.QueuePair pair = new SelectionInfo.QueuePair();
             pair.seed = entry.father;
             pair.seedIdx = candidate_queue.indexOf(pair.seed);
             pair.mutate = entry;

@@ -8,15 +8,15 @@ import org.junit.Test;
 
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.QueueManagerNewTest;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
 
 public class MutationTest {
 
     @Test
     public void testIntergerHashSet() {
-        OldQueueEntrySelector.tested_fault_id.add(1);
-        OldQueueEntrySelector.tested_fault_id.add(3);
-        Assert.assertTrue(OldQueueEntrySelector.tested_fault_id.contains(new Integer(1)));
+        SelectionInfo.tested_fault_id.add(1);
+        SelectionInfo.tested_fault_id.add(3);
+        Assert.assertTrue(SelectionInfo.tested_fault_id.contains(new Integer(1)));
     }
 
     @Test

@@ -4,22 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
-import edu.iscas.CCrashFuzzer.selection.score.ScoreQueueEntrySelector.EntryAndScoreMap;
 
 public class ScoreCombinedStrategy {
-    public static void computeBasicSocreInMap(List<EntryAndScoreMap> list) {
-        for(EntryAndScoreMap e:list) {
+    public static void computeBasicSocreInMap(List<EntryAndScore.EntryAndScoreMap> list) {
+        for(EntryAndScore.EntryAndScoreMap e:list) {
             long basicSocre = 100;
             e.scoreMap.put("basic", basicSocre);
         }
     }
 
-    public static void computePerfSocreInMap(List<EntryAndScoreMap> list) {
-        for(EntryAndScoreMap e:list) {
+    public static void computePerfSocreInMap(List<EntryAndScore.EntryAndScoreMap> list) {
+        for(EntryAndScore.EntryAndScoreMap e:list) {
             long perfScore = e.entry.father.getPerfScore();
             e.scoreMap.put("perf", perfScore);
         }
@@ -31,8 +30,8 @@ public class ScoreCombinedStrategy {
         return result;
     }
 
-    public static void computRecoveryScoreInMap(List<EntryAndScoreMap> list) {
-        for(EntryAndScoreMap e:list) {
+    public static void computRecoveryScoreInMap(List<EntryAndScore.EntryAndScoreMap> list) {
+        for(EntryAndScore.EntryAndScoreMap e:list) {
             long recoveryScore = 1;
             if (checkIfEntryIsRecovery(e.entry)) {
                 recoveryScore = 5;
@@ -43,11 +42,11 @@ public class ScoreCombinedStrategy {
         }
     }
 
-    public static void computeNodeSymmetrySocreInMap(List<EntryAndScoreMap> list) {
-        for (EntryAndScoreMap es: list) {
+    public static void computeNodeSymmetrySocreInMap(List<EntryAndScore.EntryAndScoreMap> list) {
+        for (EntryAndScore.EntryAndScoreMap es: list) {
             long nodeSymmetryScore = 1;
             FaultPoint lastInjectFaultPoint = es.entry.faultSeq.seq.get(es.entry.faultSeq.seq.size()-1);
-            if (OldQueueEntrySelector.tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
+            if (SelectionInfo.tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
                 nodeSymmetryScore = 20;
             } else {
                 nodeSymmetryScore = 1;
@@ -56,8 +55,8 @@ public class ScoreCombinedStrategy {
         }
     }
 
-    public static void computeCotinuesIPPointInOneNodeSocreInMap(List<EntryAndScoreMap> list) {
-        for (EntryAndScoreMap es: list) {
+    public static void computeCotinuesIPPointInOneNodeSocreInMap(List<EntryAndScore.EntryAndScoreMap> list) {
+        for (EntryAndScore.EntryAndScoreMap es: list) {
             long cotinuesIPPointInOneNodeScore = 1;
             FaultPoint lastInjectFaultPoint = es.entry.faultSeq.seq.get(es.entry.faultSeq.seq.size()-1);
             if (es.entry.father.not_tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
@@ -69,11 +68,11 @@ public class ScoreCombinedStrategy {
         }
     }
 
-    public static void logPartScores(String title, List<EntryAndScoreMap> list) {
+    public static void logPartScores(String title, List<EntryAndScore.EntryAndScoreMap> list) {
 	    String logInfo = title + " score: {";
 	    for (int i = 0; i < list.size(); i++) {
 	        logInfo = logInfo + i + ":" + "{" ;
-            EntryAndScoreMap es = list.get(i);
+            EntryAndScore.EntryAndScoreMap es = list.get(i);
             for (Entry<String, Long> e: es.scoreMap.entrySet()) {
                 logInfo = logInfo + e.getKey() + ":" + e.getValue() + ",";
             }
@@ -85,9 +84,9 @@ public class ScoreCombinedStrategy {
 
     public static List<EntryAndScore> computeTotalScore(List<QueueEntry> queue) {
         List<EntryAndScore> result = new ArrayList<>();
-        List<EntryAndScoreMap> list = new ArrayList<>();
+        List<EntryAndScore.EntryAndScoreMap> list = new ArrayList<>();
         for (QueueEntry qe: queue) {
-            EntryAndScoreMap emp = new EntryAndScoreMap(qe);
+            EntryAndScore.EntryAndScoreMap emp = new EntryAndScore.EntryAndScoreMap(qe);
             list.add(emp);
         }
         // use list as args to give the possiblity to use global information
@@ -100,7 +99,7 @@ public class ScoreCombinedStrategy {
         for (int i = 0; i < queue.size(); i++) {
             QueueEntry qe = queue.get(i);
             EntryAndScore es = new EntryAndScore(qe, 0);
-            EntryAndScoreMap emp = list.get(i);
+            EntryAndScore.EntryAndScoreMap emp = list.get(i);
             long basicSocre = emp.scoreMap.get("basic");
             long perfSocre = emp.scoreMap.get("perf");
             long recoverySocre = emp.scoreMap.get("recovery");

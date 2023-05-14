@@ -5,7 +5,7 @@ import java.util.List;
 
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
 
 @Deprecated
 public class ScoreAddedStrategy {
@@ -40,7 +40,7 @@ public class ScoreAddedStrategy {
     public static void decreaseNodeSymmetrySocre(List<EntryAndScore> list) {
         for (EntryAndScore es: list) {
             FaultPoint lastInjectFaultPoint = es.entry.faultSeq.seq.get(es.entry.faultSeq.seq.size()-1);
-            if (OldQueueEntrySelector.tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
+            if (SelectionInfo.tested_fault_id.contains(lastInjectFaultPoint.getFaultID())) {
                 es.score /= 2;
             }
         }

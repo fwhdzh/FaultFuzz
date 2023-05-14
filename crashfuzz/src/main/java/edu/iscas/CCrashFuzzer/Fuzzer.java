@@ -16,7 +16,7 @@ import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismTarget.TryBestDeterminismTResult;
 import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class Fuzzer {
@@ -102,7 +102,7 @@ public class Fuzzer {
 
 		TryBestDeterminismTarget target = new TryBestDeterminismTarget();
 		FaultSeqAndIOSeq faultSeqAndIOSeq = new FaultSeqAndIOSeq(q.faultSeq, q.ioSeq);
-		target.beforeTarget(faultSeqAndIOSeq, conf, "init", conf.DETERMINE_WAIT_TIME);
+		target.beforeTarget(faultSeqAndIOSeq, conf, "init", conf.hangSeconds);
 		target.doTarget();
 		TryBestDeterminismTResult tbdResult = target.afterTarget();
 		int rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.result);
@@ -154,7 +154,7 @@ public class Fuzzer {
 	   function is a tad too long... returns 0 if fuzzed successfully, 1 if
 	   skipped or bailed out. */
 
-	public void updateQueuePair(QueuePair q) {
+	public void updateQueuePair(SelectionInfo.QueuePair q) {
 
 		// q.seed.faultPointsToMutate.remove(q.mutateIdx);
     	// q.seed.mutates.remove(q.mutateIdx);
@@ -173,7 +173,9 @@ public class Fuzzer {
     	FaultPoint tmpLastFault = q.mutate.faultSeq.seq.get(q.mutate.faultSeq.seq.size()-1);
 		int tmpID = tmpLastFault.getFaultID();
 		q.seed.not_tested_fault_id.remove(tmpID);
-		OldQueueEntrySelector.tested_fault_id.add(tmpID);
+		SelectionInfo.tested_fault_id.add(tmpID);
+
+		SelectionInfo.testedFault.add(tmpLastFault);
     	
 		FaultPoint injected_fault = tmpLastFault;
 		
@@ -187,7 +189,7 @@ public class Fuzzer {
     	}
 	}
 
-	private void updateFavorListOfQ(QueuePair q, FaultPoint injected_fault) {
+	private void updateFavorListOfQ(SelectionInfo.QueuePair q, FaultPoint injected_fault) {
 		int startLoc = (q.mutateIdx-10)>=0? q.mutateIdx-10:0;
 		long tmpTime = q.seed.mutates.get(startLoc).faultSeq.seq.get(q.seed.mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
 		while((injected_fault.ioPt.TIMESTAMP - tmpTime) < conf.similarBehaviorWindow
@@ -677,9 +679,9 @@ public class Fuzzer {
 
 			// List<QueuePair> pairList = QueueManagerNew.retrievePairListInTranditionFuzzingProcess(candidate_queue, conf);
 
-			List<QueuePair> pairList = OldQueueEntrySelector.retrievePairListInFAVFuzzingProcess(candidate_queue, conf);
+			List<SelectionInfo.QueuePair> pairList = OldQueueEntrySelector.retrievePairListInFAVFuzzingProcess(candidate_queue, conf);
 			// List<QueuePair> pairList = QueueManagerBruteForce.retrieveAPairList(candidate_queue, conf);
-			for (QueuePair pair : pairList) {
+			for (SelectionInfo.QueuePair pair : pairList) {
 				doARun(pair);
 			}
 
@@ -715,7 +717,7 @@ public class Fuzzer {
         }
 	}
 
-	public void doARun(QueuePair q) {
+	public void doARun(SelectionInfo.QueuePair q) {
 		Stat.log("Going to test queue entry " + q.seedIdx + "'s mutation:" + q.mutateIdx);
 		int exec_rst = common_fuzz_stuff(q.mutate, q.seed);
 		q.seed.was_fuzzed = true;

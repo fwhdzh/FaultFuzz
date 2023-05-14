@@ -1,13 +1,24 @@
 package edu.iscas.CCrashFuzzer.selection.score;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
 
 class EntryAndScore implements Comparable<EntryAndScore> {
-    static Random rand = new Random();
+    public static class EntryAndScoreMap {
+	    public QueueEntry entry;
+	    public Map<String, Long> scoreMap = new HashMap<>();
+	
+	    public EntryAndScoreMap(QueueEntry entry) {
+	        this.entry = entry; 
+	    }
+	}
+
+	static Random rand = new Random();
     
     	public QueueEntry entry;
     	public long score;

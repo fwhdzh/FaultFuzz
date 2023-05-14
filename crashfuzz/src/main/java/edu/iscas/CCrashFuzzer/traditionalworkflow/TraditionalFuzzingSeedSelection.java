@@ -12,15 +12,16 @@ import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo.QueuePair;
 
 public class TraditionalFuzzingSeedSelection {
 
     static Random rand = new Random();
 
     @Deprecated
-	public static List<QueuePair> retrievePairListInTranditionFuzzingProcess(List<QueueEntry> candidate_queue, Conf conf) {
-		List<QueuePair> result = new ArrayList<QueuePair>();
+	public static List<SelectionInfo.QueuePair> retrievePairListInTranditionFuzzingProcess(List<QueueEntry> candidate_queue, Conf conf) {
+		List<SelectionInfo.QueuePair> result = new ArrayList<SelectionInfo.QueuePair>();
 		QueueEntry seed = TraditionalFuzzingSeedSelection.retrieveSeedInTranditionalFuzzingProcess(candidate_queue);
 		int seedIdx = candidate_queue.indexOf(seed);
 		Stat.log(OldQueueEntrySelector.class , "Select seed: " + seedIdx);
@@ -29,7 +30,7 @@ public class TraditionalFuzzingSeedSelection {
 		}
 		List<QueueEntry> mutations = TranditionalFuzzingMutationSelector.getMutationEntry(seed, conf);
 		for (QueueEntry mutate: mutations) {
-			QueuePair pair = new QueuePair();
+			SelectionInfo.QueuePair pair = new SelectionInfo.QueuePair();
 			pair.seed = seed;
 			pair.mutate = mutate;
 			pair.seedIdx = seedIdx;
@@ -88,7 +89,7 @@ public class TraditionalFuzzingSeedSelection {
             List<FaultPoint> faultPointsToMutates = q.faultPointsToMutate;
             
             for (FaultPoint fp : faultPointsToMutates) {
-                if (!OldQueueEntrySelector.tested_fault_id.contains(fp.getFaultID())) {
+                if (!SelectionInfo.tested_fault_id.contains(fp.getFaultID())) {
                     e.score += 1;
                 }
             }

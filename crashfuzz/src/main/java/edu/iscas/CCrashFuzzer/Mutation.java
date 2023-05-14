@@ -11,7 +11,6 @@ import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.Network.NetworkPath;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
 
 public class Mutation {
 
@@ -220,14 +219,6 @@ public class Mutation {
 		
 	// 	return result;
 	// }
-
-	public static boolean checkIfEntryIsGlobalNewIO(QueueEntry entry) {
-		boolean result = false;
-		FaultPoint lastFault = entry.faultSeq.seq.get(entry.faultSeq.seq.size() - 1);
-		int id = lastFault.getFaultID();
-		result = !OldQueueEntrySelector.tested_fault_id.contains(id);
-		return result;
-	}
 
 	@Deprecated
 	private static List<QueueEntry> mutateFaultSequence_backup(QueueEntry q) {

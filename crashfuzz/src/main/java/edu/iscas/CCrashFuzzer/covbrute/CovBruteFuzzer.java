@@ -30,7 +30,7 @@ import edu.iscas.CCrashFuzzer.Mutation;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo.QueuePair;
 import edu.iscas.CCrashFuzzer.RecoveryManager;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.TraceReader;
