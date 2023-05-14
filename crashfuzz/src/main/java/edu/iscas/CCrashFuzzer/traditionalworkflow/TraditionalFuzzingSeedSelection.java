@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Random;
 
 import edu.iscas.CCrashFuzzer.Conf;
-import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.Mutation;
 import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.Stat;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
 import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
-import edu.iscas.CCrashFuzzer.selection.SelectionInfo.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.score.ScoreQueueEntrySelector;
 
 public class TraditionalFuzzingSeedSelection {
 
@@ -24,7 +22,7 @@ public class TraditionalFuzzingSeedSelection {
 		List<SelectionInfo.QueuePair> result = new ArrayList<SelectionInfo.QueuePair>();
 		QueueEntry seed = TraditionalFuzzingSeedSelection.retrieveSeedInTranditionalFuzzingProcess(candidate_queue);
 		int seedIdx = candidate_queue.indexOf(seed);
-		Stat.log(OldQueueEntrySelector.class , "Select seed: " + seedIdx);
+		Stat.log(ScoreQueueEntrySelector.class , "Select seed: " + seedIdx);
 		if (!seed.was_fuzzed) {
 			Mutation.mutateFaultSequence(seed, conf);
 		}

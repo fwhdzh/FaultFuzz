@@ -1,9 +1,9 @@
 package edu.iscas.CCrashFuzzer.filter;
 
-import edu.iscas.CCrashFuzzer.QueueEntry;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
+import edu.iscas.CCrashFuzzer.QueueEntry;
 
-public class CoverageFilter {
+public class CoverageGuidedFilter {
 	public static boolean checkIfInteresting(int faultMode, int novalBasicBlock, QueueEntry q) {
 		boolean result = false;
 		if (faultMode != 0) return false;

@@ -77,6 +77,14 @@ public class Conf {
     public static List<FaultStat> s = Arrays.asList(FaultStat.values());
     // public static List<FaultStat> s = Arrays.asList(FaultStat.CRASH, FaultStat.REBOOT);
 
+    public enum EVALUATE_TARGET_SET {
+        CrashFuzzer,
+        CrashFuzzerMinus,
+        BruteForce
+    }
+
+    public EVALUATE_TARGET_SET EVALUATE_TARGET;
+
 	
 	public Conf(File configFile) {
 		FAV_TRIGGER_CONFIG = configFile;
@@ -336,26 +344,35 @@ public class Conf {
         	CLUSTER_LOGS_IN_CONTROLLER_DIR = clusterlogsInControllerDir;
         }
 
-        String networkDisconnection = p.getProperty(ConfOption.NETWORK_DISCONNECTION.toString());
-        if (networkDisconnection != null) {
-            if (!networkDisconnection.startsWith("/")) {
-                networkDisconnection = workdir + networkDisconnection;
+        String networkDisconnect = p.getProperty(ConfOption.NETWORK_DISCONNECTION.toString());
+        if (networkDisconnect != null) {
+            if (!networkDisconnect.startsWith("/")) {
+                networkDisconnect = workdir + networkDisconnect;
             }
-            File f = new File(networkDisconnection);
+            File f = new File(networkDisconnect);
             if (f.exists()) {
                 NETWORK_DISCONNECT = f;
             }
         }
 
-        String networkConnection = p.getProperty(ConfOption.NETWORK_CONNECTION.toString());
-        if (networkConnection != null) {
-            if (!networkConnection.startsWith("/")) {
-                networkConnection = workdir + networkConnection;
+        String networkConnect = p.getProperty(ConfOption.NETWORK_CONNECTION.toString());
+        if (networkConnect != null) {
+            if (!networkConnect.startsWith("/")) {
+                networkConnect = workdir + networkConnect;
             }
-            File f = new File(networkConnection);
+            File f = new File(networkConnect);
             if (f.exists()) {
                 NETWORK_CONNECT = f;
             }
+        }
+
+        String evaluateTarget = p.getProperty(ConfOption.EVALUATE_TARGET.toString());
+        // System.out.println(evaluateTarget);
+        if(evaluateTarget != null) {
+        	EVALUATE_TARGET = EVALUATE_TARGET_SET.valueOf(evaluateTarget);
+        } else {
+            EVALUATE_TARGET = EVALUATE_TARGET_SET.CrashFuzzer;
+            // System.out.println(EVALUATE_TARGET);
         }
 
         
@@ -390,6 +407,10 @@ public class Conf {
         System.out.println("Recovery candidate queue path: " + (RECOVERY_MODE ? RECOVERY_CANDIDATEQUEUE_PATH : ""));
         System.out.println("Recovery tested fault id path: " + (RECOVERY_MODE ? RECOVERY_TESTEDFAULTID_PATH : ""));
         System.out.println("Recovery virgin bits path: " + (RECOVERY_MODE ? RECOVERY_VIRGINBITS_PATH : ""));
+
+        System.out.println("networkDisConnect script: " + NETWORK_DISCONNECT.getAbsolutePath());
+        System.out.println("networkConnect script: " + NETWORK_CONNECT.getAbsolutePath());
+        System.out.println("evaluate target: " + EVALUATE_TARGET.toString());
 
         System.out.println("=======================================================================");
     }

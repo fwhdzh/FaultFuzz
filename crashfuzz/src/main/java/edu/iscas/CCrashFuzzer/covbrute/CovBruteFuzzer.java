@@ -1,39 +1,29 @@
 package edu.iscas.CCrashFuzzer.covbrute;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.CoverageCollector;
 import edu.iscas.CCrashFuzzer.FaultSequence;
-import edu.iscas.CCrashFuzzer.FuzzConf;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.FuzzInfo;
-import edu.iscas.CCrashFuzzer.Fuzzer;
 import edu.iscas.CCrashFuzzer.IOPoint;
 import edu.iscas.CCrashFuzzer.Monitor;
 import edu.iscas.CCrashFuzzer.Mutation;
 import edu.iscas.CCrashFuzzer.QueueEntry;
-import edu.iscas.CCrashFuzzer.control.NormalTarget;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
-import edu.iscas.CCrashFuzzer.selection.SelectionInfo.QueuePair;
 import edu.iscas.CCrashFuzzer.RecoveryManager;
 import edu.iscas.CCrashFuzzer.Stat;
 import edu.iscas.CCrashFuzzer.TraceReader;
+import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class CovBruteFuzzer {

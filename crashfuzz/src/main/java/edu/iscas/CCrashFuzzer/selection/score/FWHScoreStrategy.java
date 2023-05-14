@@ -70,8 +70,6 @@ public class FWHScoreStrategy {
             FaultPoint lastInjectFaultPoint = es.entry.faultSeq.seq.get(es.entry.faultSeq.seq.size()-1);
             boolean symmetry = false;
             for (Entry<String, Set<FaultPoint>> entry: nodeToFaults.entrySet()) {
-                Stat.log("lastInjectFaultPoint.ioPt.ip" + lastInjectFaultPoint.ioPt.ip);
-                Stat.log("entry.getKey()" + entry.getKey());
                 if (!entry.getKey().equals(lastInjectFaultPoint.ioPt.ip)) {
                     Set<FaultPoint> nodeFPSet = entry.getValue();
                     for (FaultPoint fp: nodeFPSet) {

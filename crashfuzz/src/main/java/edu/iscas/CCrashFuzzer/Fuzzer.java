@@ -9,14 +9,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
+import edu.iscas.CCrashFuzzer.Conf.EVALUATE_TARGET_SET;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
 import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismTarget.TryBestDeterminismTResult;
-import edu.iscas.CCrashFuzzer.filter.CoverageFilter;
-import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
+import edu.iscas.CCrashFuzzer.filter.CoverageGuidedFilter;
+import edu.iscas.CCrashFuzzer.filter.EnumerationFilter;
+import edu.iscas.CCrashFuzzer.selection.FIFOQueueEntrySelector;
 import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
+import edu.iscas.CCrashFuzzer.selection.SelectionInfo.QueuePair;
+import edu.iscas.CCrashFuzzer.selection.score.ScoreQueueEntrySelector;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class Fuzzer {
@@ -375,7 +379,7 @@ public class Fuzzer {
 			FuzzInfo.lastNewCovFaults = q.faultSeq.seq.size();
 			FuzzInfo.updateTimeToFaulsToNewCovTestsNum(q);
 		}
-		if (CoverageFilter.checkIfInteresting(faultMode, nb, q)) // imply faultMode == 0
+		if (CoverageGuidedFilter.checkIfInteresting(faultMode, nb, q)) // imply faultMode == 0
 		{
 			Stat.log("*********************Test "+testID+" is ADDED to queue*********************");
 		} else {
@@ -415,7 +419,7 @@ public class Fuzzer {
 
 	private void copyFileToCorrespondingDirByFaultMode(QueueEntry q, int faultMode, String testID, String seedName, int nb, List<String> logInfo) {
 		long usedSeconds = FuzzInfo.getUsedSeconds();
-		if (CoverageFilter.checkIfInteresting(faultMode, nb, q)) // imply faultMode == 0
+		if (CoverageGuidedFilter.checkIfInteresting(faultMode, nb, q)) // imply faultMode == 0
 		{
 			FileUtil.copyToQueue(testID, conf);
 		} else {
@@ -455,8 +459,17 @@ public class Fuzzer {
 
 		updateQInSaveIfInterestring(q, faultMode, testID, seedQ, nb, exec_seconds);
 		
-		if (CoverageFilter.checkIfInteresting(faultMode, nb, q)) {
-		// if (CrashFuzzerMinusFilter.checkIfInteresting(faultMode, nb, q)) {
+		boolean isInteresting = false;
+		if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzer || conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzerMinus) {
+			Stat.log("use CoverageFilter to checkIfInteresting...");
+			isInteresting = CoverageGuidedFilter.checkIfInteresting(faultMode, nb, q);
+		} 
+		if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.BruteForce) {
+			Stat.log("use CrashFuzzerMinusFilter to checkIfInteresting...");
+			isInteresting = EnumerationFilter.checkIfInteresting(faultMode, nb, q);
+		}
+		Stat.log("checkIfInteresting result is: " + isInteresting);
+		if (isInteresting) {
 			updateQWithTrace(q, testID);
 			addToQueueAndMutateInSaveIfInterestring(q, testID, seedQ);
 		}
@@ -659,7 +672,14 @@ public class Fuzzer {
 
 			// List<QueuePair> pairList = QueueManagerNew.retrievePairListInTranditionFuzzingProcess(candidate_queue, conf);
 
-			List<SelectionInfo.QueuePair> pairList = OldQueueEntrySelector.retrievePairListInFAVFuzzingProcess(candidate_queue, conf);
+			List<QueuePair> pairList = null;
+			if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.BruteForce || conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzerMinus) {
+				pairList = FIFOQueueEntrySelector.retrieveAPairList(candidate_queue, conf);
+			}
+			if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzer) {
+				pairList = ScoreQueueEntrySelector.retrieveAPairList(candidate_queue, conf);
+			}
+			
 			// List<QueuePair> pairList = QueueManagerBruteForce.retrieveAPairList(candidate_queue, conf);
 			for (SelectionInfo.QueuePair pair : pairList) {
 				doARun(pair);
