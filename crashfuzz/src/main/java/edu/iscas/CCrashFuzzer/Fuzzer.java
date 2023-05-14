@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Scanner;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
 import edu.iscas.CCrashFuzzer.control.NormalTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismTarget;
 import edu.iscas.CCrashFuzzer.control.determine.TryBestDeterminismTarget.TryBestDeterminismTResult;
+import edu.iscas.CCrashFuzzer.filter.CoverageFilter;
 import edu.iscas.CCrashFuzzer.selection.OldQueueEntrySelector;
 import edu.iscas.CCrashFuzzer.selection.SelectionInfo;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
@@ -437,27 +437,7 @@ public class Fuzzer {
 
 
 
-	public static class CoverageFilter {
-		public static boolean checkIfInteresting(int faultMode, int nb, QueueEntry q) {
-			boolean result = false;
-			if (faultMode != 0) return false;
-			if (nb>0) return true;
-			result = q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH;
-			if (result == true) {
-				return result;
-			}
-			result = q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.NETWORK_DISCONNECT;
-			// result = (faultMode == 0) && (nb>0 || q.faultSeq.seq.get(q.faultSeq.seq.size()-1).stat == FaultStat.CRASH);
-			return result;
-		}
-	}
-
-	public static class CrashFuzzerMinusFilter {
-		public static boolean checkIfInteresting(int faultMode, int nb, QueueEntry q) {
-			if (faultMode != 0) return false;
-			return true;
-		}
-	}
+	
 
 	//0 triggered, no bug
 	//1 triggered, non-hang bug
