@@ -1,6 +1,6 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-source $SCRIPT_DIR/configuration.sh
+source $SCRIPT_DIR/cluster-info.sh
 
 sourceIP=$1
 destIP=$2

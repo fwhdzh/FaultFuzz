@@ -3,7 +3,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source $SCRIPT_DIR/cluster-info.sh
 
 function prepareCrash {
-        nodeName=$(docker network inspect ${CRASHFUZZ_NETWORK_NAME} | grep -B 5 "$1" | grep Name | awk -F"\"" '{print $4}')
+        nodeName=$(docker network inspect ${clusterNetName} | grep -B 5 "$1" | grep Name | awk -F"\"" '{print $4}')
         echo "store network information on $nodeName.."
         echo "docker exec -t $nodeName /bin/bash -ic \"iptables-save > /home/gaoyu/iptables-rules\""
         docker exec -t $nodeName /bin/bash -ic "iptables-save > /home/gaoyu/iptables-rules"
