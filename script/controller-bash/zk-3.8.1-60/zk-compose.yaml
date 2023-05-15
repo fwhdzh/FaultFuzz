@@ -9,7 +9,7 @@ services:
     image: fwhdzh/c1zk1
     networks:
       fav-zookeeper:
-        ipv4_address: 172.30.0.2
+        ipv4_address: 172.40.0.2
     restart: "no"
     tty: true
     stdin_open: true
@@ -28,7 +28,7 @@ services:
     image: fwhdzh/c1zk2
     networks:
       fav-zookeeper:
-        ipv4_address: 172.30.0.3
+        ipv4_address: 172.40.0.3
     restart: "no"
     tty: true
     stdin_open: true
@@ -42,7 +42,7 @@ services:
     image: fwhdzh/c1zk3
     networks:
       fav-zookeeper:
-        ipv4_address: 172.30.0.4
+        ipv4_address: 172.40.0.4
     restart: "no"
     tty: true
     stdin_open: true
@@ -56,7 +56,7 @@ services:
     image: fwhdzh/c1zk4
     networks:
       fav-zookeeper:
-        ipv4_address: 172.30.0.5
+        ipv4_address: 172.40.0.5
     restart: "no"
     tty: true
     stdin_open: true
@@ -70,7 +70,7 @@ services:
     image: fwhdzh/c1zk5
     networks:
       fav-zookeeper:
-        ipv4_address: 172.30.0.6
+        ipv4_address: 172.40.0.6
     restart: "no"
     tty: true
     stdin_open: true
@@ -83,12 +83,12 @@ services:
 
 networks:
   fav-zookeeper:
-    name: fav-zookeeper
+    name: faultfuzz-zookeeper
     driver: bridge
     ipam:
       driver: default
       config:
-      - subnet: 172.30.0.0/24
+      - subnet: 172.40.0.0/24
 
 
 # docker-compose -p fav-zk -f ~/code/crashfuzz-ctrl/script/controller-bash/zk-3.8.1/zk-compose.yaml up -d
