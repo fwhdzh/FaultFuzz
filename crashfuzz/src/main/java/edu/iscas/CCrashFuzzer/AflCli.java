@@ -4,7 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -159,6 +158,7 @@ public class AflCli {
 			}
 		}
 		boolean[] success = new boolean[aliveList.size()];
+		int[] exeCount = new int[aliveList.size()];
 		Arrays.fill(success, false);
 		boolean flag = false;
 		while (!flag) {
@@ -179,9 +179,14 @@ public class AflCli {
 				} catch (AflException e) {
 					// TODO Auto-generated catch block
 					success[i] = false;
+					exeCount[i]++;
 
-					Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args) + " failed!");
-					Stat.log(e.getMessage());
+					Stat.debug("Execute AflCli.main with args: " + JSONObject.toJSONString(args) + " failed!");
+					Stat.debug(e.getMessage());
+					if (exeCount[i] > 0 && exeCount[i] % 10 == 0) {
+						Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args) + " failed for " + exeCount[i] + "times");
+						Stat.log(e.getMessage());
+					}
 					if (!e.getMessage().startsWith("Connection refused")) {
 						e.printStackTrace();
 					}

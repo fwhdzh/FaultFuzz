@@ -1,0 +1,9 @@
+fault point=-1618259373
+event=CRASH
+pos=BEFORE
+nodeIp=172.27.0.2
+ioID=-373581808
+ioCallStack=[org.apache.hadoop.hbase.zookeeper.RecoverableZooKeeper.createNonSequential(RecoverableZooKeeper.java:546), org.apache.hadoop.hbase.zookeeper.RecoverableZooKeeper.create(RecoverableZooKeeper.java:525), org.apache.hadoop.hbase.zookeeper.ZKUtil.createWithParents(ZKUtil.java:976), org.apache.hadoop.hbase.zookeeper.ZKUtil.createWithParents(ZKUtil.java:954), org.apache.hadoop.hbase.zookeeper.ZKWatcher.createBaseZNodes(ZKWatcher.java:251), org.apache.hadoop.hbase.zookeeper.ZKWatcher.<init>(ZKWatcher.java:184), org.apache.hadoop.hbase.zookeeper.ZKWatcher.<init>(ZKWatcher.java:136), org.apache.hadoop.hbase.regionserver.HRegionServer.<init>(HRegionServer.java:664), org.apache.hadoop.hbase.master.HMaster.<init>(HMaster.java:419), sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method), sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62), sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45), java.lang.reflect.Constructor.newInstance(Constructor.java:423), org.apache.hadoop.hbase.master.HMaster.constructMaster(HMaster.java:2944), org.apache.hadoop.hbase.master.HMasterCommandLine.startMaster(HMasterCommandLine.java:253), org.apache.hadoop.hbase.master.HMasterCommandLine.run(HMasterCommandLine.java:149), org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:76), org.apache.hadoop.hbase.util.ServerCommandLine.doMain(ServerCommandLine.java:152), org.apache.hadoop.hbase.master.HMaster.main(HMaster.java:2962)]
+path=ZK:/hbase
+ioAppearIdx=1
+end
