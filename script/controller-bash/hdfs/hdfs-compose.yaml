@@ -15,6 +15,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1NN
+    hostname: C1NN
+    cap_add:
+      - NET_ADMIN
     # env_file: ~/code/crashfuzz-ctrl/script/raft-java/.env
     # deploy:
     #   mode: replicated
@@ -31,6 +34,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1RM
+    hostname: C1RM
+    cap_add:
+      - NET_ADMIN
 
   C1Master1:
     image: fwhdzh/c1master1
@@ -42,6 +48,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1Master1
+    hostname: C1Master1
+    cap_add:
+      - NET_ADMIN
 
   C1Master2:
     image: fwhdzh/c1master2
@@ -53,6 +62,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1Master2
+    hostname: C1Master2
+    cap_add:
+      - NET_ADMIN
 
   C1Slave1:
     image: fwhdzh/c1slave1
@@ -64,6 +76,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1Slave1
+    hostname: C1Slave1
+    cap_add:
+      - NET_ADMIN
 
   C1Slave2:
     image: fwhdzh/c1slave2
@@ -75,6 +90,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1Slave2
+    hostname: C1Slave2
+    cap_add:
+      - NET_ADMIN
 
   C1Slave3:
     image: fwhdzh/c1slave3
@@ -86,6 +104,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1Slave3
+    hostname: C1Slave3
+    cap_add:
+      - NET_ADMIN
 
   C1Slave4:
     image: fwhdzh/c1slave4
@@ -97,6 +118,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1Slave4
+    hostname: C1Slave4
+    cap_add:
+      - NET_ADMIN
 
   C1HS:
     image: fwhdzh/c1hs
@@ -108,6 +132,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1HS
+    hostname: C1HS
+    cap_add:
+      - NET_ADMIN
   
   C1WPS:
     image: fwhdzh/c1wps
@@ -119,6 +146,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1WPS
+    hostname: C1WPS
+    cap_add:
+      - NET_ADMIN
 
   C1hd-zk:
     image: fwhdzh/c1hd-zk
@@ -130,6 +160,9 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1hd-zk
+    hostname: C1hd-zk
+    cap_add:
+      - NET_ADMIN
     
 
 networks:

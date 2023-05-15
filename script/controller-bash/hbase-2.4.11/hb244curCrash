@@ -1,27 +1,9 @@
-fault point=-1517545831
-event=NETWORK_DISCONNECT
-pos=BEFORE
-nodeIp=172.27.0.4
-ioID=-1643417789
-ioCallStack=[org.apache.hadoop.hbase.shaded.protobuf.generated.RegionServerStatusProtos$RegionServerStatusService$BlockingStub.regionServerReport(RegionServerStatusProtos.java), org.apache.hadoop.hbase.regionserver.HRegionServer.tryRegionServerReport(HRegionServer.java:1275), org.apache.hadoop.hbase.regionserver.HRegionServer.run(HRegionServer.java:1093)]
-path=FAVMSG:172.27.0.2&4#2
-ioAppearIdx=2
-end
-fault point=695797283
-event=NETWORK_CONNECT
-pos=BEFORE
-nodeIp=172.27.0.4
-ioID=-156154561
-ioCallStack=[org.apache.hadoop.hbase.master.MasterRpcServices.regionServerReport(MasterRpcServices.java), org.apache.hadoop.hbase.shaded.protobuf.generated.RegionServerStatusProtos$RegionServerStatusService$2.callBlockingMethod(RegionServerStatusProtos.java:16286), org.apache.hadoop.hbase.ipc.RpcServer.call(RpcServer.java:392), org.apache.hadoop.hbase.ipc.CallRunner.run(CallRunner.java:133), org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:359), org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:339)]
-path=FAVMSG:READ172.27.0.6&258#144
-ioAppearIdx=323
-end
-fault point=1997344736
+fault point=-1618259373
 event=CRASH
 pos=BEFORE
 nodeIp=172.27.0.2
-ioID=1902105386
-ioCallStack=[org.apache.hadoop.hbase.master.procedure.DeleteTableProcedure.deleteFromFs(DeleteTableProcedure.java:350), org.apache.hadoop.hbase.master.procedure.DeleteTableProcedure.executeFromState(DeleteTableProcedure.java:115), org.apache.hadoop.hbase.master.procedure.DeleteTableProcedure.executeFromState(DeleteTableProcedure.java:61), org.apache.hadoop.hbase.procedure2.StateMachineProcedure.execute(StateMachineProcedure.java:191), org.apache.hadoop.hbase.procedure2.Procedure.doExecute(Procedure.java:956), org.apache.hadoop.hbase.procedure2.ProcedureExecutor.execProcedure(ProcedureExecutor.java:1665), org.apache.hadoop.hbase.procedure2.ProcedureExecutor.executeProcedure(ProcedureExecutor.java:1412), org.apache.hadoop.hbase.procedure2.ProcedureExecutor.access$1100(ProcedureExecutor.java:78), org.apache.hadoop.hbase.procedure2.ProcedureExecutor$WorkerThread.run(ProcedureExecutor.java:1979)]
-path=hdfs://C1hb-hdfs:9000/hbase/.tmp/data/default/FAVMyInfo
+ioID=-373581808
+ioCallStack=[org.apache.hadoop.hbase.zookeeper.RecoverableZooKeeper.createNonSequential(RecoverableZooKeeper.java:546), org.apache.hadoop.hbase.zookeeper.RecoverableZooKeeper.create(RecoverableZooKeeper.java:525), org.apache.hadoop.hbase.zookeeper.ZKUtil.createWithParents(ZKUtil.java:976), org.apache.hadoop.hbase.zookeeper.ZKUtil.createWithParents(ZKUtil.java:954), org.apache.hadoop.hbase.zookeeper.ZKWatcher.createBaseZNodes(ZKWatcher.java:251), org.apache.hadoop.hbase.zookeeper.ZKWatcher.<init>(ZKWatcher.java:184), org.apache.hadoop.hbase.zookeeper.ZKWatcher.<init>(ZKWatcher.java:136), org.apache.hadoop.hbase.regionserver.HRegionServer.<init>(HRegionServer.java:664), org.apache.hadoop.hbase.master.HMaster.<init>(HMaster.java:419), sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method), sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62), sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45), java.lang.reflect.Constructor.newInstance(Constructor.java:423), org.apache.hadoop.hbase.master.HMaster.constructMaster(HMaster.java:2944), org.apache.hadoop.hbase.master.HMasterCommandLine.startMaster(HMasterCommandLine.java:253), org.apache.hadoop.hbase.master.HMasterCommandLine.run(HMasterCommandLine.java:149), org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:76), org.apache.hadoop.hbase.util.ServerCommandLine.doMain(ServerCommandLine.java:152), org.apache.hadoop.hbase.master.HMaster.main(HMaster.java:2962)]
+path=ZK:/hbase
 ioAppearIdx=1
 end

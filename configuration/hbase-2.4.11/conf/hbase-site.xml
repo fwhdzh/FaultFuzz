@@ -51,7 +51,7 @@
   </property>
   <property>
     <name>hbase.tmp.dir</name>
-    <value>/home/gaoyu/evaluation/hbase-2.5.4/tmp</value>
+    <value>/home/gaoyu/evaluation/hbase-2.4.11/tmp</value>
   </property>
 <!--
   <property>

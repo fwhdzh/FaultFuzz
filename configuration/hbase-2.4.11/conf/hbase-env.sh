@@ -80,7 +80,7 @@
 
 export JAVA_HOME=/home/gaoyu/fav-jre-inst
 #export JAVA_HOME=/home/gaoyu/java/jdk1.8.0_271
-. /home/gaoyu/evaluation/hbase-2.5.4/fav-env.sh
+. /home/gaoyu/evaluation/hbase-2.4.11/fav-env.sh
 export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS $HBASE_JMX_BASE $FAV_OPTS $TIME_OPTS"
 export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS $HBASE_JMX_BASE $FAV_OPTS $TIME_OPTS"
 export HBASE_THRIFT_OPTS="$HBASE_THRIFT_OPTS $HBASE_JMX_BASE $PHOS_OPTS $TIME_OPTS"
