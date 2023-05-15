@@ -402,7 +402,7 @@ extends AbstractController
 				info = info + "recieve path: " + path + "\n";
 				info = info + "recieve threadInfo: " + threadInfo + "\n";
 				info = info + "handle information: " + JSONObject.toJSONString(tansformPathToStrList(path, reportNodeIp));
-				Stat.log(info);
+				Stat.debug(info);
 				FaultPointBlocked b = new FaultPointBlocked(ioID, reportNodeIp, cliID, path, this);
 				faultPointList.add(b);
 				arriveFPBList.add(b);

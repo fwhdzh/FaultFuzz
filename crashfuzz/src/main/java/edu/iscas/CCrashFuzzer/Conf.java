@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
+import edu.iscas.CCrashFuzzer.Stat.LOG_LEVEL;
 import edu.iscas.CCrashFuzzer.utils.FileUtil;
 
 public class Conf {
@@ -76,6 +77,8 @@ public class Conf {
 
     public static List<FaultStat> s = Arrays.asList(FaultStat.values());
     // public static List<FaultStat> s = Arrays.asList(FaultStat.CRASH, FaultStat.REBOOT);
+
+    public static LOG_LEVEL logLevel = LOG_LEVEL.INFO;
 
     public enum EVALUATE_TARGET_SET {
         CrashFuzzer,

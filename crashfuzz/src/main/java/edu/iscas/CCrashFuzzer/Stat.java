@@ -8,6 +8,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Stat {
+
+	public enum LOG_LEVEL {
+		DEBUG,
+		INFO,
+		WARN,
+	}
+
 	public static final String bug = "IS_BUG";
 	public static final String newCov = "HAS_NEW_COV";
 	public String saveInitStat() {
@@ -78,6 +85,29 @@ public class Stat {
         System.out.println(rst);
         return rst;
 	}
+
+	public static String debug(String s) {
+		if (Conf.logLevel.compareTo(LOG_LEVEL.DEBUG) > 0) {
+			return "";
+		}
+	    Date day = new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+        String rst = df.format(day)+" [CrashFuzz] - DEBUG - "+s;
+        System.out.println(rst);
+        return rst;
+	}
+
+	public static String debug(Class c, String s) {
+		if (Conf.logLevel.compareTo(LOG_LEVEL.DEBUG) > 0) {
+			return "";
+		}
+        Date day = new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+        String rst = df.format(day)+" [CrashFuzz][" + c.getName() + "] - INFO - "+s;
+        System.out.println(rst);
+        return rst;
+    }
+
 	public static void deleteEmptyFile(File file) {
 		if(file.isDirectory()) {
 			if(file.list().length == 0) {

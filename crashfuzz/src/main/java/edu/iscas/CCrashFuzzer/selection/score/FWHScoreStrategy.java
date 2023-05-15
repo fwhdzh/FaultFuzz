@@ -137,7 +137,7 @@ public class FWHScoreStrategy {
             logInfo = logInfo + "},\n";
 	    }
 	    logInfo = logInfo + "}";
-	    Stat.log(EntryAndScore.class , logInfo);
+	    Stat.debug(EntryAndScore.class , logInfo);
 	}
 
     public static List<EntryAndScore> computeTotalScore(List<QueueEntry> queue) {

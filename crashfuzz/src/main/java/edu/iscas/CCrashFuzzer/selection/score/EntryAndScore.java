@@ -41,6 +41,6 @@ class EntryAndScore implements Comparable<EntryAndScore> {
     	        logInfo = logInfo + i + ":" + list.get(i).score + ",";
     	    }
     	    logInfo = logInfo + "}";
-    	    Stat.log(EntryAndScore.class , logInfo);
+    	    Stat.debug(EntryAndScore.class , logInfo);
     	}
 }
