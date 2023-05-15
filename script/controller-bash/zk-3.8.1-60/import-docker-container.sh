@@ -2,7 +2,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 source $SCRIPT_DIR/cluster-info.sh
 
-tarFolder=/data/fengwenhan/fav-zk
+tarFolder=/home/fengwenhan/data/fav-zk
 
 if [ "${#containerTar[@]}" -ne "${#imageName[@]}" ]
 then
