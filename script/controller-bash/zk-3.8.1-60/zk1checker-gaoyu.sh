@@ -29,19 +29,19 @@ for s in ${alivearr[@]}
 do
     echo "alive: $s"
     case $s in
-      172.30.0.2)
+      172.40.0.2)
         checkAlive "C1ZK1" "QuorumPeerMain"
         ;;
-      172.30.0.3)
+      172.40.0.3)
         checkAlive "C1ZK2" "QuorumPeerMain"
         ;;
-      172.30.0.4)
+      172.40.0.4)
         checkAlive "C1ZK3" "QuorumPeerMain"
         ;;
-      172.30.0.5)
+      172.40.0.5)
         checkAlive "C1ZK4" "QuorumPeerMain"
         ;;
-      172.30.0.6)
+      172.40.0.6)
         checkAlive "C1ZK5" "QuorumPeerMain"
         ;;
     esac

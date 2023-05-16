@@ -1,3 +1,5 @@
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 #checker.sh [alive_ip1, alive_ip2, alive_ip3] [dead_ip1, dead_ip2]
 function checkAlive(){
   node=$1
@@ -6,7 +8,7 @@ function checkAlive(){
   result=$(echo $workerRst | grep "${character}")
   if [[ "$result" == "" ]]; then
         echo "jps $node: $workerRst"
-        sh failTest.sh "${node} ${character} was not started"
+        sh $SCRIPT_DIR/failTest.sh "${node} ${character} was not started"
   fi
 }
 
@@ -29,19 +31,19 @@ for s in ${alivearr[@]}
 do
     echo "alive: $s"
     case $s in
-      172.30.0.2)
+      172.40.0.2)
         checkAlive "C1ZK1" "QuorumPeerMain"
         ;;
-      172.30.0.3)
+      172.40.0.3)
         checkAlive "C1ZK2" "QuorumPeerMain"
         ;;
-      172.30.0.4)
+      172.40.0.4)
         checkAlive "C1ZK3" "QuorumPeerMain"
         ;;
-      172.30.0.5)
+      172.40.0.5)
         checkAlive "C1ZK4" "QuorumPeerMain"
         ;;
-      172.30.0.6)
+      172.40.0.6)
         checkAlive "C1ZK5" "QuorumPeerMain"
         ;;
     esac
@@ -54,20 +56,29 @@ do
     echo "dead: $s" 
 done
 
-sh jpsCluster.sh
+sh $SCRIPT_DIR/jpsCluster.sh
 
 workdir=$(pwd)
 
-connectString=$(sh aliveServers.sh)
-java -cp zkcases-0.jar edu.iscas.ZKCases.ZKChecker "$connectString" $workdir/failTest.sh
+connectString=$(sh $SCRIPT_DIR/aliveServers.sh)
 
-sh checkException.sh $3
+connectString=$(echo "$connectString" | sed 's/ZK5/ZK6/g')
+connectString=$(echo "$connectString" | sed 's/ZK4/ZK5/g')
+connectString=$(echo "$connectString" | sed 's/ZK3/ZK4/g')
+connectString=$(echo "$connectString" | sed 's/ZK2/ZK3/g')
+connectString=$(echo "$connectString" | sed 's/ZK1/ZK2/g')
+connectString=$(echo "$connectString" | sed 's/C1ZK/172\.40\.0\./g')
+echo $connectString
+
+java -cp $SCRIPT_DIR/zkcases-0.jar edu.iscas.ZKCases.ZKChecker "$connectString" $workdir/failTest.sh
+
+sh $SCRIPT_DIR/checkException.sh $3
 
 #sh zk1checkData.sh
 
-jpsAll=$( sh jpsCluster.sh)
+jpsAll=$( sh $SCRIPT_DIR/jpsCluster.sh)
 hasRunJar=$(echo $jpsAll| grep "JarBootstrapMain")
 if [[ "$hasRunJar" != "" ]]; then
-    sh failTest.sh "The client was not exit!"
+    sh $SCRIPT_DIR/failTest.sh "The client was not exit!"
 
 fi
