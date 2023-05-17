@@ -149,6 +149,8 @@ public class AflCli {
 		}
 	}
 
+	public static int maxCliCommandTryNumber = 1000;
+
 	public static boolean executeUtilSuccess(List<MaxDownNodes> cluster, final Conf conf, AflCommand command, long waitTime) {
 		boolean result = false;
 		List<String> aliveList = new ArrayList<String>();
@@ -161,6 +163,7 @@ public class AflCli {
 		int[] exeCount = new int[aliveList.size()];
 		Arrays.fill(success, false);
 		boolean flag = false;
+		boolean execTooManyTimes = false;
 		while (!flag) {
 			for (int i = 0; i < aliveList.size(); i++) {
 				if (success[i] == true) {
@@ -192,6 +195,9 @@ public class AflCli {
 					}
 					// Stat.log(e.getCause().toString());
 					
+					if (exeCount[i] > maxCliCommandTryNumber) {
+						execTooManyTimes = true;
+					}
 					
 				}
 			}
@@ -202,6 +208,10 @@ public class AflCli {
 					break;
 				}
 			}
+			if (execTooManyTimes) {
+				result = false;
+				return result;
+			}
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -209,6 +219,7 @@ public class AflCli {
 				e.printStackTrace();
 			}
 		}
+		result = true;
 		Stat.log("executeUtilSuccess with command: " + JSONObject.toJSONString(command) + "success!");
 		return result;
 	}

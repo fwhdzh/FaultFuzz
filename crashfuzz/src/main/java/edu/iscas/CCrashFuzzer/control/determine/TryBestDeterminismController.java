@@ -202,7 +202,11 @@ public class TryBestDeterminismController extends ReplayController{
 					Stat.log("We will give up this test since the I/O point to inject fault didn't appear for now...");
 				}
 				
-				AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NO_SEND, 300000);
+				boolean aflCommandResult =  AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NO_SEND, 300000);
+				if (!aflCommandResult) {
+					finishFlag = true;
+					return;
+				}
 				while (faultPointList.size() > 0) {
 					FaultPointBlocked b = faultPointList.get(0);
 					faultPointList.remove(0);
