@@ -29,6 +29,10 @@ public class ScoreQueueEntrySelector {
         }
         // long bound = EntryAndScore.rand.nextLong(totalSum);
         long bound = EntryAndScore.rand.nextLong() % totalSum;
+        /*
+         * Be careful that rand.nextLong could return a negative number!
+         */
+        bound = Math.abs(bound);
     	Stat.log(EntryAndScore.class, "bound selected is: " + bound);
         long nTotal = 0;
         int index = -1;
