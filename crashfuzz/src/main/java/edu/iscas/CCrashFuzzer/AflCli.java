@@ -83,7 +83,7 @@ public class AflCli {
 			// throw e;
 			throw new AflException(e.getMessage());
 		} finally {
-			System.out.println("AflCli to " + serverIp + " exit!");
+			Stat.debug("AflCli to " + serverIp + " exit!");
 		}
 	}
 
@@ -175,7 +175,12 @@ public class AflCli {
 				args[1] = String.valueOf(conf.AFL_PORT);
 				args[2] = command.toString();
 				// args[2] = AflCommand.STABLE.toString();
-				Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args));
+				if (exeCount[i] == 0) {
+					Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args));
+				} else {
+					Stat.debug("Execute AflCli.main with args: " + JSONObject.toJSONString(args));
+				}
+				
 				try {
 					interactWithNode(args);
 					success[i] = true;

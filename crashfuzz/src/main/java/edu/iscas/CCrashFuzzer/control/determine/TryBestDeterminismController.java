@@ -137,7 +137,7 @@ public class TryBestDeterminismController extends ReplayController{
 			
             Stat.log("ioList size is: " + ioSeq.size());
 			// Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
-            Stat.log("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
+            Stat.debug("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
 			printTheIndexOfFaultPoint();
             boolean needToTurnToNormalController = false;
 			try {
@@ -146,7 +146,7 @@ public class TryBestDeterminismController extends ReplayController{
 				// while (index.get() < entry.ioSeq.size()) {
                 while (!arriveAllFaultPoint) {
 					IOPoint p = ioSeq.get(index.get());
-					Stat.log("ListScanner next index to check:  " + index.get());
+					Stat.debug("ListScanner next index to check:  " + index.get());
 					Stat.log("ListScanner next to wait: " + p.ioID + ", from " + p.ip + ", path: " + p.PATH);
 					// long timeCount = 0;
 					FaultPointBlocked b = findAndRemoveFPBInList(p);
@@ -167,7 +167,7 @@ public class TryBestDeterminismController extends ReplayController{
                         needToTurnToNormalController = !arriveAllFaultPoint;
                         break;
                     }
-					Stat.log("Find FaultPointBlocked! For now, faultPointList size is " + faultPointList.size());
+					Stat.debug("Find FaultPointBlocked! For now, faultPointList size is " + faultPointList.size());
 
                     handleFPB(b);
 

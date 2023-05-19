@@ -60,12 +60,18 @@ public class YarnInstrument {
     // input: 172.26.0.1&3#2
     // output: 172.26.0.1
     public static String getRemoteAddrFromSourceLogicClockMsg(String source) {
+        if(source.equals(FAVPathType.FAVMSG.toString()+":")) {
+            return "";
+        }
         return source.substring(0, source.lastIndexOf("&"));
     }
 
     // input: 172.26.0.1&3#2
     // output: 3#2
     public static String getMsgIdFromSourceLogicClockMsg(String source) {
+        if(source.equals(FAVPathType.FAVMSG.toString()+":")) {
+            return "";
+        }
         return source.substring(source.lastIndexOf("&")+1, source.length());
     }
 

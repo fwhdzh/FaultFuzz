@@ -46,6 +46,7 @@ public class IOPoint {
 		// if the path is "FAVMSG:READ172.30.0.1&3#1"
 		if (PATH.startsWith("FAVMSG:READ")) {
 			result.add("READ");
+			Stat.debug(PATH);
 			result.add(PATH.substring("FAVMSG:READ".length()).split("&")[0]);
 			result.add(ip);
 			result.add(PATH.split("&")[1]);
