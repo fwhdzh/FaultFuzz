@@ -297,7 +297,7 @@ extends AbstractController
 						counter++;
 						String s = "Accept a socket!";
 						s = s + "assign the socket to ReplayCilentHandler id :" + counter;
-						Stat.log(s);
+						Stat.debug(s);
 						// System.out.println("a client "+counter+" was
 						// connected"+socket.getRemoteSocketAddress());
 						ReplayCilentHandler sct = new ReplayCilentHandler(socket, counter); // send the request to a separate thread
@@ -381,7 +381,7 @@ extends AbstractController
 		@Override
 		public void run() {
 			try {
-				Stat.log("ReplayCilentHandler start...");
+				Stat.debug("ReplayCilentHandler start...");
 				DataInputStream inStream = new DataInputStream(socket.getInputStream());
 				// DataOutputStream outStream = new DataOutputStream(socket.getOutputStream());
 				// ObjectInputStream objIn = new ObjectInputStream(inStream);
@@ -396,19 +396,25 @@ extends AbstractController
 				String threadInfo = inStream.readUTF();
 				// Stat.log("recieve path: " + path);
 				String info = "";
-				info = info + "ReplayCilentHandler read ioID: " + ioID + "\n";
-				info = info + "ReplayCilentHandler read reportNodeIp: " + reportNodeIp + "\n";
-				info = info + "recieve cliID: " + cliID + " for ioID " + ioID + ", " + "\n";
-				info = info + "recieve path: " + path + "\n";
-				info = info + "recieve threadInfo: " + threadInfo + "\n";
-				info = info + "handle information: " + JSONObject.toJSONString(tansformPathToStrList(path, reportNodeIp));
-				Stat.debug(info);
+				Stat.debug("" + id + "ReplayCilentHandler read ioID: " + ioID + "\n");
+				Stat.debug("" + id + "ReplayCilentHandler read reportNodeIp: " + reportNodeIp + "\n");
+				Stat.debug("" + id + "recieve cliID: " + cliID + " for ioID " + ioID + ", " + "\n");
+				Stat.debug("" + id + "recieve path: " + path + "\n");
+				Stat.debug("" + id + "recieve threadInfo: " + threadInfo + "\n");
+				Stat.debug("" + id + "handle information: " + JSONObject.toJSONString(tansformPathToStrList(path, reportNodeIp)));
+				// info = info + "ReplayCilentHandler read ioID: " + ioID + "\n";
+				// info = info + "ReplayCilentHandler read reportNodeIp: " + reportNodeIp + "\n";
+				// info = info + "recieve cliID: " + cliID + " for ioID " + ioID + ", " + "\n";
+				// info = info + "recieve path: " + path + "\n";
+				// info = info + "recieve threadInfo: " + threadInfo + "\n";
+				// info = info + "handle information: " + JSONObject.toJSONString(tansformPathToStrList(path, reportNodeIp));
+				// Stat.debug(info);
 				FaultPointBlocked b = new FaultPointBlocked(ioID, reportNodeIp, cliID, path, this);
 				faultPointList.add(b);
 				arriveFPBList.add(b);
 				// addOrReplaceFPBtoList(b);
-				Stat.log("For now, faultPointList size is " + faultPointList.size());
-				Stat.log("add a element to faultPointList");
+				Stat.debug("For now, faultPointList size is " + faultPointList.size());
+				Stat.debug("add a element to faultPointList");
 
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -560,13 +566,13 @@ extends AbstractController
 			Stat.log("ListScanner start...");
 			Stat.log("ioList size is: " + ioSeq.size());
 			// Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
-			Stat.log("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
+			Stat.debug("All the ioIDs are: " + QueueEntry.getIoSeqToIDString(ioSeq));
 			try {
 				// boolean timeOut = false;
 				// while (!timeOut && index.get() < entry.ioSeq.size()) {
 				while (index.get() < ioSeq.size()) {
 					IOPoint p = ioSeq.get(index.get());
-					Stat.log("ListScanner next index to check:  " + index.get());
+					Stat.debug("ListScanner next index to check:  " + index.get());
 					Stat.log("ListScanner next to wait: " + p.ioID + ", from " + p.ip + ", path: " + p.PATH);
 					// long timeCount = 0;
 					FaultPointBlocked b = findAndRemoveFPBInList(p);

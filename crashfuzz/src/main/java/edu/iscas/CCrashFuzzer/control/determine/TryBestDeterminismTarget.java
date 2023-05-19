@@ -117,7 +117,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 			try {
                 Thread.sleep(1000);
                 waitIdx++;
-				Stat.log("waitIdx: " + waitIdx);
+				Stat.debug("waitIdx: " + waitIdx);
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -143,7 +143,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 			try {
 				Thread.sleep(1000);
 				workloadIdx++;
-				Stat.log("workloadIdx: " + workloadIdx);
+				Stat.debug("workloadIdx: " + workloadIdx);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

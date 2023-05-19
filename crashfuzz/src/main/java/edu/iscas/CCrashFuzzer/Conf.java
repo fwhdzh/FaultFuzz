@@ -78,7 +78,7 @@ public class Conf {
     public static List<FaultStat> s = Arrays.asList(FaultStat.values());
     // public static List<FaultStat> s = Arrays.asList(FaultStat.CRASH, FaultStat.REBOOT);
 
-    public static LOG_LEVEL logLevel = LOG_LEVEL.DEBUG;
+    public static LOG_LEVEL logLevel = LOG_LEVEL.INFO;
 
     public enum EVALUATE_TARGET_SET {
         CrashFuzzer,

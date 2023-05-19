@@ -46,7 +46,7 @@ public class ScoreQueueEntrySelector {
         if (index >= 0) {
             result = list.get(index);
         }
-    	Stat.log(EntryAndScore.class, "selected index is: " + index);
+    	Stat.log(EntryAndScore.class, "Going to test the " + index + "th fault sequence! the score of it is: " + result.score);
         return result;
     }
 

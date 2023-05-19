@@ -16,13 +16,12 @@ import edu.columbia.cs.psl.phosphor.struct.LazyReferenceArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.LazyShortArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.TaintedPrimitiveWithObjTag;
 import edu.columbia.cs.psl.phosphor.struct.TaintedReferenceWithObjTag;
+// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPos;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.taint.FAVTaint;
 import edu.iscas.tcse.favtrigger.tracing.RecordTaint;
 import edu.iscas.tcse.favtrigger.triggering.WaitToExec;
-
-// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPos;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
 
 public class AppRunMode {
     public static void recordOrTriggerFully(long timestamp, FileOutputStream out, String path, LazyByteArrayObjTags bytes) {
@@ -73,7 +72,10 @@ public class AppRunMode {
 
     public static void recordOrTriggerBefore(long timestamp, FileOutputStream out, String path) {
         MyLogger.log("recordOrTriggerBefore timestamp: " + timestamp + ", out: " + out + ", path: " + path);
-        if(path == null || path.equals("") || out == null) {
+        if(path == null || path.equals("") || out == null
+            // ugly implementation for user rpc request
+            || path.equals("FAVMSG:READ&")  || path.startsWith("FAVMSG:READ&")   
+        ) {
             return;
         }
         try {
