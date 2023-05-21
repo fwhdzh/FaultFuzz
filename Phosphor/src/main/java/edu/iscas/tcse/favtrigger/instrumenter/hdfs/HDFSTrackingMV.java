@@ -6,7 +6,6 @@ import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_CO
 import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_CURRENT_IP;
 import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_MSG_ID_FROM_MSG_WITH_NO_FAV_PREFIX;
 import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_RECORD_OUT;
-import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX;
 import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_GET_TIMESTAMP;
 import static edu.columbia.cs.psl.phosphor.instrumenter.TaintMethodRecord.FAV_NEW_LOGIC_CLOCK_MSGID;
 
@@ -143,9 +142,9 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
 
                 super.visitVarInsn(ALOAD, stringsource);
 
-                // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                //         "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
-                FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
+                super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+                        "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
+                // FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
 
                 remoteIpVar = lvs.createPermanentLocalVariable(String.class, "FAV_REMOTE_IP");
                 super.visitVarInsn(ASTORE, remoteIpVar);
@@ -157,7 +156,11 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             //         "appendRead", "(Ljava/lang/String;)Ljava/lang/String;", false);
             
             super.visitVarInsn(ALOAD, stringsource);
-            FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
+
+            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+                        "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
+            // FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
+
             super.visitVarInsn(ALOAD, stringsource);
             FAV_GET_MSG_ID_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
             FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ.delegateVisit(mv);
@@ -198,9 +201,9 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             if(recordRemoteIP) {
                 super.visitVarInsn(ALOAD, stringsource);
 
-                // super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
-                //         "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
-                FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
+                super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+                        "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
+                // FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
 
                 remoteIpVar = lvs.createPermanentLocalVariable(String.class, "FAV_REMOTE_IP");
                 super.visitVarInsn(ASTORE, remoteIpVar);
@@ -211,7 +214,11 @@ public class HDFSTrackingMV extends TaintAdapter implements Opcodes {
             //         "appendRead", "(Ljava/lang/String;)Ljava/lang/String;", false);
             
             super.visitVarInsn(ALOAD, stringsource);
-            FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
+
+            super.visitMethodInsn(INVOKESTATIC, "edu/iscas/tcse/favtrigger/instrumenter/yarn/YarnInstrument",
+                        "getRemoteAddrFromSource", "(Ljava/lang/String;)Ljava/lang/String;", false);
+            // FAV_GET_REMOTE_DIR_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
+
             super.visitVarInsn(ALOAD, stringsource);
             FAV_GET_MSG_ID_FROM_MSG_WITH_NO_FAV_PREFIX.delegateVisit(mv);
             FAV_COMBINE_NODE_AND_LOGIC_CLOCK_MSG_FOR_READ.delegateVisit(mv);

@@ -1,7 +1,7 @@
 monitor_path=$1
 #cp -r record-state $monitor_path
 
-exceptions=$( grep -nr "Exception" $(find $monitor_path -name "*.log") | grep -v "ConnectException" | grep -v "ConnectionClosedException" | grep -v "ConnectTimeoutException" | grep -v "Failed get of master address: java.io.IOException" | grep -v "EOFException" | grep -v "at " | grep -v "CallTimeoutException" | grep -v "HttpGetFailedException" | grep -v "Exception.<init>" | grep -v "socket timeout exception" | grep -v "NoRouteToHostException" | grep -v "Timed out" | grep -v "ClosedChannelException" grep -v "SocketTimeoutException" | grep -v "WARN")
+exceptions=$( grep -nr "Exception" $(find $monitor_path -name "*.log") | grep -v "ConnectException" | grep -v "ConnectionClosedException" | grep -v "ConnectTimeoutException" | grep -v "Failed get of master address: java.io.IOException" | grep -v "EOFException" | grep -v "at " | grep -v "CallTimeoutException" | grep -v "HttpGetFailedException" | grep -v "Exception.<init>" | grep -v "socket timeout exception" | grep -v "NoRouteToHostException" | grep -v "Timed out" | grep -v "ClosedChannelException" | grep -v "SocketTimeoutException" | grep -v "WARN")
 #exceptions=$( echo $exceptions | grep -v "ConnectException" )
 #exceptions=$( echo $exceptions | grep -v "ConnectionClosedException" )
 #repeated consistently

@@ -1,0 +1,18 @@
+fault point=1777273830
+event=CRASH
+pos=BEFORE
+nodeIp=172.42.0.4
+ioID=1212610741
+ioCallStack=[org.apache.hadoop.ha.protocolPB.HAServiceProtocolServerSideTranslatorPB.monitorHealth(HAServiceProtocolServerSideTranslatorPB.java:81), org.apache.hadoop.ha.proto.HAServiceProtocolProtos$HAServiceProtocolService$2.callBlockingMethod(HAServiceProtocolProtos.java:6216), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:621), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:589), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:573), org.apache.hadoop.ipc.RPC$Server.call(RPC.java:1213), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:1089), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:1012), java.security.AccessController.doPrivileged(Native Method), javax.security.auth.Subject.doAs(Subject.java:422), org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1899), org.apache.hadoop.ipc.Server$Handler.run(Server.java:3026)]
+path=FAVMSG:172.42.0.4&33#27
+ioAppearIdx=27
+end
+fault point=746969019
+event=REBOOT
+pos=BEFORE
+nodeIp=172.42.0.4
+ioID=-1685047751
+ioCallStack=[org.apache.hadoop.hdfs.protocolPB.DatanodeProtocolServerSideTranslatorPB.blockReceivedAndDeleted(DatanodeProtocolServerSideTranslatorPB.java:246), org.apache.hadoop.hdfs.protocol.proto.DatanodeProtocolProtos$DatanodeProtocolService$2.callBlockingMethod(DatanodeProtocolProtos.java:34032), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:621), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:589), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:573), org.apache.hadoop.ipc.RPC$Server.call(RPC.java:1213), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:1089), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:1012), java.security.AccessController.doPrivileged(Native Method), javax.security.auth.Subject.doAs(Subject.java:422), org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1899), org.apache.hadoop.ipc.Server$Handler.run(Server.java:3026)]
+path=FAVMSG:172.42.0.8&310#256
+ioAppearIdx=4
+end

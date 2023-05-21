@@ -66,6 +66,8 @@ public class YarnInstrument {
         return source.substring(0, source.lastIndexOf("&"));
     }
 
+    // input: FAVMSG:172.26.0.1&3#2
+    // output: 3#2
     // input: 172.26.0.1&3#2
     // output: 3#2
     public static String getMsgIdFromSourceLogicClockMsg(String source) {

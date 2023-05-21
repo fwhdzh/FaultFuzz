@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import edu.columbia.cs.psl.phosphor.Configuration;
-import edu.iscas.CCrashFuzzer.AflCli;
 import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.tracing.FAVEntry;
 import edu.iscas.tcse.favtrigger.tracing.RecordsHandler;
@@ -133,16 +132,18 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
     	System.out.println("this is after main!");
     	main_started = false;
     	save_result();
-    	if(saveRecsServer != null) {
-    		try {
+    	if ((saveRecsServer != null)
+				&& (Configuration.USE_FAV == true)
+		) {
+			try {
 				saveRecsServer.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-//				e.printStackTrace();
+				// e.printStackTrace();
 			}
-    	}
-    	save_records_td.interrupt();
-    	flush_ios_td.interrupt();
+		}
+		save_records_td.interrupt();
+		flush_ios_td.interrupt();
     }
 
     public static void noting() {
@@ -303,6 +304,9 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
 			public void run() {
 				// TODO Auto-generated method stub
 				super.run();
+				if (Configuration.USE_FAV == false) {
+					return;
+				}
 				if(JavaAfl.afl_port != Integer.MIN_VALUE) {
 					try{
 			            saveRecsServer = new ServerSocket(JavaAfl.afl_port);

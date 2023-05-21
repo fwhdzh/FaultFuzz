@@ -149,7 +149,7 @@ public class AflCli {
 		}
 	}
 
-	public static int maxCliCommandTryNumber = 1000;
+	public static int maxCliCommandTryNumber = 150;
 
 	public static boolean executeUtilSuccess(List<MaxDownNodes> cluster, final Conf conf, AflCommand command, long waitTime) {
 		boolean result = false;
@@ -195,7 +195,7 @@ public class AflCli {
 						Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args) + " failed for " + exeCount[i] + "times");
 						Stat.log(e.getMessage());
 					}
-					if (!e.getMessage().startsWith("Connection refused")) {
+					if (!e.getMessage().contains("Connection refused")) {
 						e.printStackTrace();
 					}
 					// Stat.log(e.getCause().toString());
