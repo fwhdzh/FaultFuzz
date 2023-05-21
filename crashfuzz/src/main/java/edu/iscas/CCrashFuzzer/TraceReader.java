@@ -78,6 +78,27 @@ public class TraceReader {
 		}
 	}
 
+
+	public static void sortIOPointList(List<IOPoint> ioPoints) {
+		// ioPoints.sort(Comparator.comparingLong(a -> a.TIMESTAMP));
+
+		ioPoints.sort(new Comparator<IOPoint>() {
+			@Override
+			public int compare(IOPoint o1, IOPoint o2) {
+				// TODO Auto-generated method stub
+				if (o1.TIMESTAMP < o2.TIMESTAMP) {
+					return -1;
+				}
+				if (o1.TIMESTAMP > o2.TIMESTAMP) {
+					return 1;
+				}
+				int compareIPResult = o1.ip.compareTo(o2.ip);
+				return compareIPResult;
+			}
+			
+		});
+	}
+
 	public void readTraces() {
 		if(traceDir==null || !traceDir.exists() || !traceDir.isDirectory()) {
 			return;
@@ -103,7 +124,7 @@ public class TraceReader {
 			e.printStackTrace();
 		}
 		
-		ioPoints.sort(Comparator.comparingLong(a -> a.TIMESTAMP));
+		sortIOPointList(ioPoints);
 		
 		for(IOPoint sortedRec: ioPoints) {
 			AtomicInteger appearIdx = uniqueEntryToAppearIdx.computeIfAbsent(sortedRec.computeIoID(), k -> new AtomicInteger(0));

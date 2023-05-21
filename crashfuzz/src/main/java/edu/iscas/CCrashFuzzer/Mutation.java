@@ -83,7 +83,7 @@ public class Mutation {
 		Network network = Network.constructNetworkFromMaxDOwnNodes(MaxDownNodes.cloneCluster(conf.maxDownGroup));
 		for(FaultPoint fault:original_faults.seq) {
 			if (fault.stat == FaultStat.NETWORK_DISCONNECT) {
-				List<String> msgInfo = fault.ioPt.getTotalInformationAboutMsgFromPath();
+				List<String> msgInfo = fault.ioPt.retrieveTotalInformationAboutMsgFromPath();
 				String sourceIp = msgInfo.get(1);
 				String destIp = msgInfo.get(2);
 				network.disconnect(sourceIp, destIp);
@@ -113,7 +113,7 @@ public class Mutation {
 						}
 					}
 					if (canDisconnectNetwork) {
-						List<String> msgInfo = ioPointToInject.getTotalInformationAboutMsgFromPath();
+						List<String> msgInfo = ioPointToInject.retrieveTotalInformationAboutMsgFromPath();
 						String sourceIp = msgInfo.get(1);
 						String destIp = msgInfo.get(2);
 						FaultPoint p = new FaultPoint(ioPointToInject, curIO, FaultStat.NETWORK_DISCONNECT,
@@ -145,7 +145,7 @@ public class Mutation {
 			result = false;
 			return result;
 		}
-		List<String> msgInfo = ioPt.getTotalInformationAboutMsgFromPath();
+		List<String> msgInfo = ioPt.retrieveTotalInformationAboutMsgFromPath();
 		if (msgInfo.get(0).equals("READ")) {
 			result = false;
 			return result;

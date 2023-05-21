@@ -31,7 +31,7 @@ public class IOPoint {
 	}
 
 	
-	public List<String> getTotalInformationAboutMsgFromPath() {
+	public List<String> retrieveTotalInformationAboutMsgFromPath() {
 		List<String> result = new ArrayList<>();
 		if (!PATH.startsWith("FAVMSG")){
 			return null;
