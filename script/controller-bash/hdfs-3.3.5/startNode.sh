@@ -50,7 +50,7 @@ function start {
         docker exec -t $nodeName /bin/bash -ic "iptables-restore < /home/gaoyu/iptables-rules"
 		
 		  docker exec -t $nodeName /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start '$daemonName' && jps'
-		  docker exec -t $nodeName /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs-3.3.5 --daemon start '$daemon2Name' && jps'
+		  docker exec -t $nodeName /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start '$daemon2Name' && jps'
 
         sh waitNormal.sh $nodeName
 }

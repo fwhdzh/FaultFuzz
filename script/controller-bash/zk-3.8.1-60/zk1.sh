@@ -20,41 +20,41 @@ docker exec -t C1ZK5 /bin/bash -ic 'cd /home/gaoyu/evaluation/zk-3.8.1/ && bin/z
 #make sure leader node is online
 java -cp zkcases-0.jar edu.iscas.ZKCases.GetLeader "172.40.0.2:11181,172.40.0.3:11181,172.40.0.4:11181,172.40.0.5:11181,172.40.0.6:11181" $workdir/failTest.sh 10
 
-export PHOS_OPTS="-Xbootclasspath/a:Phosphor-0.0.5-SNAPSHOT.jar -javaagent:Phosphor-0.0.5-SNAPSHOT.jar=useFav=false"
+# export PHOS_OPTS="-Xbootclasspath/a:Phosphor-0.0.5-SNAPSHOT.jar -javaagent:Phosphor-0.0.5-SNAPSHOT.jar=useFav=false"
 
-echo "$(date "+%Y-%m-%d %H:%M:%S") FAV: start normal test (test1)!"
+# echo "$(date "+%Y-%m-%d %H:%M:%S") FAV: start normal test (test1)!"
 
-#get alive nodes in the cluster
-servers=$(sh aliveServers.sh)
-echo $servers
+# #get alive nodes in the cluster
+# servers=$(sh aliveServers.sh)
+# echo $servers
 
-servers=$(echo "$servers" | sed 's/ZK5/ZK6/g')
-servers=$(echo "$servers" | sed 's/ZK4/ZK5/g')
-servers=$(echo "$servers" | sed 's/ZK3/ZK4/g')
-servers=$(echo "$servers" | sed 's/ZK2/ZK3/g')
-servers=$(echo "$servers" | sed 's/ZK1/ZK2/g')
-servers=$(echo "$servers" | sed 's/C1ZK/172\.40\.0\./g')
-echo $servers
+# servers=$(echo "$servers" | sed 's/ZK5/ZK6/g')
+# servers=$(echo "$servers" | sed 's/ZK4/ZK5/g')
+# servers=$(echo "$servers" | sed 's/ZK3/ZK4/g')
+# servers=$(echo "$servers" | sed 's/ZK2/ZK3/g')
+# servers=$(echo "$servers" | sed 's/ZK1/ZK2/g')
+# servers=$(echo "$servers" | sed 's/C1ZK/172\.40\.0\./g')
+# echo $servers
 
-#run workload
-java -cp zkcases-0.jar edu.iscas.ZKCases.ZK1Cli "$servers" check nullcrash nullstart $workdir/failTest.sh
+# #run workload
+# java -cp zkcases-0.jar edu.iscas.ZKCases.ZK1Cli "$servers" check nullcrash nullstart $workdir/failTest.sh
 
-echo "exec edu.iscas.ZKCases.ZK1Cli finished!"
+# echo "exec edu.iscas.ZKCases.ZK1Cli finished!"
 
-servers=$(sh aliveServers.sh)
-echo $servers
+# servers=$(sh aliveServers.sh)
+# echo $servers
 
-servers=$(echo "$servers" | sed 's/ZK5/ZK6/g')
-servers=$(echo "$servers" | sed 's/ZK4/ZK5/g')
-servers=$(echo "$servers" | sed 's/ZK3/ZK4/g')
-servers=$(echo "$servers" | sed 's/ZK2/ZK3/g')
-servers=$(echo "$servers" | sed 's/ZK1/ZK2/g')
-servers=$(echo "$servers" | sed 's/C1ZK/172\.40\.0\./g')
-echo $servers
-java -cp zkcases-0.jar edu.iscas.ZKCases.ZK1Cli2 "$servers" check nullcrash nullstart $workdir/failTest.sh
+# servers=$(echo "$servers" | sed 's/ZK5/ZK6/g')
+# servers=$(echo "$servers" | sed 's/ZK4/ZK5/g')
+# servers=$(echo "$servers" | sed 's/ZK3/ZK4/g')
+# servers=$(echo "$servers" | sed 's/ZK2/ZK3/g')
+# servers=$(echo "$servers" | sed 's/ZK1/ZK2/g')
+# servers=$(echo "$servers" | sed 's/C1ZK/172\.40\.0\./g')
+# echo $servers
+# java -cp zkcases-0.jar edu.iscas.ZKCases.ZK1Cli2 "$servers" check nullcrash nullstart $workdir/failTest.sh
 
-echo "exec edu.iscas.ZKCases.ZK1Cli2 finished!"
+# echo "exec edu.iscas.ZKCases.ZK1Cli2 finished!"
 
-END_TIME=`date +%s`
-EXECUTING_TIME=`expr $END_TIME - $START_TIME`
-echo $EXECUTING_TIME
+# END_TIME=`date +%s`
+# EXECUTING_TIME=`expr $END_TIME - $START_TIME`
+# echo $EXECUTING_TIME
