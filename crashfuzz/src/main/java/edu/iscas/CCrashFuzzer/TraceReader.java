@@ -8,9 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
 
@@ -23,7 +21,7 @@ public class TraceReader {
 	// public static List<IOPoint> ioPoints = new ArrayList<IOPoint>();
 	public List<IOPoint> ioPoints = new ArrayList<IOPoint>();
 
-	public ConcurrentHashMap<Integer, AtomicInteger> uniqueEntryToAppearIdx = new ConcurrentHashMap<Integer, AtomicInteger>();
+	
 
 	// public static class WrapperInformation{
 	// 	public int ioPointType;
@@ -56,48 +54,8 @@ public class TraceReader {
 		this.traceDir = file;
 	}
 
-	public void fixWROrderInSameTimeStamp(List<IOPoint> ioPoints) {
-		for (int i = 0; i < ioPoints.size(); i++) {
-			IOPoint p = ioPoints.get(i);
-			String path = p.PATH;
-			if (path.contains("FAVMSG:READ")) {
-				String msgId = path.split("&")[1];
-				for (int j = (i+1); j < ioPoints.size(); j++) {
-					IOPoint wp = ioPoints.get(j);
-					if (wp.TIMESTAMP > p.TIMESTAMP) {
-						break;
-					}
-					if (wp.PATH.contains("FAVMSG") && wp.PATH.endsWith(msgId)) {
-						Stat.log("transform index with " + i + ": [" + p.PATH + "], and " + j + ": [" + wp.PATH + "]");
-						ioPoints.set(i, wp);
-						ioPoints.set(j, p);
-						break;
-					}
-				} 
-			}
-		}
-	}
+	
 
-
-	public static void sortIOPointList(List<IOPoint> ioPoints) {
-		// ioPoints.sort(Comparator.comparingLong(a -> a.TIMESTAMP));
-
-		ioPoints.sort(new Comparator<IOPoint>() {
-			@Override
-			public int compare(IOPoint o1, IOPoint o2) {
-				// TODO Auto-generated method stub
-				if (o1.TIMESTAMP < o2.TIMESTAMP) {
-					return -1;
-				}
-				if (o1.TIMESTAMP > o2.TIMESTAMP) {
-					return 1;
-				}
-				int compareIPResult = o1.ip.compareTo(o2.ip);
-				return compareIPResult;
-			}
-			
-		});
-	}
 
 	public void readTraces() {
 		if(traceDir==null || !traceDir.exists() || !traceDir.isDirectory()) {
@@ -124,12 +82,8 @@ public class TraceReader {
 			e.printStackTrace();
 		}
 		
-		sortIOPointList(ioPoints);
-		
-		for(IOPoint sortedRec: ioPoints) {
-			AtomicInteger appearIdx = uniqueEntryToAppearIdx.computeIfAbsent(sortedRec.computeIoID(), k -> new AtomicInteger(0));
-			sortedRec.appearIdx = appearIdx.incrementAndGet();
-        }
+		// FaultSequenceConstructor.sortIOPointList(ioPoints);
+		// FaultSequenceConstructor.computeAppearIdx(ioPoints);
 		
 //		if(Conf.MANUAL) {
 //			for(IOPoint p:ioPoints) {

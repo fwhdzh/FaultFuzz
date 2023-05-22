@@ -7,6 +7,7 @@ import edu.iscas.CCrashFuzzer.AflCli;
 import edu.iscas.CCrashFuzzer.AflCli.AflCommand;
 import edu.iscas.CCrashFuzzer.Conf;
 import edu.iscas.CCrashFuzzer.FaultSequence;
+import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.Fuzzer;
 import edu.iscas.CCrashFuzzer.RunCommand;
 import edu.iscas.CCrashFuzzer.Stat;
@@ -19,8 +20,11 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
     private TryBestDeterminismControllerResult controllerResult;
 
     public static class TryBestDeterminismTResult {
-		public int result;
+		public int resultCode;
 		public List<String> logInfo;
+
+		public long exec_time;
+		public List<FaultPoint> injectedFaultPointList;
 	}
 
     private TryBestDeterminismTResult mResult;
@@ -51,8 +55,8 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		String runInfoPath = collectRuntimeInfo(controllerResult.finalCluster);
 		copyLogsToControllerWithTestId(mTestID);
 		boolean findBug = checkIfABugExist(runInfoPath);
-		mResult = generateTryBestDeterminismTResult(finishWorkload, controllerResult.allFaultsAreInjected , findBug);
-		Stat.log("TryBestDeterminismTResult is "+mResult.result);
+		mResult = generateTryBestDeterminismTResult(finishWorkload, controllerResult.allFaultsAreInjected , findBug, controllerResult.injectedFaultPointList);
+		Stat.log("TryBestDeterminismTResult is "+mResult.resultCode);
 		Stat.log("a_exec_seconds is "+a_exec_seconds + "seconds");
 		return mResult;
     }
@@ -188,21 +192,44 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		return result;
 	}
 
-    public TryBestDeterminismTResult generateTryBestDeterminismTResult(boolean workloadFinish, boolean injectFaultFinish, boolean findBug) {
+	
+    public TryBestDeterminismTResult generateTryBestDeterminismTResult(boolean workloadFinish, boolean injectFaultFinish, boolean findBug, List<FaultPoint> injectedFaultPointList) {
 		TryBestDeterminismTResult result = new TryBestDeterminismTResult();
-		Stat.log("workloadFinish: " + workloadFinish + ", injectFaultFinish: " + injectFaultFinish + ", findBug: " + findBug);
-		if (workloadFinish && injectFaultFinish && findBug) {
-			result.result = 0;
-		} else if (workloadFinish && injectFaultFinish && !findBug) {
-			result.result = 1;
-		} else if (workloadFinish && !injectFaultFinish) {
-			result.result = 2;
-		} else if (!workloadFinish && injectFaultFinish) {
-			result.result = 3;
-		} else if (!workloadFinish && !injectFaultFinish) {
-			result.result = -1;
-		}
+		// Stat.log("workloadFinish: " + workloadFinish + ", injectFaultFinish: " + injectFaultFinish + ", findBug: " + findBug);
+		// if (workloadFinish && injectFaultFinish && findBug) {
+		// 	result.resultCode = 0;
+		// } else if (workloadFinish && injectFaultFinish && !findBug) {
+		// 	result.resultCode = 1;
+		// } else if (workloadFinish && !injectFaultFinish) {
+		// 	result.resultCode = 2;
+		// } else if (!workloadFinish && injectFaultFinish) {
+		// 	result.resultCode = 3;
+		// } else if (!workloadFinish && !injectFaultFinish) {
+		// 	result.resultCode = -1;
+		// }
+		result.resultCode = generateResultCode(workloadFinish, injectFaultFinish, findBug);
 		result.logInfo = logInfo;
+
+		result.injectedFaultPointList = injectedFaultPointList;
+		result.exec_time = a_exec_seconds;
+
+		return result;
+	}
+
+	private int generateResultCode(boolean workloadFinish, boolean injectFaultFinish, boolean findBug) {
+		Stat.log("workloadFinish: " + workloadFinish + ", injectFaultFinish: " + injectFaultFinish + ", findBug: " + findBug);
+		int result = -1;
+		if (workloadFinish && injectFaultFinish && findBug) {
+			result = 0;
+		} else if (workloadFinish && injectFaultFinish && !findBug) {
+			result = 1;
+		} else if (workloadFinish && !injectFaultFinish) {
+			result = 2;
+		} else if (!workloadFinish && injectFaultFinish) {
+			result = 3;
+		} else if (!workloadFinish && !injectFaultFinish) {
+			result = -1;
+		}
 		return result;
 	}
 

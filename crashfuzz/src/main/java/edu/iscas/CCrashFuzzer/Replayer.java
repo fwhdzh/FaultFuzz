@@ -37,11 +37,13 @@ public class Replayer {
 	}
 
 	public QueueEntry retriveReplayQueueEntryFromRSTFolder(String filepath) {
-		TraceReader tr = new TraceReader(filepath + "/fav-rst");
-        tr.readTraces();
-		tr.fixWROrderInSameTimeStamp(tr.ioPoints);
+		// TraceReader tr = new TraceReader(filepath + "/fav-rst");
+        // tr.readTraces();
+		// tr.fixWROrderInSameTimeStamp(tr.ioPoints);
+		FaultSequenceConstructor fsc = new FaultSequenceConstructor();
+		List<IOPoint> ioPoints = fsc.constructIOPointList(filepath + "/fav-rst");
         QueueEntry e = new QueueEntry();
-        e.ioSeq = tr.ioPoints;
+        e.ioSeq = ioPoints;
         FaultSequence faultSeq = FileUtil.loadCurrentCrashPoint(filepath + "/zk363curCrash");
 		if (faultSeq == null) {
 			faultSeq = new FaultSequence();

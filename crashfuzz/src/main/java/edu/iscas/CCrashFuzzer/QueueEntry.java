@@ -104,6 +104,12 @@ public class QueueEntry {
 					this.faultSeq.seq.get(this.max_match_fault).ioPt = this.ioSeq.get(this.candidate_io);
 					this.faultSeq.seq.get(this.max_match_fault).tarNodeIp = this.faultSeq.seq.get(this.max_match_fault).actualNodeIp;
 					this.faultSeq.seq.get(this.max_match_fault).actualNodeIp = null;
+					/**
+					 * Wenhan Feng
+					 * We should add an "actualParams" field if we still want to use global appearId to determine whether a I/O point
+					 * should be injected a fault
+					 */
+					this.faultSeq.seq.get(this.max_match_fault).params = this.faultSeq.seq.get(this.max_match_fault).params;
 					this.max_match_fault++;
 				}
 				this.candidate_io++;

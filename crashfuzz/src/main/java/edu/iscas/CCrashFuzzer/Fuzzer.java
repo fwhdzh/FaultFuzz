@@ -66,6 +66,8 @@ public class Fuzzer {
     
 	RecoveryManagerFWH recoveryManager;
 
+	FaultSequenceConstructor constructor;
+
     public Fuzzer(NormalTarget target, Conf conf, boolean recover) {
     	monitor = new Monitor(conf);
     	stat = new Stat();
@@ -78,6 +80,7 @@ public class Fuzzer {
     	queue_cycle = 0;
 
 		recoveryManager = new RecoveryManagerFWH();
+		constructor = new FaultSequenceConstructor();
     }
 
     public static long getExecSeconds(long start) {
@@ -109,16 +112,26 @@ public class Fuzzer {
 		target.beforeTarget(faultSeqAndIOSeq, conf, "init", conf.hangSeconds);
 		target.doTarget();
 		TryBestDeterminismTResult tbdResult = target.afterTarget();
-		int rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.result);
+		int rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.resultCode);
 
 		String tmpRootDir = monitor.getTmpReportDir(testID);
 		coverage.read_bitmap(tmpRootDir+FileUtil.coverageDir);
 		int nb = coverage.has_new_bits();
 
 		updateQInSaveIfInterestring(q, rst, testID, nb, target.a_exec_seconds);
+
+		Stat.debug("Begin to collect runtime IO information...");
+		String tracePath = FileUtil.root_tmp + testID + "/" + FileUtil.ioTracesDir;
+		Stat.debug("tracePath is " + tracePath);
+		TraceReader tr = new TraceReader(FileUtil.root_tmp + testID + "/" + FileUtil.ioTracesDir);
+		tr.readTraces();
+		List<IOPoint> unorderedIOPoints = tr.ioPoints;
+		Stat.debug("unorderedIOPoints IO size is" + unorderedIOPoints.size());
+		List<FaultPoint> injectedFaultPointList = tbdResult.injectedFaultPointList;
+		Stat.debug("Begin to construct fault sequence...");
+		constructor.constructQueueEntry(q, unorderedIOPoints, injectedFaultPointList);
 		
 		if (nb > 0) {
-			updateQWithTrace(q, testID);
 			add_to_queue(q, testID);
 			if(q.unique_io_id == null || q.unique_io_id.isEmpty()) {
 				q.unique_io_id = new HashSet<Integer>();
@@ -145,7 +158,7 @@ public class Fuzzer {
         	scan.nextLine();
 		}
 		if(!Conf.DEBUG) {
-			FileUtil.delete(tmpRootDir);
+			// FileUtil.delete(tmpRootDir);
 		}
 
         recordGlobalInfo();
@@ -259,7 +272,7 @@ public class Fuzzer {
 		target.beforeTarget(faultSeqAndIOSeq, conf, testID, waitTime);
 		target.doTarget();
 		TryBestDeterminismTResult tbdResult = target.afterTarget();
-		rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.result);
+		rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.resultCode);
 
 		// NormalTarget target = new NormalTarget();
 		// rst = target.run_target(q.faultSeq, conf, testID, waitTime);
@@ -270,7 +283,8 @@ public class Fuzzer {
 		
 		
         // save_if_interesting(q, rst, q.fname, seedQ);
-		save_if_interesting_rewrite(q, rst, testID, seedQ, target.a_exec_seconds, target.logInfo);
+		// save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult.exec_time, tbdResult.logInfo);
+		save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult);
         
         if(rst == 2) {//test again for hang cases with a larger timeout
         	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangSeconds*60);
@@ -288,7 +302,7 @@ public class Fuzzer {
 			target.doTarget();
 			tbdResult = target.afterTarget();
 			// rst = tbdResult.result;
-			rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.result);
+			rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.resultCode);
 
 
 			q.fname = testID+"-retry";
@@ -305,7 +319,8 @@ public class Fuzzer {
 
             // save_if_interesting(q, rst, q.fname, seedQ);
 			// save_if_interesting_rewrite(q, rst, q.fname, seedQ, target);
-			save_if_interesting_rewrite(q, rst, testID, seedQ, target.a_exec_seconds, target.logInfo);
+			// save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult.exec_time, tbdResult.logInfo);
+			save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult);
             
         }
         
@@ -452,12 +467,27 @@ public class Fuzzer {
 	 * involve any state transitions not seen in previously-recorded faults. 
 	 */
 
-	public boolean save_if_interesting_rewrite(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, long exec_seconds, List<String> logInfo) {
+	public boolean save_if_interesting_rewrite(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, TryBestDeterminismTResult targetResult) {
+		// boolean result = save_if_interesting_rewrite(q, faultMode, testID, seedQ, targetResult.exec_time, targetResult.logInfo);
+		long exec_seconds = targetResult.exec_time;
+		List<String> logInfo = targetResult.logInfo;
 		boolean result = true;
 		coverage.read_bitmap(FileUtil.root_tmp+testID+"/"+FileUtil.coverageDir);
 		int nb = coverage.has_new_bits();
 
 		updateQInSaveIfInterestring(q, faultMode, testID, seedQ, nb, exec_seconds);
+
+		Stat.log("Begin to collect runtime IO information...");
+		TraceReader tr = new TraceReader(FileUtil.root_tmp + testID + "/" + FileUtil.ioTracesDir);
+		tr.readTraces();
+		List<IOPoint> unorderedIOPoints = tr.ioPoints;
+		List<FaultPoint> injectedFaultPointList = targetResult.injectedFaultPointList;
+
+		Stat.log("Begin to construct fault sequence...");
+		/**
+		 * We reuse q to save memory.
+		 */
+		constructor.constructQueueEntry(q, unorderedIOPoints, injectedFaultPointList);
 		
 		boolean isInteresting = false;
 		if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzer || conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzerMinus) {
@@ -469,11 +499,13 @@ public class Fuzzer {
 			isInteresting = EnumerationFilter.checkIfInteresting(faultMode, nb, q);
 		}
 		Stat.log("checkIfInteresting result is: " + isInteresting);
+
 		if (isInteresting) {
-			updateQWithTrace(q, testID);
+			Stat.log("Begin to mutate...");
 			addToQueueAndMutateInSaveIfInterestring(q, testID, seedQ);
 		}
 
+		Stat.log("Record evaluation data...");
 		updateFuzzInfoInSaveIfInterestring(q, faultMode, testID, seedQ, exec_seconds, nb);
 		// writeToFileInSaveIfInterestring(q, faultMode, testID, seedQ, nb, logInfo);
 		String seedName = seedQ.fname;
@@ -485,21 +517,6 @@ public class Fuzzer {
 		return result;
 	}
 
-	public void updateQWithTrace(QueueEntry q, String fname) {
-		// after test, the retrieved ioSeq could be different from the original q.ioSeq
-		// the actual faultSeq could also be different from the original q.faultSeq
-
-		// read from file,add to queue
-		TraceReader reader = new TraceReader(FileUtil.root_tmp + fname + "/" + FileUtil.ioTracesDir);
-		reader.readTraces();
-		if (reader.ioPoints == null || reader.ioPoints.isEmpty()) {
-			return;
-		}
-		q.ioSeq = reader.ioPoints;
-
-		q.calibrate();
-	}
-	
 	/* Append new test case to the queue. */
 	public void add_to_queue(QueueEntry q, String fname) {
 		q.handicap = 0;
@@ -705,8 +722,12 @@ public class Fuzzer {
             // 	scan.nextLine();
     		// }
 //        	fuzzed_queue.add(q);
+
+			
         	
         	hasFaultSequence = !candidate_queue.isEmpty();
+			Stat.debug(this.getClass(), "candidate_queue size is: " + candidate_queue.size());
+			Stat.debug(this.getClass(), "hasFaultSequence is: " + hasFaultSequence);
 
 			// recoveryManager.recordFuzzInfo(this);
 			// recoveryManager.recordCandidateQueue(this);

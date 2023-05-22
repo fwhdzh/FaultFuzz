@@ -1,6 +1,7 @@
 package edu.iscas.CCrashFuzzer.control.determine;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.iscas.CCrashFuzzer.AflCli;
@@ -17,6 +18,8 @@ import edu.iscas.CCrashFuzzer.control.NormalController.AbortFaultException;
 import edu.iscas.CCrashFuzzer.control.replay.ReplayController;
 
 public class TryBestDeterminismController extends ReplayController{
+	
+	List<FaultPoint> injectedFaultPointList = new ArrayList<>(); 
 
     public TryBestDeterminismController(Cluster cluster, int port, Conf favconfig) {
         super(cluster, port, favconfig);
@@ -28,6 +31,8 @@ public class TryBestDeterminismController extends ReplayController{
 		List<FaultPointBlocked> actualFPBList;
         int iOPointsDeterminismControlled;
 		List<MaxDownNodes> finalCluster;
+
+		List<FaultPoint> injectedFaultPointList; 
 	}
 
     public TryBestDeterminismControllerResult collectTryBestDeterminismControllerResult() {
@@ -36,6 +41,8 @@ public class TryBestDeterminismController extends ReplayController{
 		result.actualFPBList = actualFPBList;
         result.iOPointsDeterminismControlled = index.get();
 		result.finalCluster = currentCluster;
+
+		result.injectedFaultPointList = injectedFaultPointList;
 		return result;
 	}
 
@@ -244,6 +251,9 @@ public class TryBestDeterminismController extends ReplayController{
                     // fp.actualNodeIp = b.reportNodeIp;
                     Stat.log("A FaultPoint is found! The faultPoint is: " + fp.stat + ", ioID: " + fp.ioPt.ioID
                             + ", ip: " + fp.ioPt.ip + ", path: " + fp.ioPt.PATH);
+
+					injectedFaultPointList.add(fp);
+
                     b.cilentHander.doOperationToCluster(fp);
                     int nf = fIndex.incrementAndGet();
                     Stat.log(

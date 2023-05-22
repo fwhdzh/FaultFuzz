@@ -363,18 +363,13 @@ public class RandomFuzzer {
 			boolean canCrash = false;
 			boolean canReboot = false;
 			boolean faultInjected = false;
-			if(Conf.DEBUG) {
-				Stat.log("cur fault seq size "+randomFaults.seq.size());
-				Stat.log(i+"th Fault node is "+tarNodeIp);
-			}
+			
+			Stat.debug("cur fault seq size " + randomFaults.seq.size());
+			Stat.debug(i + "th Fault node is " + tarNodeIp);
 			for(MaxDownNodes subCluster:currentCluster) {
-				if(Conf.DEBUG) {
-					Stat.log(subCluster.aliveGroup+" "+subCluster.aliveGroup.contains(tarNodeIp));
-					Stat.log(subCluster.deadGroup+" "+subCluster.deadGroup.contains(tarNodeIp));
-				}
-
 				
-
+				Stat.debug(subCluster.aliveGroup + " " + subCluster.aliveGroup.contains(tarNodeIp));
+				Stat.debug(subCluster.deadGroup + " " + subCluster.deadGroup.contains(tarNodeIp));
 				
 				if(subCluster.aliveGroup.contains(tarNodeIp)
 						|| subCluster.deadGroup.contains(tarNodeIp)) {
@@ -386,11 +381,9 @@ public class RandomFuzzer {
 
 					List<FaultStat> faultStateCouldInject = new ArrayList<>();
 
-					if (Conf.DEBUG) {
-						Stat.log(i + "th can crash " + canCrash + ", can reboot " + canReboot + ", can disnectNetwork "
-								+ canDisconnectNetwork + ", can connectNetwork " + canConnectNetwork);
-						Stat.log(i + "th cur time offset is  " + timeOffSet);
-					}
+					Stat.debug(i + "th can crash " + canCrash + ", can reboot " + canReboot + ", can disnectNetwork "
+							+ canDisconnectNetwork + ", can connectNetwork " + canConnectNetwork);
+					Stat.debug(i + "th cur time offset is  " + timeOffSet);
 
 					if (canCrash) {
 						faultStateCouldInject.add(FaultStat.CRASH);
