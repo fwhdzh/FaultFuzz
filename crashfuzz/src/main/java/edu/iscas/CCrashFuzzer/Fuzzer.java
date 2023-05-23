@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
+import com.alibaba.fastjson.JSONObject;
+
 import edu.iscas.CCrashFuzzer.Conf.EVALUATE_TARGET_SET;
 import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
 import edu.iscas.CCrashFuzzer.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
@@ -167,98 +169,18 @@ public class Fuzzer {
 	}
 
 	
-	/* Take the current entry from the queue, fuzz it for a while. This
-	   function is a tad too long... returns 0 if fuzzed successfully, 1 if
-	   skipped or bailed out. */
-
-	public void updateQueuePair(SelectionInfo.QueuePair q) {
-
-		// q.seed.faultPointsToMutate.remove(q.mutateIdx);
-    	// q.seed.mutates.remove(q.mutateIdx);
-
-		int mIndex = q.seed.mutates.indexOf(q.mutate);
-		q.seed.faultPointsToMutate.remove(mIndex);
-		q.seed.mutates.remove(mIndex);
-
-    	if(q.mutate.favored) {
-    		q.seed.favored_mutates.remove(q.mutate);
-    	}
-    	if(q.mutate.faultSeq.on_recovery) {
-    		q.seed.on_recovery_mutates.remove(q.mutate);
-    	}
-    	
-    	FaultPoint tmpLastFault = q.mutate.faultSeq.seq.get(q.mutate.faultSeq.seq.size()-1);
-		int tmpID = tmpLastFault.getFaultID();
-		q.seed.not_tested_fault_id.remove(tmpID);
-		SelectionInfo.tested_fault_id.add(tmpID);
-
-		SelectionInfo.testedFault.add(tmpLastFault);
-    	
-		FaultPoint injected_fault = tmpLastFault;
-		
-		updateFavorListOfQ(q, injected_fault);
-		
-		if(q.seed.mutates == null || q.seed.mutates.isEmpty()) {
-    		candidate_queue.remove(q.seedIdx);
-        	FileUtil.removeFromQueue(q.seed.fname, conf);
-        	FuzzInfo.fuzzedFiles.add(q.seed.fname);
-        	FileUtil.copyToFuzzed(q.seed.fname, FuzzInfo.getUsedSeconds());
-    	}
-	}
-
-	private void updateFavorListOfQ(SelectionInfo.QueuePair q, FaultPoint injected_fault) {
-		int startLoc = (q.mutateIdx-10)>=0? q.mutateIdx-10:0;
-		long tmpTime = q.seed.mutates.get(startLoc).faultSeq.seq.get(q.seed.mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
-		while((injected_fault.ioPt.TIMESTAMP - tmpTime) < conf.similarBehaviorWindow
-				&& startLoc != 0) {
-			startLoc = (startLoc-10)>=0? startLoc-10:0;
-			tmpTime = q.seed.mutates.get(startLoc).faultSeq.seq.get(q.seed.mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
-		}
-		
-		int unfavored = 0;
-		for(int i = startLoc; i< q.seed.mutates.size(); i++) {
-			FaultPoint adjacentPoint = q.seed.mutates.get(i).faultSeq.seq.get(q.seed.mutates.get(i).faultSeq.seq.size()-1);
-			if((adjacentPoint.ioPt.TIMESTAMP<=injected_fault.ioPt.TIMESTAMP)
-					&& (injected_fault.ioPt.TIMESTAMP-adjacentPoint.ioPt.TIMESTAMP)<conf.similarBehaviorWindow
-					&& injected_fault.stat == adjacentPoint.stat
-					&& q.seed.mutates.get(i).favored) {
-				if(adjacentPoint.ioPt.CALLSTACK.toString().equals(injected_fault.ioPt.CALLSTACK.toString())
-						|| (!injected_fault.ioPt.PATH.startsWith("FAVMSG")
-								&& !adjacentPoint.ioPt.PATH.startsWith("FAVMSG")
-								&& injected_fault.ioPt.PATH.equals(adjacentPoint.ioPt.PATH))){
-					q.seed.favored_mutates.remove(q.seed.mutates.get(i));
-					q.seed.mutates.get(i).favored = false;
-					unfavored++;
-				}
-			} else if (adjacentPoint.ioPt.TIMESTAMP>injected_fault.ioPt.TIMESTAMP) {
-				if((adjacentPoint.ioPt.TIMESTAMP-injected_fault.ioPt.TIMESTAMP)<conf.similarBehaviorWindow
-						&& injected_fault.stat == adjacentPoint.stat
-						&& q.seed.mutates.get(i).favored) {
-					if(adjacentPoint.ioPt.CALLSTACK.toString().equals(injected_fault.ioPt.CALLSTACK.toString())
-							|| (!injected_fault.ioPt.PATH.startsWith("FAVMSG")
-									&& !adjacentPoint.ioPt.PATH.startsWith("FAVMSG")
-									&& injected_fault.ioPt.PATH.equals(adjacentPoint.ioPt.PATH))){
-						q.seed.favored_mutates.remove(q.seed.mutates.get(i));
-						q.seed.mutates.get(i).favored = false;
-						unfavored++;
-					}
-				} else {
-					break;
-				}
-			}
-		}
-		Stat.log(unfavored+" mutations are marked as unfavored.");
-	}
 
 	
 	/* Write a modified test case, run program, process results. Handle
 	   error conditions, returning 1 if it's time to bail out. This is
 	   a helper function for fuzz_one(). */
-	public int common_fuzz_stuff(QueueEntry q, QueueEntry seedQ) {
+	public int common_fuzz_stuff(QueuePair pair) {
 		//save current test case to file
 		//run_target
 		//save_if_interesting
 		// String fname = stat.saveTestCase();
+		QueueEntry q = pair.mutate ;
+		QueueEntry seedQ = pair.seed;
 		
         long start = System.currentTimeMillis();
         
@@ -280,48 +202,24 @@ public class Fuzzer {
 		q.fname = testID;
 		q.was_tested = true;
 		
+		pair.seed.was_fuzzed = true;
+		FileUtil.updateQueueInfo(pair.seed.fname, pair.seed.mutates, pair.seed.fuzzed_time, pair.seed.handicap);
+		if (rst != -1) {
+			updateMetricOfQueuePair(pair);
+		}
 		
+		removeMutateFromSeedAndCandidateQueue(pair);
 		
         // save_if_interesting(q, rst, q.fname, seedQ);
 		// save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult.exec_time, tbdResult.logInfo);
-		save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult);
+		save_if_interesting_rewrite(pair, rst, testID, tbdResult);
         
+
         if(rst == 2) {//test again for hang cases with a larger timeout
-        	Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangSeconds*60);
-        	if(Conf.MANUAL) {
-            	Scanner scan = new Scanner(System.in);
-            	scan.nextLine();
-            }
-			int lastRst = rst;
-			start = System.currentTimeMillis();
-        	q.faultSeq.reset();
-
-    		// rst = target.run_target(q.faultSeq, conf, testID+"-retry", conf.hangSeconds*2);
-
-			target.beforeTarget(faultSeqAndIOSeq, conf, testID+"-retry", conf.hangSeconds*2);
-			target.doTarget();
-			tbdResult = target.afterTarget();
-			// rst = tbdResult.result;
-			rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.resultCode);
-
-
-			q.fname = testID+"-retry";
-
-			if(lastRst == 2 && rst != 2){
-				FuzzInfo.total_hangs--;
-				FileUtil.removeFromHang(testID,conf);
-			}
-			if (lastRst == 2 && rst == 2) {
-				FuzzInfo.lastNewHangTime = FuzzInfo.getUsedSeconds();
-				FuzzInfo.lastNewHangFaults = q.faultSeq.seq.size();
-				FuzzInfo.updateTimeToFaulsHangsNum(q);
-            }
-
-            // save_if_interesting(q, rst, q.fname, seedQ);
-			// save_if_interesting_rewrite(q, rst, q.fname, seedQ, target);
-			// save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult.exec_time, tbdResult.logInfo);
-			save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult);
-            
+			/**
+			 * To fix bug, comment this hang test temporarily
+			 */
+        	// rst = testAgainForHang(pair, waitTime, testID, rst, target, faultSeqAndIOSeq, start);
         }
         
         FuzzInfo.testedUniqueCases.add(q.faultSeq.getFaultSeqID());
@@ -333,6 +231,48 @@ public class Fuzzer {
         	scan.nextLine();
         }
         
+		return rst;
+	}
+
+	private int testAgainForHang(QueuePair pair, long waitTime, String testID, int rst,
+			TryBestDeterminismTarget target, FaultSeqAndIOSeq faultSeqAndIOSeq, long start) {
+		QueueEntry q = pair.mutate ;
+		QueueEntry seedQ = pair.seed;
+		TryBestDeterminismTResult tbdResult;
+		Stat.log("Try the test again, rst is "+rst+", not finished in "+waitTime+" seconds. New timeout is "+conf.hangSeconds*60);
+		if(Conf.MANUAL) {
+			Scanner scan = new Scanner(System.in);
+			scan.nextLine();
+		}
+		int lastRst = rst;
+		start = System.currentTimeMillis();
+		q.faultSeq.reset();
+
+		// rst = target.run_target(q.faultSeq, conf, testID+"-retry", conf.hangSeconds*2);
+
+		target.beforeTarget(faultSeqAndIOSeq, conf, testID+"-retry", conf.hangSeconds*2);
+		target.doTarget();
+		tbdResult = target.afterTarget();
+		// rst = tbdResult.result;
+		rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.resultCode);
+
+
+		q.fname = testID+"-retry";
+
+		if(lastRst == 2 && rst != 2){
+			FuzzInfo.total_hangs--;
+			FileUtil.removeFromHang(testID,conf);
+		}
+		if (lastRst == 2 && rst == 2) {
+			FuzzInfo.lastNewHangTime = FuzzInfo.getUsedSeconds();
+			FuzzInfo.lastNewHangFaults = q.faultSeq.seq.size();
+			FuzzInfo.updateTimeToFaulsHangsNum(q);
+		}
+
+		// save_if_interesting(q, rst, q.fname, seedQ);
+		// save_if_interesting_rewrite(q, rst, q.fname, seedQ, target);
+		// save_if_interesting_rewrite(q, rst, testID, seedQ, tbdResult.exec_time, tbdResult.logInfo);
+		save_if_interesting_rewrite(pair, rst, testID, tbdResult);
 		return rst;
 	}
 	
@@ -467,13 +407,19 @@ public class Fuzzer {
 	 * involve any state transitions not seen in previously-recorded faults. 
 	 */
 
-	public boolean save_if_interesting_rewrite(QueueEntry q, int faultMode, String testID, QueueEntry seedQ, TryBestDeterminismTResult targetResult) {
+	public boolean save_if_interesting_rewrite(QueuePair pair, int faultMode, String testID, TryBestDeterminismTResult targetResult) {
+
+		QueueEntry q = pair.mutate;
+		QueueEntry seedQ = pair.seed;
+
 		// boolean result = save_if_interesting_rewrite(q, faultMode, testID, seedQ, targetResult.exec_time, targetResult.logInfo);
 		long exec_seconds = targetResult.exec_time;
 		List<String> logInfo = targetResult.logInfo;
 		boolean result = true;
 		coverage.read_bitmap(FileUtil.root_tmp+testID+"/"+FileUtil.coverageDir);
 		int nb = coverage.has_new_bits();
+
+		
 
 		updateQInSaveIfInterestring(q, faultMode, testID, seedQ, nb, exec_seconds);
 
@@ -488,6 +434,7 @@ public class Fuzzer {
 		 * We reuse q to save memory.
 		 */
 		constructor.constructQueueEntry(q, unorderedIOPoints, injectedFaultPointList);
+		Stat.debug("After construction, the fault sequence is: " + JSONObject.toJSONString(q.faultSeq));
 		
 		boolean isInteresting = false;
 		if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzer || conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzerMinus) {
@@ -738,18 +685,104 @@ public class Fuzzer {
         }
 	}
 
-	public void doARun(SelectionInfo.QueuePair q) {
-		Stat.log("Going to test queue entry " + q.seedIdx + "'s mutation:" + q.mutateIdx);
-		int exec_rst = common_fuzz_stuff(q.mutate, q.seed);
-		q.seed.was_fuzzed = true;
-		FileUtil.updateQueueInfo(q.seed.fname, q.seed.mutates, q.seed.fuzzed_time, q.seed.handicap);
-		if (exec_rst != -1) {
-			updateQueuePair(q);
+	public void doARun(SelectionInfo.QueuePair pair) {
+		Stat.log("Going to test queue entry " + pair.seedIdx + "'s mutation:" + pair.mutateIdx);
+		int exec_rst = common_fuzz_stuff(pair);
+		
+	}
+
+	// public updateAndRemoveSeedAndMutate() {
+
+	// }
+
+	/* Take the current entry from the queue, fuzz it for a while. This
+	   function is a tad too long... returns 0 if fuzzed successfully, 1 if
+	   skipped or bailed out. */
+
+	   public void updateMetricOfQueuePair(SelectionInfo.QueuePair pair) {
+
+		// q.seed.faultPointsToMutate.remove(q.mutateIdx);
+    	// q.seed.mutates.remove(q.mutateIdx);
+
+		QueueEntry seed = pair.seed;
+		QueueEntry mutate = pair.mutate;
+
+		if(mutate.faultSeq.on_recovery) {
+    		seed.on_recovery_mutates.remove(mutate);
+    	}
+    	
+    	FaultPoint tmpLastFault = mutate.faultSeq.seq.get(mutate.faultSeq.seq.size()-1);
+		int tmpID = tmpLastFault.getFaultID();
+		seed.not_tested_fault_id.remove(tmpID);
+		SelectionInfo.tested_fault_id.add(tmpID);
+
+		SelectionInfo.testedFault.add(tmpLastFault);
+    	
+		FaultPoint injected_fault = tmpLastFault;
+		if(mutate.favored) {
+    		seed.favored_mutates.remove(mutate);
+    	}
+		updateFavorListOfPairSeed(pair, injected_fault);
+	}
+
+	private void removeMutateFromSeedAndCandidateQueue(QueuePair pair) {
+		QueueEntry seed = pair.seed;
+		QueueEntry mutate = pair.mutate;
+		int mIndex = seed.mutates.indexOf(mutate);
+		seed.faultPointsToMutate.remove(mIndex);
+		seed.mutates.remove(mIndex);
+
+		if(seed.mutates == null || seed.mutates.isEmpty()) {
+    		candidate_queue.remove(pair.seedIdx);
+        	FileUtil.removeFromQueue(seed.fname, conf);
+        	FuzzInfo.fuzzedFiles.add(seed.fname);
+        	FileUtil.copyToFuzzed(seed.fname, FuzzInfo.getUsedSeconds());
+    	}
+	}
+
+	private void updateFavorListOfPairSeed(SelectionInfo.QueuePair q, FaultPoint injected_fault) {
+		int mutateIdx = q.mutateIdx;
+		int startLoc = (mutateIdx-10)>=0? q.mutateIdx-10:0;
+		long tmpTime = q.seed.mutates.get(startLoc).faultSeq.seq.get(q.seed.mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
+		while((injected_fault.ioPt.TIMESTAMP - tmpTime) < conf.similarBehaviorWindow
+				&& startLoc != 0) {
+			startLoc = (startLoc-10)>=0? startLoc-10:0;
+			tmpTime = q.seed.mutates.get(startLoc).faultSeq.seq.get(q.seed.mutates.get(startLoc).faultSeq.seq.size()-1).ioPt.TIMESTAMP;
 		}
-		// if (Conf.MANUAL) {
-		// 	Scanner scan = new Scanner(System.in);
-		// 	scan.nextLine();
-		// }
+		
+		int unfavored = 0;
+		for(int i = startLoc; i< q.seed.mutates.size(); i++) {
+			FaultPoint adjacentPoint = q.seed.mutates.get(i).faultSeq.seq.get(q.seed.mutates.get(i).faultSeq.seq.size()-1);
+			if((adjacentPoint.ioPt.TIMESTAMP<=injected_fault.ioPt.TIMESTAMP)
+					&& (injected_fault.ioPt.TIMESTAMP-adjacentPoint.ioPt.TIMESTAMP)<conf.similarBehaviorWindow
+					&& injected_fault.stat == adjacentPoint.stat
+					&& q.seed.mutates.get(i).favored) {
+				if(adjacentPoint.ioPt.CALLSTACK.toString().equals(injected_fault.ioPt.CALLSTACK.toString())
+						|| (!injected_fault.ioPt.PATH.startsWith("FAVMSG")
+								&& !adjacentPoint.ioPt.PATH.startsWith("FAVMSG")
+								&& injected_fault.ioPt.PATH.equals(adjacentPoint.ioPt.PATH))){
+					q.seed.favored_mutates.remove(q.seed.mutates.get(i));
+					q.seed.mutates.get(i).favored = false;
+					unfavored++;
+				}
+			} else if (adjacentPoint.ioPt.TIMESTAMP>injected_fault.ioPt.TIMESTAMP) {
+				if((adjacentPoint.ioPt.TIMESTAMP-injected_fault.ioPt.TIMESTAMP)<conf.similarBehaviorWindow
+						&& injected_fault.stat == adjacentPoint.stat
+						&& q.seed.mutates.get(i).favored) {
+					if(adjacentPoint.ioPt.CALLSTACK.toString().equals(injected_fault.ioPt.CALLSTACK.toString())
+							|| (!injected_fault.ioPt.PATH.startsWith("FAVMSG")
+									&& !adjacentPoint.ioPt.PATH.startsWith("FAVMSG")
+									&& injected_fault.ioPt.PATH.equals(adjacentPoint.ioPt.PATH))){
+						q.seed.favored_mutates.remove(q.seed.mutates.get(i));
+						q.seed.mutates.get(i).favored = false;
+						unfavored++;
+					}
+				} else {
+					break;
+				}
+			}
+		}
+		Stat.log(unfavored+" mutations are marked as unfavored.");
 	}
 	
 	public void recordGlobalInfo() {
