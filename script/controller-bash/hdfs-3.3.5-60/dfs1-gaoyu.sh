@@ -41,8 +41,8 @@ docker cp dfs1-cli.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.1
 docker cp ubuntuFailTest.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.1
 docker exec -t C1Slave4 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.1/ && sh dfs1-cli.sh'
 
-java -cp dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/crashfuzzer/hdfs-3.3.1-c1-new/failTest.sh
-#fav-jre-inst/bin/java $PHOS_OPTS -cp dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/crashfuzzer/hdfs-3.3.1-c1-new/failTest.sh
+java -cp dfscases.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/faultfuzzer/hdfs-3.3.1-c1-new/failTest.sh
+#fav-jre-inst/bin/java $PHOS_OPTS -cp dfscases.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/faultfuzzer/hdfs-3.3.1-c1-new/failTest.sh
 
 END_TIME=`date +%s`
 EXECUTING_TIME=`expr $END_TIME - $START_TIME`

@@ -1,5 +1,5 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-nohup $SCRIPT_DIR/crashfuzzer-alone.sh > /data/fengwenhan/data/crashfuzz_hbase_logs/crashfuzz_hbase_nohup.log &
+nohup $SCRIPT_DIR/faultfuzzer-alone.sh > /data/fengwenhan/data/faultfuzz_hbase_logs/faultfuzz_hbase_nohup.log &
 
 

@@ -1,1 +1,1 @@
-ls /data/fengwenhan/data/crashfuzz_ctrl/tmp/init
+ls /data/fengwenhan/data/faultfuzz_ctrl/tmp/init

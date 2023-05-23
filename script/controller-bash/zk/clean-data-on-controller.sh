@@ -5,7 +5,7 @@ case "$choice" in
   * ) echo "Invalid choice, exiting script..."; exit;;
 esac
 
-rm -r /data/fengwenhan/data/crashfuzz_zk_recovery/*
-rm -r /data/fengwenhan/data/crashfuzz_zk/*
-rm -r /data/fengwenhan/data/crashfuzz_zk_logs/*
-rm -r /data/fengwenhan/data/crashfuzz_zk_jar_and_start/*
+rm -r /data/fengwenhan/data/faultfuzz_zk_recovery/*
+rm -r /data/fengwenhan/data/faultfuzz_zk/*
+rm -r /data/fengwenhan/data/faultfuzz_zk_logs/*
+rm -r /data/fengwenhan/data/faultfuzz_zk_jar_and_start/*

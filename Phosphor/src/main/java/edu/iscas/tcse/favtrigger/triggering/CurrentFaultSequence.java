@@ -9,16 +9,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPos;
-// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultStat;
-// import edu.iscas.tcse.favtrigger.triggering.FaultSequence.FaultPoint;
-
-import edu.iscas.CCrashFuzzer.FaultSequence;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPos;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultStat;
-import edu.iscas.CCrashFuzzer.utils.FileUtil;
-import edu.iscas.CCrashFuzzer.FaultSequence.FaultPoint;
-import edu.iscas.CCrashFuzzer.IOPoint;
+import edu.iscas.tcse.faultfuzz.FaultSequence;
+import edu.iscas.tcse.faultfuzz.IOPoint;
+import edu.iscas.tcse.faultfuzz.FaultSequence.FaultPoint;
+import edu.iscas.tcse.faultfuzz.FaultSequence.FaultPos;
+import edu.iscas.tcse.faultfuzz.FaultSequence.FaultStat;
+import edu.iscas.tcse.faultfuzz.utils.FileUtil;
 
 
 public class CurrentFaultSequence {

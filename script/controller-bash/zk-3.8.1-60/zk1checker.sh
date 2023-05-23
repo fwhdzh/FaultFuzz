@@ -70,7 +70,7 @@ connectString=$(echo "$connectString" | sed 's/ZK1/ZK2/g')
 connectString=$(echo "$connectString" | sed 's/C1ZK/172\.40\.0\./g')
 echo $connectString
 
-# java -cp $SCRIPT_DIR/zkcases-0.jar edu.iscas.ZKCases.ZKChecker "$connectString" $workdir/failTest.sh
+# java -cp $SCRIPT_DIR/zkcases-0.jar edu.iscas.tcse.ZKCases.ZKChecker "$connectString" $workdir/failTest.sh
 
 sh $SCRIPT_DIR/checkException.sh $3
 

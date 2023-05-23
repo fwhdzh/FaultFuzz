@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>edu.iscas</groupId>
-  <artifactId>CCrashFuzzer-parent</artifactId>
+  <artifactId>FaultFuzz-parent</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>CCrashFuzzer-parent</name>
+  <name>FaultFuzz-parent</name>
   <url>http://maven.apache.org</url>
 
   <properties>
@@ -18,7 +18,7 @@
   </properties>
 
   <modules>
-    <module>crashfuzz</module>
+    <module>faultfuzz</module>
     <module>Phosphor</module>
   </modules>
 

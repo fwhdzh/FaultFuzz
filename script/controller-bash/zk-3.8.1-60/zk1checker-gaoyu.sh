@@ -59,7 +59,7 @@ sh jpsCluster.sh
 workdir=$(pwd)
 
 connectString=$(sh aliveServers.sh)
-java -cp zkcases-0.jar edu.iscas.ZKCases.ZKChecker "$connectString" $workdir/failTest.sh
+java -cp zkcases-0.jar edu.iscas.tcse.ZKCases.ZKChecker "$connectString" $workdir/failTest.sh
 
 sh checkException.sh $3
 

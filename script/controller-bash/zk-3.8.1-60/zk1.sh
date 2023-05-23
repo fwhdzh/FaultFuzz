@@ -4,7 +4,7 @@
 # docker exec -t C1ZK4 /bin/bash -ic ". /home/gaoyu/evaluation/zk-3.8.1/bin/zkServer.sh start "
 # docker exec -t C1ZK5 /bin/bash -ic ". /home/gaoyu/evaluation/zk-3.8.1/bin/zkServer.sh start "
 
-# java -cp zkcases-0.jar edu.iscas.ZKCases.GetLeader "172.40.0.2:11181,172.40.0.3:11181,172.40.0.4:11181,172.40.0.5:11181,172.40.0.6:11181" $workdir/failTest.sh 10
+# java -cp zkcases-0.jar edu.iscas.tcse.ZKCases.GetLeader "172.40.0.2:11181,172.40.0.3:11181,172.40.0.4:11181,172.40.0.5:11181,172.40.0.6:11181" $workdir/failTest.sh 10
 
 START_TIME=`date +%s`
 
@@ -18,7 +18,7 @@ docker exec -t C1ZK4 /bin/bash -ic 'cd /home/gaoyu/evaluation/zk-3.8.1/ && bin/z
 docker exec -t C1ZK5 /bin/bash -ic 'cd /home/gaoyu/evaluation/zk-3.8.1/ && bin/zkServer.sh start'
 
 #make sure leader node is online
-java -cp zkcases-0.jar edu.iscas.ZKCases.GetLeader "172.40.0.2:11181,172.40.0.3:11181,172.40.0.4:11181,172.40.0.5:11181,172.40.0.6:11181" $workdir/failTest.sh 10
+java -cp zkcases-0.jar edu.iscas.tcse.ZKCases.GetLeader "172.40.0.2:11181,172.40.0.3:11181,172.40.0.4:11181,172.40.0.5:11181,172.40.0.6:11181" $workdir/failTest.sh 10
 
 # export PHOS_OPTS="-Xbootclasspath/a:Phosphor-0.0.5-SNAPSHOT.jar -javaagent:Phosphor-0.0.5-SNAPSHOT.jar=useFav=false"
 
@@ -37,9 +37,9 @@ java -cp zkcases-0.jar edu.iscas.ZKCases.GetLeader "172.40.0.2:11181,172.40.0.3:
 # echo $servers
 
 # #run workload
-# java -cp zkcases-0.jar edu.iscas.ZKCases.ZK1Cli "$servers" check nullcrash nullstart $workdir/failTest.sh
+# java -cp zkcases-0.jar edu.iscas.tcse.ZKCases.ZK1Cli "$servers" check nullcrash nullstart $workdir/failTest.sh
 
-# echo "exec edu.iscas.ZKCases.ZK1Cli finished!"
+# echo "exec edu.iscas.tcse.ZKCases.ZK1Cli finished!"
 
 # servers=$(sh aliveServers.sh)
 # echo $servers
@@ -51,9 +51,9 @@ java -cp zkcases-0.jar edu.iscas.ZKCases.GetLeader "172.40.0.2:11181,172.40.0.3:
 # servers=$(echo "$servers" | sed 's/ZK1/ZK2/g')
 # servers=$(echo "$servers" | sed 's/C1ZK/172\.40\.0\./g')
 # echo $servers
-# java -cp zkcases-0.jar edu.iscas.ZKCases.ZK1Cli2 "$servers" check nullcrash nullstart $workdir/failTest.sh
+# java -cp zkcases-0.jar edu.iscas.tcse.ZKCases.ZK1Cli2 "$servers" check nullcrash nullstart $workdir/failTest.sh
 
-# echo "exec edu.iscas.ZKCases.ZK1Cli2 finished!"
+# echo "exec edu.iscas.tcse.ZKCases.ZK1Cli2 finished!"
 
 # END_TIME=`date +%s`
 # EXECUTING_TIME=`expr $END_TIME - $START_TIME`

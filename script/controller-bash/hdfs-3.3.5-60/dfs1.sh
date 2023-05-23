@@ -59,10 +59,10 @@ sleep 10
 docker exec -t C1NN /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs dfsadmin -report'
 docker exec -t C1Slave4 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && sh dfs1-cli.sh'
 
-# echo "java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh $SCRIPT_DIR/failTest.sh"
-# java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh $SCRIPT_DIR/failTest.sh
+# echo "java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh $SCRIPT_DIR/failTest.sh"
+# java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh $SCRIPT_DIR/failTest.sh
 
-# java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/crashfuzzer/hdfs-3.3.1-c1-new/failTest.sh
+# java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/faultfuzzer/hdfs-3.3.1-c1-new/failTest.sh
 
 END_TIME=`date +%s`
 EXECUTING_TIME=`expr $END_TIME - $START_TIME`

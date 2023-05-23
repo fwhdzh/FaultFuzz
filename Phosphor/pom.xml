@@ -8,7 +8,7 @@
     <description>Dynamic Taint Tracker</description>
     <parent>
         <groupId>edu.iscas</groupId>
-        <artifactId>CCrashFuzzer-parent</artifactId>
+        <artifactId>FaultFuzz-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <build>
@@ -212,7 +212,7 @@
         </dependency> -->
         <dependency>
             <groupId>edu.iscas</groupId>
-            <artifactId>CCrashFuzzer</artifactId>
+            <artifactId>FaultFuzz</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
