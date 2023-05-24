@@ -20,19 +20,19 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
 import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;
 import edu.iscas.tcse.faultfuzz.ctrl.IOPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.Network;
 import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
 import edu.iscas.tcse.faultfuzz.ctrl.RunCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;
 import edu.iscas.tcse.faultfuzz.ctrl.control.AbstractController;
 import edu.iscas.tcse.faultfuzz.ctrl.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
 import edu.iscas.tcse.faultfuzz.ctrl.control.NormalController.AbortFaultException;
@@ -161,8 +161,8 @@ extends AbstractController
 		public static boolean equalInPathPreFix(String path1, String path2) {
 			// return path1.split("&")[0].equals(path2.split("&")[0]);
 			boolean result = false;
-			List<String> sList1 = extractInformationFromPath(path1);
-			List<String> sList2 = extractInformationFromPath(path2);
+			List<String> sList1 = IOPoint.extractInformationFromPath(path1);
+			List<String> sList2 = IOPoint.extractInformationFromPath(path2);
 			if (sList1.size() != sList2.size()) {
 				return false;
 			}
@@ -704,38 +704,38 @@ extends AbstractController
 
 	}
 
-	public static List<String> extractInformationFromPath(String path) {
-		List<String> result = new ArrayList<>();
-		String type = "not msg";
-		if (path.startsWith("FAVMSG") && (!path.contains("READ"))) {
-			type = "write";
-		}
-		if (path.startsWith("FAVMSG:READ")) {
-			type = "read";
-		}
-		result.add(type);
-		if (type.equals("write")) {
-			String connectionNode = path.split("&")[0].split(":")[1];
-			result.add(connectionNode);
-			String msgId = path.split("&")[1];
-			result.add(msgId);
-		}
-		if (type.equals("read")) {
-			String sourIP = path.split("&")[0].split("READ")[1];
-			result.add(sourIP);
-			String msgId = path.split("&")[1];
-			result.add(msgId);
-		}
-		if (type.equals("not msg")) {
-			String ioInfo = path;
-			result.add(ioInfo);
-		}
-		return result;
-	}
+	// public static List<String> extractInformationFromPath(String path) {
+	// 	List<String> result = new ArrayList<>();
+	// 	String type = "not msg";
+	// 	if (path.startsWith("FAVMSG") && (!path.contains("READ"))) {
+	// 		type = "write";
+	// 	}
+	// 	if (path.startsWith("FAVMSG:READ")) {
+	// 		type = "read";
+	// 	}
+	// 	result.add(type);
+	// 	if (type.equals("write")) {
+	// 		String connectionNode = path.split("&")[0].split(":")[1];
+	// 		result.add(connectionNode);
+	// 		String msgId = path.split("&")[1];
+	// 		result.add(msgId);
+	// 	}
+	// 	if (type.equals("read")) {
+	// 		String sourIP = path.split("&")[0].split("READ")[1];
+	// 		result.add(sourIP);
+	// 		String msgId = path.split("&")[1];
+	// 		result.add(msgId);
+	// 	}
+	// 	if (type.equals("not msg")) {
+	// 		String ioInfo = path;
+	// 		result.add(ioInfo);
+	// 	}
+	// 	return result;
+	// }
 
 	public static List<String> tansformPathToStrList(String path, String reportIP) {
 		List<String> result = new ArrayList<>();
-		result = extractInformationFromPath(path);
+		result = IOPoint.extractInformationFromPath(path);
 		if (result.get(0).equals("write")) {
 			result.add(1, reportIP);
 		}
