@@ -16,7 +16,7 @@ import edu.columbia.cs.psl.phosphor.struct.LazyReferenceArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.LazyShortArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.TaintedPrimitiveWithObjTag;
 import edu.columbia.cs.psl.phosphor.struct.TaintedReferenceWithObjTag;
-import edu.iscas.tcse.faultfuzz.FaultSequence.FaultPos;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPos;
 import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.taint.FAVTaint;
 import edu.iscas.tcse.favtrigger.tracing.RecordTaint;

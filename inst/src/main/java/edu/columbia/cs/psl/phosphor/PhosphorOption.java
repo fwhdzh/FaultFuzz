@@ -1,20 +1,5 @@
 package edu.columbia.cs.psl.phosphor;
 
-import edu.columbia.cs.psl.phosphor.control.ControlFlowManager;
-import edu.columbia.cs.psl.phosphor.control.standard.StandardControlFlowManager;
-import edu.columbia.cs.psl.phosphor.instrumenter.TaintTagFactory;
-import edu.columbia.cs.psl.phosphor.runtime.TaintSourceWrapper;
-import edu.columbia.cs.psl.phosphor.struct.harmony.util.EnumMap;
-import edu.columbia.cs.psl.phosphor.struct.harmony.util.StringBuilder;
-import edu.iscas.tcse.faultfuzz.BitArray;
-import edu.iscas.tcse.favtrigger.instrumenter.CoverageMap;
-import edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAfl;
-import edu.iscas.tcse.favtrigger.taint.FAVTaint;
-import edu.iscas.tcse.favtrigger.triggering.CurrentFaultSequence;
-
-import org.apache.commons.cli.*;
-import org.objectweb.asm.ClassVisitor;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +7,28 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.objectweb.asm.ClassVisitor;
+
+import edu.columbia.cs.psl.phosphor.control.ControlFlowManager;
+import edu.columbia.cs.psl.phosphor.control.standard.StandardControlFlowManager;
+import edu.columbia.cs.psl.phosphor.instrumenter.TaintTagFactory;
+import edu.columbia.cs.psl.phosphor.runtime.TaintSourceWrapper;
+import edu.columbia.cs.psl.phosphor.struct.harmony.util.EnumMap;
+import edu.columbia.cs.psl.phosphor.struct.harmony.util.StringBuilder;
+import edu.iscas.tcse.faultfuzz.ctrl.BitArray;
+import edu.iscas.tcse.favtrigger.instrumenter.CoverageMap;
+import edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAfl;
+import edu.iscas.tcse.favtrigger.taint.FAVTaint;
+import edu.iscas.tcse.favtrigger.triggering.CurrentFaultSequence;
 
 public enum PhosphorOption {
 

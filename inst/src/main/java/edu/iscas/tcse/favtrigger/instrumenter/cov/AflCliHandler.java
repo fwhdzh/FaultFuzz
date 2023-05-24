@@ -5,7 +5,7 @@ import java.io.DataOutputStream;
 import java.net.Socket;
 
 import edu.columbia.cs.psl.phosphor.Configuration;
-import edu.iscas.tcse.faultfuzz.AflCli.AflCommand;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
 import edu.iscas.tcse.favtrigger.MyLogger;;
 
 public class AflCliHandler extends Thread {

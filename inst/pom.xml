@@ -212,8 +212,8 @@
             <version>${testing.surefire.version}</version>
         </dependency> -->
         <dependency>
-            <groupId>edu.iscas</groupId>
-            <artifactId>FaultFuzz</artifactId>
+            <groupId>edu.iscas.tcse</groupId>
+            <artifactId>FaultFuzz-ctrl</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>

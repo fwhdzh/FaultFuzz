@@ -3,7 +3,7 @@ package edu.iscas.tcse.favtrigger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import edu.iscas.tcse.faultfuzz.AflCli;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
 
 
 public class MyLogger {
