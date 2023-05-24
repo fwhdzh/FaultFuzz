@@ -1,7 +1,41 @@
 package edu.columbia.cs.psl.phosphor;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.instrument.IllegalClassFormatException;
+import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Constructor;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.ProtectionDomain;
+import java.util.Random;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodTooLargeException;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.AnnotationNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.FrameNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LookupSwitchInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TableSwitchInsnNode;
+import org.objectweb.asm.util.CheckClassAdapter;
+import org.objectweb.asm.util.TraceClassVisitor;
+
 import edu.columbia.cs.psl.phosphor.control.ControlFlowStack;
-import edu.columbia.cs.psl.phosphor.instrumenter.*;
+import edu.columbia.cs.psl.phosphor.instrumenter.HidePhosphorFromASMCV;
+import edu.columbia.cs.psl.phosphor.instrumenter.PowerMockUtilCV;
 import edu.columbia.cs.psl.phosphor.instrumenter.asm.OffsetPreservingClassReader;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.commons.OurJSRInlinerAdapter;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.commons.OurSerialVersionUIDAdder;
@@ -13,7 +47,7 @@ import edu.columbia.cs.psl.phosphor.struct.harmony.util.LinkedList;
 import edu.columbia.cs.psl.phosphor.struct.harmony.util.List;
 import edu.columbia.cs.psl.phosphor.struct.harmony.util.Set;
 import edu.iscas.tcse.favtrigger.instrumenter.CoverageMap;
-import edu.iscas.tcse.favtrigger.instrumenter.IOTrackingClassVisitor;
+import edu.iscas.tcse.favtrigger.instrumenter.FWHIOTrackingClassVisitor;
 import edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAflInstrument.InstrumentationOptions;
 import edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAflInstrument.InstrumentingClassVisitor;
 //import edu.iscas.tcse.favtrigger.instrumenter.CodeCoverageCV;
@@ -22,20 +56,6 @@ import edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAflInstrument.Instrumentin
 //import edu.iscas.tcse.favtrigger.instrumenter.mapred.MRTrackingCV;
 //import edu.iscas.tcse.favtrigger.instrumenter.rocksdb.RocksDBCV;
 import edu.iscas.tcse.favtrigger.taint.FAVTaint;
-
-import org.objectweb.asm.*;
-import org.objectweb.asm.tree.*;
-import org.objectweb.asm.util.CheckClassAdapter;
-import org.objectweb.asm.util.TraceClassVisitor;
-
-import java.io.*;
-import java.lang.instrument.IllegalClassFormatException;
-import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Constructor;
-import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.security.ProtectionDomain;
-import java.util.Random;
 
 public class PreMain {
 
@@ -229,7 +249,9 @@ public class PreMain {
 //                        _cv = new OurSerialVersionUIDAdder(new TaintTrackingClassVisitor(_cv, skipFrames, fields, methodsToReduceSizeOf));
 ////                    	_cv = new OurSerialVersionUIDAdder(_cv);
 //                    }
-                    _cv = new IOTrackingClassVisitor(_cv, skipFrames, fields, methodsToReduceSizeOf);
+
+                    // _cv = new IOTrackingClassVisitor(_cv, skipFrames, fields, methodsToReduceSizeOf);
+                    _cv = new FWHIOTrackingClassVisitor(_cv, skipFrames, fields, methodsToReduceSizeOf);
 
                     if(!isiFace) {
                     	_cv = new OurSerialVersionUIDAdder(_cv);
