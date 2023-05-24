@@ -1,6 +1,6 @@
-java -jar Phosphor-0.0.5-SNAPSHOT.jar -forJava /home/gaoyu/java/jdk1.8.0_271 fav-jre-inst
+java -jar FaultFuzz-inst-0.0.5-SNAPSHOT.jar -forJava /home/gaoyu/java/jdk1.8.0_271 fav-jre-inst
 
-#java -jar Phosphor-0.0.5-SNAPSHOT.jar /home/gaoyu/java/jdk1.8.0_271 fav-jre-inst
+#java -jar FaultFuzz-inst-0.0.5-SNAPSHOT.jar /home/gaoyu/java/jdk1.8.0_271 fav-jre-inst
 
 #place jce.jar and security together
 
@@ -17,5 +17,5 @@ cp -r /home/gaoyu/java/jdk8u262-b10/jre/lib/security/policy/* fav-jre-inst/jre/l
 
 chmod +x fav-jre-inst/bin/*
 
-#java -jar Phosphor-0.0.5-SNAPSHOT.jar add-input add-output
-#java -jar Phosphor-0.0.5-SNAPSHOT.jar input add-output
+#java -jar FaultFuzz-inst-0.0.5-SNAPSHOT.jar add-input add-output
+#java -jar FaultFuzz-inst-0.0.5-SNAPSHOT.jar input add-output

@@ -1,6 +1,6 @@
-java -jar $FAV_HOME/Phosphor-0.0.5-SNAPSHOT.jar -forJava $FAV_HOME/java/jdk1.8.0_271 $FAV_HOME/fav-jre-inst
+java -jar $FAV_HOME/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -forJava $FAV_HOME/java/jdk1.8.0_271 $FAV_HOME/fav-jre-inst
 
-#java -jar Phosphor-0.0.5-SNAPSHOT.jar /home/gaoyu/java/jdk1.8.0_271 fav-jre-inst
+#java -jar FaultFuzz-inst-0.0.5-SNAPSHOT.jar /home/gaoyu/java/jdk1.8.0_271 fav-jre-inst
 
 #place jce.jar and security together
 

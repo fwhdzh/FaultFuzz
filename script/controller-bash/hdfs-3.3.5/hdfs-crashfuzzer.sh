@@ -1,8 +1,8 @@
-java -cp /home/fengwenhan/code/crashfuzz-ctrl/faultfuzz/target/FaultFuzz-0.0.1-SNAPSHOT.jar edu.iscas.tcse.faultfuzz.CloudFuzzMain 12090 "/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/hdfs-3.3.5/dfs.properties"
+java -cp /home/fengwenhan/code/crashfuzz-ctrl/ctrl/target/FaultFuzz-ctrl-0.0.1-SNAPSHOT.jar edu.iscas.tcse.faultfuzz.ctrl.CloudFuzzMain 12090 "/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/hdfs-3.3.5/dfs.properties"
 #sh snapshotState.sh
 sh restartAllDockers.sh
-#java -cp Phosphor-0.0.5-SNAPSHOT.jar edu.iscas.tcse.tcse.favtrigger.crash.controller.docker.CrashTriggerSomeMain 11900 "hb.properties" 20:21:22:23:24:25 10
-#java -cp Phosphor-0.0.5-SNAPSHOT.jar edu.iscas.tcse.tcse.favtrigger.crash.controller.docker.fortest.InjectOneCrashMain 11900 "hb.properties"
+#java -cp FaultFuzz-inst-0.0.5-SNAPSHOT.jar edu.iscas.tcse.tcse.favtrigger.crash.controller.docker.CrashTriggerSomeMain 11900 "hb.properties" 20:21:22:23:24:25 10
+#java -cp FaultFuzz-inst-0.0.5-SNAPSHOT.jar edu.iscas.tcse.tcse.favtrigger.crash.controller.docker.fortest.InjectOneCrashMain 11900 "hb.properties"
 
 
 echo 1

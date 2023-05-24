@@ -39,7 +39,7 @@ echo "waiting for active namenode ..."
 sh $SCRIPT_DIR/activeNN.sh
 #sh leaveSafe.sh
 
-export PHOS_OPTS="-Xbootclasspath/a:Phosphor-0.0.5-SNAPSHOT.jar -javaagent:Phosphor-0.0.5-SNAPSHOT.jar=useFav=false,hdfsRpc=true"
+export PHOS_OPTS="-Xbootclasspath/a:FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFav=false,hdfsRpc=true"
 
 docker cp $SCRIPT_DIR/dfs1-cli.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.1
 docker cp $SCRIPT_DIR/ubuntuFailTest.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.1
