@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.Fuzzer;
 import edu.iscas.tcse.faultfuzz.ctrl.RunCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.control.AbstractDeterminismTarget;
 import edu.iscas.tcse.faultfuzz.ctrl.control.determine.TryBestDeterminismController.TryBestDeterminismControllerResult;
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
@@ -106,7 +106,8 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 				// TODO Auto-generated method stub
 				logInfo.add(Stat.log("The workload is running ..."));
 				// logInfo.addAll(tbdController.cluster.runWorkload());
-				tbdController.cluster.runWorkload();
+				List<String> workloadLogs = tbdController.cluster.runWorkload();
+				logInfo.addAll(workloadLogs);
 				logInfo.add(Stat.log("The workload was finished."));
 			}
 		};

@@ -78,14 +78,16 @@ public class AppRunMode {
             return;
         }
         try {
-            RecordTaint.recordTaintEntry(timestamp, out, path, (byte)0, Taint.emptyTaint(), FaultPos.BEFORE.toString());
-        } catch (IOException e) {
+            WaitToExec.checkCrashEvent(path, FaultPos.BEFORE.toString());
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        long executeTimeStamp = RecordTaint.getTimestamp();
         try {
-            WaitToExec.checkCrashEvent(path, FaultPos.BEFORE.toString());
-        } catch (Exception e) {
+            MyLogger.log("Record the I/O operations, current time is: " + executeTimeStamp);
+            RecordTaint.recordTaintEntry(executeTimeStamp, out, path, (byte)0, Taint.emptyTaint(), FaultPos.BEFORE.toString());
+        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
