@@ -57,7 +57,8 @@ public class Replayer {
 	public void replay(QueueEntry entry) {
 		ReplayTarget rt = new ReplayTarget();
 		FaultSeqAndIOSeq seqPair = new FaultSeqAndIOSeq(entry.faultSeq, entry.ioSeq);
-		rt.beforeTarget(seqPair, conf, "replay", conf.REPLAY_HANG_TIME);
+		// rt.beforeTarget(seqPair, conf, "replay", conf.REPLAY_HANG_TIME);
+		rt.beforeTarget(seqPair, conf, "replay", conf.hangSeconds);
 		rt.doTarget();
 		int result = rt.afterTarget().result;
 		Stat.log("replay result: " + result);

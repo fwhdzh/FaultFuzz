@@ -5,15 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
 import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.IOPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.control.NormalController.AbortFaultException;
 import edu.iscas.tcse.faultfuzz.ctrl.control.replay.ReplayController;
 

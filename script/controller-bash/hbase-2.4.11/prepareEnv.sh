@@ -35,3 +35,5 @@ sh $SCRIPT_DIR/clearHB.sh
 
 sh $SCRIPT_DIR/clear-checker-process.sh
 sh $SCRIPT_DIR/clear-network-condition.sh
+
+sh $SCRIPT_DIR/copy-env-to-cluster.sh

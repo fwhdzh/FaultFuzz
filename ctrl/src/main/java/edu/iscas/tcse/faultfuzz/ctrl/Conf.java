@@ -415,14 +415,14 @@ public class Conf {
         	System.out.println("For nodes "+group.aliveGroup+", allowed max down nodes at same time is:"+group.maxDown);
         }
 
-        System.out.println("Recovery mode: " + RECOVERY_MODE);
-        System.out.println("Recovery fuzzinfo path: " + (RECOVERY_MODE ? RECOVERY_FUZZINFO_PATH : ""));
-        System.out.println("Recovery candidate queue path: " + (RECOVERY_MODE ? RECOVERY_CANDIDATEQUEUE_PATH : ""));
-        System.out.println("Recovery tested fault id path: " + (RECOVERY_MODE ? RECOVERY_TESTEDFAULTID_PATH : ""));
-        System.out.println("Recovery virgin bits path: " + (RECOVERY_MODE ? RECOVERY_VIRGINBITS_PATH : ""));
+        // System.out.println("Recovery mode: " + RECOVERY_MODE);
+        // System.out.println("Recovery fuzzinfo path: " + (RECOVERY_MODE ? RECOVERY_FUZZINFO_PATH : ""));
+        // System.out.println("Recovery candidate queue path: " + (RECOVERY_MODE ? RECOVERY_CANDIDATEQUEUE_PATH : ""));
+        // System.out.println("Recovery tested fault id path: " + (RECOVERY_MODE ? RECOVERY_TESTEDFAULTID_PATH : ""));
+        // System.out.println("Recovery virgin bits path: " + (RECOVERY_MODE ? RECOVERY_VIRGINBITS_PATH : ""));
 
-        System.out.println("Replay mode: " + REPLAY_MODE);
-        System.out.println("Replay trace path: " + REPLAY_TRACE_PATH);
+        // System.out.println("Replay mode: " + REPLAY_MODE);
+        // System.out.println("Replay trace path: " + REPLAY_TRACE_PATH);
 
         System.out.println("networkDisConnect script: " + NETWORK_DISCONNECT.getAbsolutePath());
         System.out.println("networkConnect script: " + NETWORK_CONNECT.getAbsolutePath());

@@ -78,7 +78,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		// final ReplayController dController = new ReplayController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(tbdController.cluster.prepareCluster());
-		tbdController.cluster.copyEnvToCluster();
+		// tbdController.cluster.copyEnvToCluster();
 		logInfo.add(Stat.log("Prepare current fault sequence ..."));
 		// dController.prepareFaultSeq(seq);
 		tbdController.prepareFaultSeqAndIOSeq(seqPair);

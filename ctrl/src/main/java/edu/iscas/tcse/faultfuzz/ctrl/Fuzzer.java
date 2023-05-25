@@ -599,12 +599,12 @@ public class Fuzzer {
 			replayer.replay(entry);
 		} else {
 			if (!conf.RECOVERY_MODE) {
-				writeFAVENV("fav-env-normal.sh");
+				// writeFAVENV("fav-env-normal.sh");
 				perform_first_run();
 			} else {
 				recovery();
 			}
-			writeFAVENV("fav-env-determine.sh");
+			// writeFAVENV("fav-env-determine.sh");
 			performOtherRun();
 		}
 
