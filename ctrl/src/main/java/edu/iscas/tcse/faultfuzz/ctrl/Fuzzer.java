@@ -13,8 +13,8 @@ import com.alibaba.fastjson.JSONObject;
 
 import edu.iscas.tcse.faultfuzz.ctrl.Conf.EVALUATE_TARGET_SET;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
-import edu.iscas.tcse.faultfuzz.ctrl.control.NormalTarget;
 import edu.iscas.tcse.faultfuzz.ctrl.control.AbstractDeterminismTarget.FaultSeqAndIOSeq;
+import edu.iscas.tcse.faultfuzz.ctrl.control.NormalTarget;
 import edu.iscas.tcse.faultfuzz.ctrl.control.determine.TryBestDeterminismTarget;
 import edu.iscas.tcse.faultfuzz.ctrl.control.determine.TryBestDeterminismTarget.TryBestDeterminismTResult;
 import edu.iscas.tcse.faultfuzz.ctrl.control.filter.CoverageGuidedFilter;
@@ -368,7 +368,7 @@ public class Fuzzer {
 		FileUtil.writeNeighborNewCovs(testID, q.faultSeq.adjacent_new_covs);
 		FileUtil.writePostTestInfo(testID, q.bitmap_size, q.exec_s);
 		FileUtil.writeFaultSeq(testID, q.faultSeq);
-
+		FileUtil.writeFaultJSONSeq(testID, q.faultSeq);
 		
 	}
 
@@ -585,7 +585,8 @@ public class Fuzzer {
 
 		if (conf.REPLAY_MODE) {
 			Replayer replayer = new Replayer(conf);
-			replayer.replay();
+			QueueEntry entry = replayer.retriveReplayQueueEntryFromRSTFolder(conf.REPLAY_TRACE_PATH);
+			replayer.replay(entry);
 		} else {
 			if (!conf.RECOVERY_MODE) {
 				writeFAVENV("fav-env-normal.sh");

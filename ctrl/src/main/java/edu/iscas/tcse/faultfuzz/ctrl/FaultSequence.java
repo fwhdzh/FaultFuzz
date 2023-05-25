@@ -5,6 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
 public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 	public static FaultSequence empty;
 	static {
@@ -55,6 +58,17 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 		}
 		return s.hashCode();
 	}
+
+	public String toJSONString() {
+		String result = JSONObject.toJSONString(this);
+		return result;
+	}
+
+	public FaultSequence fromJSONString(String s) {
+		FaultSequence result = JSON.parseObject(s, FaultSequence.class);
+		return result;
+	}
+	
 	public static class FaultPoint {
 		public IOPoint ioPt;
 		public int ioPtIdx;
@@ -100,7 +114,7 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 					+ ", curFWhAppear=[" + curFWhAppear + "]"
 					+ " ]";
 		}
-		
+
 		public String getFaultInfo() {
 			return ioPt.ioID+ioPt.appearIdx+pos.toString()+stat.toString();
 		}
@@ -115,10 +129,16 @@ public class FaultSequence implements Iterable<FaultSequence.FaultPoint> {
 			return result;
 		}
 
-		// It semms the function never be used and CrashFuzz compute fault Id in another way
-		// public int getFaultIDOld() {
-		// 	return getFaultInfo().hashCode();
-		// }
+		public String toJSONString() {
+			String result = JSONObject.toJSONString(this);
+			return result;
+		}
+
+		public static FaultPoint parseFromJSONString(String jsonStr) {
+			FaultPoint result = JSON.parseObject(jsonStr, FaultPoint.class);
+			return result;
+		}
+
 	}
 	public enum FaultStat {
 		NO, //we may not use this stat

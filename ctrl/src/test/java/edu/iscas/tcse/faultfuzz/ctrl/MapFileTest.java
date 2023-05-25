@@ -8,10 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import edu.iscas.tcse.faultfuzz.ctrl.BitArray;
-import edu.iscas.tcse.faultfuzz.ctrl.CoverageCollector;
-import edu.iscas.tcse.faultfuzz.ctrl.Stat;
-
 public class MapFileTest {
 
 	public static void main(String[] args) {

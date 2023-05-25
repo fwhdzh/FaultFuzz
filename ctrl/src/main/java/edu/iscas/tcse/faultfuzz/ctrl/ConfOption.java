@@ -21,6 +21,9 @@ public enum ConfOption {
 	MAX_FAULTS, //if it is configured, it defines the max number of the injected faults in a test.
 	ROOT_DIR,
 
+	REPLAY_MODE,
+	REPLAY_TRACE_PATH,
+
 	RECOVERY_MODE,
 	RECOVERY_DIR,
 	// REPLAY_MODE,

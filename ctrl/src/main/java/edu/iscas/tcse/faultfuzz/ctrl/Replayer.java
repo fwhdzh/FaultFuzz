@@ -41,7 +41,7 @@ public class Replayer {
         // tr.readTraces();
 		// tr.fixWROrderInSameTimeStamp(tr.ioPoints);
 		FaultSequenceConstructor fsc = new FaultSequenceConstructor();
-		List<IOPoint> ioPoints = fsc.constructIOPointList(filepath + "/fav-rst");
+		List<IOPoint> ioPoints = fsc.constructIOPointList(filepath + "/" + FileUtil.ioTracesDir);
         QueueEntry e = new QueueEntry();
         e.ioSeq = ioPoints;
         FaultSequence faultSeq = FileUtil.loadCurrentCrashPoint(filepath + "/zk363curCrash");
@@ -54,24 +54,12 @@ public class Replayer {
 	}
 
 	
-
-	
-
-	public void replay(String filepath) {
-		// QueueEntry entry = retriveReplayQueueEntryFromJSONFilePath(filepath);
-		// QueueEntry entry = retriveReplayQueueEntryFromRSTFolder("/data/fengwenhan/data/crashfuzz_ctrl/queue/10_2f");
-		QueueEntry entry = retriveReplayQueueEntryFromRSTFolder(conf.REPLAY_TRACE_PATH);
+	public void replay(QueueEntry entry) {
 		ReplayTarget rt = new ReplayTarget();
-		// rt.replayATest(entry, conf, "replay", conf.hangSeconds);
-		// rt.replayATest(entry, conf, "replay", conf.REPLAY_HANG_TIME);
 		FaultSeqAndIOSeq seqPair = new FaultSeqAndIOSeq(entry.faultSeq, entry.ioSeq);
 		rt.beforeTarget(seqPair, conf, "replay", conf.REPLAY_HANG_TIME);
 		rt.doTarget();
 		int result = rt.afterTarget().result;
 		Stat.log("replay result: " + result);
-	}
-
-	public void replay() {
-		replay(conf.REPLAY_QUEUEENTRY_PATH);
 	}
 }

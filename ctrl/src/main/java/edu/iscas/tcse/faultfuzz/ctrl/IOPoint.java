@@ -30,29 +30,39 @@ public class IOPoint {
 		return CALLSTACK.toString().hashCode();
 	}
 
+	public static IOPoint praseFromString(String str) {
+		String ioIDPrefix = "IOID=[";
+		String ipPrefix = "], IOIP=[";
+		String appearIdxPrefix = "], AppearIdx=[";
+		String fwhIndexPrefix = "], FwhIndex=[";
+		String CALLSTACKPrefix = "], CallStack=";
+		String PathPrefix = ", Path=";
+		String ioIDStr = str.substring(str.indexOf(ioIDPrefix) + ioIDPrefix.length(), str.indexOf(ipPrefix));
+		int ioID = Integer.parseInt(ioIDStr);
+		String ipStr = str.substring(str.indexOf(ipPrefix) + ipPrefix.length(), str.indexOf(appearIdxPrefix));
+		String appearIdxStr = str.substring(str.indexOf(appearIdxPrefix) + appearIdxPrefix.length(), str.indexOf(fwhIndexPrefix));
+		int appearIdx = Integer.parseInt(appearIdxStr);
+		String fwhIndexStr = str.substring(str.indexOf(fwhIndexPrefix) + fwhIndexPrefix.length(), str.indexOf(CALLSTACKPrefix));
+		int fwhIndex = Integer.parseInt(fwhIndexStr);
+		String callStackStr = str.substring(str.indexOf(CALLSTACKPrefix) + CALLSTACKPrefix.length(), str.indexOf(PathPrefix));
+		callStackStr = callStackStr.substring(1, callStackStr.length() - 1);
+		List<String> callStack = new ArrayList<>();
+		for (String s : callStackStr.split(",")) {
+			callStack.add(s.trim());
+		}
+		String pathStr = str.substring(str.indexOf(PathPrefix) + PathPrefix.length());
+		IOPoint ioPoint= new IOPoint();
+		ioPoint.ioID = ioID;
+		ioPoint.ip = ipStr;
+		ioPoint.appearIdx = appearIdx;
+		ioPoint.fwhIndex = fwhIndex;
+		ioPoint.CALLSTACK = callStack;
+		ioPoint.PATH = pathStr;
+		return ioPoint;
+	}
+
 	
 	public List<String> retrieveTotalInformationAboutMsgFromPath() {
-		// List<String> result = new ArrayList<>();
-		// if (!PATH.startsWith("FAVMSG")){
-		// 	return null;
-		// }
-		// // if the path is "FAVMSG:172.30.0.1&3#1"
-		// if (PATH.startsWith("FAVMSG") && (!PATH.startsWith("FAVMSG:READ"))) {
-		// 	result.add("WRITE");
-		// 	result.add(ip);
-		// 	result.add(PATH.substring("FAVMSG:".length()).split("&")[0]);
-		// 	result.add(PATH.split("&")[1]);
-		// }
-		// // if the path is "FAVMSG:READ172.30.0.1&3#1"
-		// if (PATH.startsWith("FAVMSG:READ")) {
-		// 	result.add("READ");
-		// 	Stat.debug(PATH);
-		// 	result.add(PATH.substring("FAVMSG:READ".length()).split("&")[0]);
-		// 	result.add(ip);
-		// 	result.add(PATH.split("&")[1]);
-		// }
-		// return result;
-
 		List<String> result = extractInformationFromPath(PATH);
 		return result;
 	}

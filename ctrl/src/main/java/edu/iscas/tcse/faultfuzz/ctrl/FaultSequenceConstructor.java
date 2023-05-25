@@ -13,17 +13,23 @@ import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
 
 public class FaultSequenceConstructor {
 
-	private List<IOPoint> collectIOPoints(String fname) {
+	private List<IOPoint> collectIOPoints(String filePath) {
         List<IOPoint> result;
-		TraceReader reader = new TraceReader(FileUtil.root_tmp + fname + "/" + FileUtil.ioTracesDir);
+		TraceReader reader = new TraceReader(filePath);
 		reader.readTraces();
 		result = reader.ioPoints;
         return result;
     }
 
-	public List<IOPoint> constructIOPointList(String fname) {
-        List<IOPoint> ioPoints = collectIOPoints(fname);
+	public List<IOPoint> constructIOPointList(String filePath) {
+        List<IOPoint> ioPoints = collectIOPoints(filePath);
 		List<IOPoint> result = constructIOPointList(ioPoints);
+		return result;
+	}
+
+	public List<IOPoint> constructIOPointListWithFname(String fname) {
+		String filePath = FileUtil.root_tmp + fname + "/" + FileUtil.ioTracesDir;
+		List<IOPoint> result = constructIOPointList(filePath);
 		return result;
 	}
 
@@ -44,7 +50,7 @@ public class FaultSequenceConstructor {
 		// reader.readTraces();
 		// List<IOPoint> ioPoints = reader.ioPoints;
 
-		List<IOPoint> ioPoints = constructIOPointList(fname);
+		List<IOPoint> ioPoints = constructIOPointListWithFname(fname);
 		if (ioPoints == null || ioPoints.isEmpty()) {
 			return;
 		}
@@ -124,7 +130,7 @@ public class FaultSequenceConstructor {
 		// reader.readTraces();
 		// List<IOPoint> ioPoints = reader.ioPoints;
 
-		List<IOPoint> ioPoints = constructIOPointList(fname);
+		List<IOPoint> ioPoints = constructIOPointListWithFname(fname);
 		if (ioPoints == null || ioPoints.isEmpty()) {
 			return;
 		}

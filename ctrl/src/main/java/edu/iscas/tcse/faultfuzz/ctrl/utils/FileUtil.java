@@ -3,7 +3,6 @@ package edu.iscas.tcse.faultfuzz.ctrl.utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -18,12 +17,12 @@ import org.apache.commons.io.FileUtils;
 
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence;
-import edu.iscas.tcse.faultfuzz.ctrl.IOPoint;
-import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
-import edu.iscas.tcse.faultfuzz.ctrl.RunCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPos;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;
+import edu.iscas.tcse.faultfuzz.ctrl.IOPoint;
+import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
+import edu.iscas.tcse.faultfuzz.ctrl.Stat;
 
 public class FileUtil {
 	public static String fuzzer_id_file = "crashfuzz_proc_id";
@@ -67,6 +66,7 @@ public class FileUtil {
 	public static String total_tested_time = "TESTED_TIME";
 
 	public static String faultSeqFile = "FAULT_SEQ";
+	public static String faultSeqJSONFile = "FAULT_SEQ_JSON";
 	
 	public static void init(String _root) {
 		root = _root;
@@ -177,6 +177,20 @@ public class FileUtil {
 			e.printStackTrace();
 		}
 	}
+
+	public static void writeFaultJSONSeq(String testID, FaultSequence seq) {
+		Stat.log(FileUtil.class, "writeFaultJSONSeq begin...");
+		try {
+			FileOutputStream out = new FileOutputStream(FileUtil.root_tmp+testID+"/"+faultSeqJSONFile);
+			Stat.log(FileUtil.class, "writeFaultJSONSeq to " + FileUtil.root_tmp+testID+"/"+faultSeqJSONFile);
+			out.write(seq.toJSONString().getBytes());
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	public static void updateQueueInfo(String testID, List<QueueEntry> mutates, int fuzzed_time, int handicap) {
 		try {
@@ -262,6 +276,7 @@ public class FileUtil {
         File seedFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.seed_file);
 
 		File fsFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.faultSeqFile);
+		File fsJSONFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.faultSeqJSONFile);
 		
         
         if(faultFile.exists()){
@@ -284,6 +299,15 @@ public class FileUtil {
 		if(fsFile.exists()){
         	try {
 				FileUtils.copyFileToDirectory(fsFile, des);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+
+		if(fsJSONFile.exists()){
+        	try {
+				FileUtils.copyFileToDirectory(fsJSONFile, des);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

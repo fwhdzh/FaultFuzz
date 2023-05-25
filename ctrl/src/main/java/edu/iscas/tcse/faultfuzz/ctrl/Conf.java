@@ -60,7 +60,7 @@ public class Conf {
     public boolean REPLAY_MODE = false;
     public String REPLAY_QUEUEENTRY_PATH = "/data/fengwenhan/data/crashfuzz_fwh/replay/QueueEntry.txt";
     // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_backup_6_full_workload/queue/6_2f";
-    public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_ctrl/queue/3_1f";
+    public String REPLAY_TRACE_PATH;
     public long REPLAY_HANG_TIME = 40;
     public String REPLAY_ACTUAL_FPB_LIST_PATH = "/data/fengwenhan/data/crashfuzz_fwh/actualFPBList.txt";
     public int FAULT_SEQUENCE_BATCH_SIZE = 1;
@@ -304,6 +304,16 @@ public class Conf {
             RECOVERY_VIRGINBITS_PATH = recoveryDir + "/VirginBits.txt";
         }
 
+        String replayMode = p.getProperty(ConfOption.REPLAY_MODE.toString());
+        if(replayMode != null) {
+        	REPLAY_MODE = Boolean.parseBoolean(replayMode);
+        }
+
+        String replayTracePath = p.getProperty(ConfOption.REPLAY_TRACE_PATH.toString());
+        if(replayTracePath != null) {
+        	REPLAY_TRACE_PATH = replayTracePath;
+        }
+
         String determineWaitTime = p.getProperty(ConfOption.DETERMINE_WAIT_TIME.toString());
         if(determineWaitTime != null) {
         	DETERMINE_WAIT_TIME = Integer.parseInt(determineWaitTime);
@@ -410,6 +420,9 @@ public class Conf {
         System.out.println("Recovery candidate queue path: " + (RECOVERY_MODE ? RECOVERY_CANDIDATEQUEUE_PATH : ""));
         System.out.println("Recovery tested fault id path: " + (RECOVERY_MODE ? RECOVERY_TESTEDFAULTID_PATH : ""));
         System.out.println("Recovery virgin bits path: " + (RECOVERY_MODE ? RECOVERY_VIRGINBITS_PATH : ""));
+
+        System.out.println("Replay mode: " + REPLAY_MODE);
+        System.out.println("Replay trace path: " + REPLAY_TRACE_PATH);
 
         System.out.println("networkDisConnect script: " + NETWORK_DISCONNECT.getAbsolutePath());
         System.out.println("networkConnect script: " + NETWORK_CONNECT.getAbsolutePath());
