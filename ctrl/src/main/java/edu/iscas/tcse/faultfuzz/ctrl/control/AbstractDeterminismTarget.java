@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence;
@@ -11,7 +12,6 @@ import edu.iscas.tcse.faultfuzz.ctrl.IOPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.Monitor;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
 
 public abstract class AbstractDeterminismTarget extends AbstractTarget{
@@ -96,6 +96,7 @@ public abstract class AbstractDeterminismTarget extends AbstractTarget{
 		String runInfoPath = m.getTmpReportDir(mTestID);
 		logInfo.add(Stat.log("Collecting run-time information ..."));
 		m.collectRunTimeInfo(runInfoPath);
+		Stat.debug(AbstractDeterminismTarget.class, "copy " + mConf.CUR_CRASH_FILE.getAbsolutePath() + " to " + runInfoPath);
 		FileUtil.copyFileToDir(mConf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
 		result = runInfoPath;
 		return result;

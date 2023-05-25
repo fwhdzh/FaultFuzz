@@ -14,16 +14,16 @@ import java.util.List;
 import java.util.Set;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
 import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.RunCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
 //We do not trigger remote crash in this controller.
 //This controller aims to trigger local crashes for systems deployed as processes in the same machine

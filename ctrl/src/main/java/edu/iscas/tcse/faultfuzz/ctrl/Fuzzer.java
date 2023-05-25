@@ -369,6 +369,16 @@ public class Fuzzer {
 		FileUtil.writePostTestInfo(testID, q.bitmap_size, q.exec_s);
 		FileUtil.writeFaultSeq(testID, q.faultSeq);
 		FileUtil.writeFaultJSONSeq(testID, q.faultSeq);
+
+		// Stat.debug("copy cur_crash " + conf.CUR_CRASH_FILE.getAbsolutePath() + " to root_tmp: " + FileUtil.root_tmp+testID);
+		// FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), FileUtil.root_tmp+testID);
+
+		// File tmpDir = new File(FileUtil.root_tmp+testID);
+		// String fileNameInfo = "";
+		// for (File file : tmpDir.listFiles()) {
+		// 	fileNameInfo += file.getName() + ", ";
+        // }
+		// Stat.debug("tmpDir: [" + fileNameInfo + "]");
 		
 	}
 

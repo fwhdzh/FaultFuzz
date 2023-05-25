@@ -4,16 +4,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.alibaba.fastjson.JSONObject;
-
+import edu.columbia.cs.psl.phosphor.Configuration;
 import edu.iscas.tcse.favtrigger.MyLogger;
 import edu.iscas.tcse.favtrigger.instrumenter.TriggerEvent;
-import edu.columbia.cs.psl.phosphor.Configuration;
 import edu.iscas.tcse.favtrigger.taint.FAVTaint;
 import edu.iscas.tcse.favtrigger.tracing.FAVEntry;
 import edu.iscas.tcse.favtrigger.tracing.FAVPathType;
@@ -35,9 +32,9 @@ public class WaitToExec { //for docker
 		MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
 
 		if (Configuration.REPLAY_MODE) {
-			handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
+			handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
 		} else if (Configuration.DETERMINE_STATE != -1) {
-			handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
+			handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
 		} else {
 			handleCrashPoint(procID, crashNode, entry, callstack, path);
 		}
@@ -48,7 +45,7 @@ public class WaitToExec { //for docker
     }
 
 
-    public static void handleCrashPointInDeplayMode(long procID, String nodeIP, FAVEntry entry, List<String> callstack, String path) {
+    public static void handleFaultPointInDeplayMode(long procID, String nodeIP, FAVEntry entry, List<String> callstack, String path) {
 
 		Integer ioID = currentIOID(callstack);
 		MyLogger.log("WaitToExec arrives: " + ioID.intValue());

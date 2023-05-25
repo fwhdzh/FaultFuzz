@@ -30,20 +30,15 @@ public class AbstractController {
 			File file = favconfig.CUR_CRASH_FILE;
 			if(file.exists()) {
 			    file.delete();
-				if(favconfig.UPDATE_CRASH != null) {
-		            String path = favconfig.UPDATE_CRASH.getAbsolutePath();
-		            String workingDir = path.substring(0, path.lastIndexOf("/"));
-		            RunCommand.run(path, workingDir);
-		        }
 			}
 		} else {
 			FileUtil.genereteFaultSequenceFile(faultSequence, favconfig.CUR_CRASH_FILE);
-			
-			if(favconfig.UPDATE_CRASH != null) {
-                String path = favconfig.UPDATE_CRASH.getAbsolutePath();
-                String workingDir = path.substring(0, path.lastIndexOf("/"));
-                RunCommand.run(path, workingDir);
-            }
+		}
+
+		if(favconfig.UPDATE_CRASH != null) {
+			String path = favconfig.UPDATE_CRASH.getAbsolutePath();
+			String workingDir = path.substring(0, path.lastIndexOf("/"));
+			RunCommand.run(path, workingDir);
 		}
 	}
 }
