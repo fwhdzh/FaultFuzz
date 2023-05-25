@@ -2,10 +2,13 @@ package edu.iscas.tcse.faultfuzz.ctrl.control.replay;
 
 import java.util.List;
 
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence;
 import edu.iscas.tcse.faultfuzz.ctrl.Fuzzer;
 import edu.iscas.tcse.faultfuzz.ctrl.IOPoint;
+import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
 import edu.iscas.tcse.faultfuzz.ctrl.control.AbstractDeterminismTarget;
 import edu.iscas.tcse.faultfuzz.ctrl.control.replay.ReplayController.FaultPointBlocked;
@@ -60,6 +63,16 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 		boolean findBug = checkIfABugExist(runInfoPath);
 		mResult = generateReplayResult(finishWorkload, controllerResult.allPointsAreReplayed , findBug);
 		return mResult;
+	}
+
+	/*
+	 * Before we collect information from cluster, we should ask the cluster to exit replay mode first.
+	 */
+	protected void sendNotReplayToCluster(List<MaxDownNodes> cluster) {
+		Stat.log("Command to wait all nodes not replay ...");
+		AflCli.executeCliCommandToCluster(cluster, mConf, AflCommand.NOTREPLAY, 300000);
+		// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
+		Stat.log("Finish waiting all nodes not replay ...");
 	}
 
     private int replayATest(FaultSeqAndIOSeq seqPair, final Conf conf, String testID, long waitSeconds) {

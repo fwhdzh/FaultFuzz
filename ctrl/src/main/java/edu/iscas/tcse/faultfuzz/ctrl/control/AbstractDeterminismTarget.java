@@ -73,15 +73,7 @@ public abstract class AbstractDeterminismTarget extends AbstractTarget{
 
 
     
-    /*
-	 * Before we collect information from cluster, we should ask the cluster to exit replay mode first.
-	 */
-	protected void sendNotReplayToCluster(List<MaxDownNodes> cluster) {
-		Stat.log("Command to wait all nodes not replay ...");
-		AflCli.executeCliCommandToCluster(cluster, mConf, AflCommand.NOTREPLAY, 300000);
-		// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
-		Stat.log("Finish waiting all nodes not replay ...");
-	}
+    
 
 	
 	public String collectRuntimeInfo(List<MaxDownNodes> cluster) {

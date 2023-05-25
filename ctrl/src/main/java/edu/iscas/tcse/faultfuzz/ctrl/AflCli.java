@@ -91,8 +91,6 @@ public class AflCli {
 		HEARTBEAT, // check connection
 		NOTREPLAY, // stop replay and do normal execution from now
 		DOREPLAY, // start replay from now
-		REPLAYMODE, // declare this target is in replay mode
-		NORMALMODE, // declare this target is in normal mode
 		DETERMINE_CONTROL,
 		DETERMINE_NORMAL,
 		DETERMINE_NO_SEND,

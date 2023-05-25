@@ -18,6 +18,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.objectweb.asm.ClassVisitor;
 
+import edu.columbia.cs.psl.phosphor.Configuration.EXEC_MODE_SET;
 import edu.columbia.cs.psl.phosphor.control.ControlFlowManager;
 import edu.columbia.cs.psl.phosphor.control.standard.StandardControlFlowManager;
 import edu.columbia.cs.psl.phosphor.instrumenter.TaintTagFactory;
@@ -705,6 +706,14 @@ public enum PhosphorOption {
         public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
             if(isPresent) {
                 Configuration.DETERMINE_STATE = Integer.parseInt(commandLine.getOptionValue(optionName));
+            }
+        }
+    },
+    EXEC_MODE(new PhosphorOptionBuilder(null, false, true).argType(EXEC_MODE_SET.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.EXEC_MODE = EXEC_MODE_SET.valueOf(commandLine.getOptionValue(optionName));
             }
         }
     };

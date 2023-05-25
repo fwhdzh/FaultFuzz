@@ -1,5 +1,14 @@
 package edu.columbia.cs.psl.phosphor;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
+
 import edu.columbia.cs.psl.phosphor.control.ControlFlowManager;
 import edu.columbia.cs.psl.phosphor.control.standard.StandardControlFlowManager;
 import edu.columbia.cs.psl.phosphor.instrumenter.DataAndControlFlowTagFactory;
@@ -11,15 +20,6 @@ import edu.columbia.cs.psl.phosphor.runtime.Taint;
 import edu.columbia.cs.psl.phosphor.runtime.TaintSourceWrapper;
 import edu.columbia.cs.psl.phosphor.struct.harmony.util.HashSet;
 import edu.columbia.cs.psl.phosphor.struct.harmony.util.Set;
-
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 public class Configuration {
 
@@ -126,9 +126,13 @@ public class Configuration {
     public static boolean REPLAY_MODE = false;
     public static boolean REPLAY_NOW = false;
 
-    // public static boolean DETERMINE_CONTROL = false;
-    // public static boolean DETERMINE_NORMAL = false;
-    // public static boolean DETERMINE_NO_SEND = false;
+    public enum EXEC_MODE_SET {
+        CrashFuzz,
+        Replay,
+        FaultFuzz
+    }
+
+    public static EXEC_MODE_SET EXEC_MODE;
 
     /**
      * -1: not determined

@@ -286,7 +286,7 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
             }
         });
 
-		MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
+		// MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
 
 		// if (Configuration.DETERMINE_STATE != -1) {
 		// 	while (!ready) {

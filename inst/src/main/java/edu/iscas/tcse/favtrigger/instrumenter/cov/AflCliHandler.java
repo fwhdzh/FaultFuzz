@@ -52,12 +52,6 @@ public class AflCliHandler extends Thread {
 		  } else if (clientMessage.equals(AflCommand.DOREPLAY.toString())) {
 				MyLogger.log("Recieve command DOREPLAY");
 				Configuration.REPLAY_NOW = true;
-		  } else if (clientMessage.equals(AflCommand.REPLAYMODE.toString())) {
-				MyLogger.log("Recieve command REPLAYMODE");
-				Configuration.REPLAY_MODE = true;
-		  } else if (clientMessage.equals(AflCommand.NORMALMODE.toString())) {
-				MyLogger.log("Recieve command NORMALMODE");
-				Configuration.REPLAY_MODE = false;
 		  } else if (clientMessage.equals(AflCommand.DETERMINE_CONTROL.toString())) {
 				MyLogger.log("Recieve command DETERMINE_CONTROL");
 				Configuration.DETERMINE_STATE = 2;

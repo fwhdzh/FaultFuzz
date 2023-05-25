@@ -118,7 +118,10 @@ public class PreMain {
                 +", use msgId:"+Configuration.USE_MSGID
                 +", jdk_file:"+Configuration.JDK_FILE
                 +", ZK_API:"+Configuration.ZK_API
-                +", HDFS_API:"+Configuration.HDFS_API);
+                +", HDFS_API:"+Configuration.HDFS_API
+                +", exec_mode:" + Configuration.EXEC_MODE
+                +", determine_state:" + Configuration.DETERMINE_STATE   //only meanful for FaultFuzz mode
+        );
         if(System.getProperty("phosphorCacheDirectory") != null) {
             Configuration.CACHE_DIR = System.getProperty("phosphorCacheDirectory");
             File f = new File(Configuration.CACHE_DIR);
