@@ -13,7 +13,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;
-import edu.iscas.tcse.faultfuzz.ctrl.Stat.LOG_LEVEL;
+import edu.iscas.tcse.faultfuzz.ctrl.Stat.LOG_LEVEL_SET;
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
 
 public class Conf {
@@ -78,10 +78,10 @@ public class Conf {
     public static List<FaultStat> s = Arrays.asList(FaultStat.values());
     // public static List<FaultStat> s = Arrays.asList(FaultStat.CRASH, FaultStat.REBOOT);
 
-    public static LOG_LEVEL logLevel = LOG_LEVEL.DEBUG;
+    public static LOG_LEVEL_SET LOG_LEVEL = LOG_LEVEL_SET.DEBUG;
 
     public enum EVALUATE_TARGET_SET {
-        CrashFuzzer,
+        FaultFuzzer,
         CrashFuzzerMinus,
         BruteForce
     }
@@ -384,7 +384,16 @@ public class Conf {
         if(evaluateTarget != null) {
         	EVALUATE_TARGET = EVALUATE_TARGET_SET.valueOf(evaluateTarget);
         } else {
-            EVALUATE_TARGET = EVALUATE_TARGET_SET.CrashFuzzer;
+            EVALUATE_TARGET = EVALUATE_TARGET_SET.FaultFuzzer;
+            // System.out.println(EVALUATE_TARGET);
+        }
+
+        String loglevel = p.getProperty(ConfOption.LOG_LEVEL.toString());
+        // System.out.println(evaluateTarget);
+        if(loglevel != null) {
+        	LOG_LEVEL = LOG_LEVEL_SET.valueOf(loglevel);
+        } else {
+            LOG_LEVEL = LOG_LEVEL_SET.INFO;
             // System.out.println(EVALUATE_TARGET);
         }
 
@@ -427,6 +436,7 @@ public class Conf {
         System.out.println("networkDisConnect script: " + NETWORK_DISCONNECT.getAbsolutePath());
         System.out.println("networkConnect script: " + NETWORK_CONNECT.getAbsolutePath());
         System.out.println("evaluate target: " + EVALUATE_TARGET.toString());
+        System.out.println("log level: " + LOG_LEVEL.toString());
 
         System.out.println("=======================================================================");
     }

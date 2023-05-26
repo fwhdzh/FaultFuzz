@@ -9,7 +9,7 @@ import java.util.Date;
 
 public class Stat {
 
-	public enum LOG_LEVEL {
+	public enum LOG_LEVEL_SET {
 		DEBUG,
 		INFO,
 		WARN,
@@ -87,7 +87,7 @@ public class Stat {
 	}
 
 	public static String debug(String s) {
-		if (Conf.logLevel.compareTo(LOG_LEVEL.DEBUG) > 0) {
+		if (Conf.LOG_LEVEL.compareTo(LOG_LEVEL_SET.DEBUG) > 0) {
 			return "";
 		}
 	    Date day = new Date();
@@ -98,7 +98,7 @@ public class Stat {
 	}
 
 	public static String debug(Class c, String s) {
-		if (Conf.logLevel.compareTo(LOG_LEVEL.DEBUG) > 0) {
+		if (Conf.LOG_LEVEL.compareTo(LOG_LEVEL_SET.DEBUG) > 0) {
 			return "";
 		}
         Date day = new Date();

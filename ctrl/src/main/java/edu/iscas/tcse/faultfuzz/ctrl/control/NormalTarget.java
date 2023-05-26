@@ -275,11 +275,9 @@ public class NormalTarget extends AbstractNormalTarget{
 			logInfo.add(Stat.log("Exit normally, stop controller ..."));
 		}
 
-		// RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
 		
 		controller.stopController();
 
-		// RunCommand.run("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/test.sh");
 		return ret;
 	}
 

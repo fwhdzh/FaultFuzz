@@ -463,7 +463,7 @@ public class Fuzzer {
 		Stat.debug("After construction, the fault sequence is: " + JSONObject.toJSONString(q.faultSeq));
 		
 		boolean isInteresting = false;
-		if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzer || conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzerMinus) {
+		if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.FaultFuzzer || conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzerMinus) {
 			Stat.log("use CoverageFilter to checkIfInteresting...");
 			isInteresting = CoverageGuidedFilter.checkIfInteresting(faultMode, nb, q);
 		} 
@@ -667,7 +667,7 @@ public class Fuzzer {
 			if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.BruteForce || conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzerMinus) {
 				pairList = FIFOQueueEntrySelector.retrieveAPairList(candidate_queue, conf);
 			}
-			if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzer) {
+			if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.FaultFuzzer) {
 				pairList = ScoreQueueEntrySelector.retrieveAPairList(candidate_queue, conf);
 			}
 			

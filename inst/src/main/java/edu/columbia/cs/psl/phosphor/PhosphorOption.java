@@ -380,7 +380,7 @@ public enum PhosphorOption {
                 String[] secs = value.split(":");
                 CoverageMap.includes = new ArrayList<String>();
                 for(String v:secs){
-                    System.out.println("crashfuzz: include "+v.trim());
+                    System.out.println("faultfuzz: include "+v.trim());
                     CoverageMap.includes.add(v.trim());
                 }
             }

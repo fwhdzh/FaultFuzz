@@ -1,4 +1,4 @@
-package crashfuzzer;
+package faultfuzz;
 
 import java.io.File;
 import java.io.FileInputStream;

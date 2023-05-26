@@ -25,10 +25,10 @@ import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
 
 public class FileUtil {
-	public static String fuzzer_id_file = "crashfuzz_proc_id";
+	public static String fuzzer_id_file = "faultfuzz_proc_id";
 	
 	public static int newBugFileWindow = 30; //minutes
-	public static String root = "crashfuzzer/";
+	public static String root = "faultfuzz/";
 	public static String root_tested = root+"tested/";//create a new file every "newBugFileWindow" miniues.
 	public static String root_queue = root+"queue/";
 	public static String root_fuzzed = root+"fuzzed/";
