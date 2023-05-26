@@ -328,7 +328,7 @@ extends AbstractController
 			System.err.println("exception when stopping controller ...");
 			e.printStackTrace();
 		}
-		// File file = favconfig.CUR_CRASH_FILE;
+		// File file = favconfig.CUR_FAULT_FILE;
 		// if(file.exists()) {
 		// 	System.out.println("Detete cur crash file.");
 		// 	file.delete();

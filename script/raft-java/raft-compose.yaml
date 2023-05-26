@@ -15,7 +15,7 @@ services:
     stdin_open: true
     command: ["/bin/bash"]
     container_name: C1RT1
-    # env_file: ~/code/crashfuzz-ctrl/script/raft-java/.env
+    # env_file: ~/code/faultfuzz/script/raft-java/.env
     # deploy:
     #   mode: replicated
     #   replicas: 6
@@ -76,6 +76,6 @@ networks:
       - subnet: 172.25.0.0/24
 
 
-# docker-compose -p fav -f ~/code/crashfuzz-ctrl/script/raft-java/raft-compose.yaml up -d
-# docker-compose -p fav -f ~/code/crashfuzz-ctrl/script/raft-java/raft-compose.yaml down
-# docker-compose -p fav -f ~/code/crashfuzz-ctrl/script/raft-java/raft-compose.yaml exec C1RT1 /bin/bash
+# docker-compose -p fav -f ~/code/faultfuzz/script/raft-java/raft-compose.yaml up -d
+# docker-compose -p fav -f ~/code/faultfuzz/script/raft-java/raft-compose.yaml down
+# docker-compose -p fav -f ~/code/faultfuzz/script/raft-java/raft-compose.yaml exec C1RT1 /bin/bash

@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
+import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
 import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.Fuzzer;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.Monitor;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
 
 public class RandomFuzzTarget {
@@ -196,7 +196,7 @@ public class RandomFuzzTarget {
 		if(ret != -1) {//no need to collect traces and logs for not triggered ones
 			logInfo.add(Stat.log("Collecting run-time information ..."));
 			m.collectRunTimeInfo(runInfoPath);
-			FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
+			FileUtil.copyFileToDir(conf.CUR_FAULT_FILE.getAbsolutePath(), runInfoPath);
 		}
 		
 		if(ret == 0) {

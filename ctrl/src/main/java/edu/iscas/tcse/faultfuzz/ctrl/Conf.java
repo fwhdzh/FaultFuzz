@@ -28,8 +28,8 @@ public class Conf {
     public File RESTART;  //restart a node and do check
     public File FAV_BUG_REPORT;
     public int CONTROLLER_PORT;
-    public File CUR_CRASH_FILE;
-    public File UPDATE_CRASH;
+    public File CUR_FAULT_FILE;
+    public File UPDATE_FAULT;
     public File MONITOR;
 	public List<File> FAV_MONITOR_DIRS;
 	public String FAULT_CONFIG;
@@ -113,13 +113,13 @@ public class Conf {
             }
         }
 
-        String curCrashFile = p.getProperty(ConfOption.CUR_CRASH_FILE.toString());
-        if(curCrashFile != null) {
-            if(!curCrashFile.startsWith("/")) {
-            	curCrashFile = workdir + curCrashFile;
+        String curFaultFile = p.getProperty(ConfOption.CUR_FAULT_FILE.toString());
+        if(curFaultFile != null) {
+            if(!curFaultFile.startsWith("/")) {
+            	curFaultFile = workdir + curFaultFile;
             }
-        	File f = new File(curCrashFile);
-        	CUR_CRASH_FILE = f;
+        	File f = new File(curFaultFile);
+        	CUR_FAULT_FILE = f;
         }
         
         String mapSize = p.getProperty(ConfOption.MAP_SIZE.toString());
@@ -221,14 +221,14 @@ public class Conf {
         	FileUtil.init(FileUtil.root);
         }
 
-        String updateCurCrash = p.getProperty(ConfOption.UPDATE_CRASH.toString());
-        if(updateCurCrash != null) {
-            if(!updateCurCrash.startsWith("/")) {
-            	updateCurCrash = workdir + updateCurCrash;
+        String updateCurFault = p.getProperty(ConfOption.UPDATE_FAULT.toString());
+        if(updateCurFault != null) {
+            if(!updateCurFault.startsWith("/")) {
+            	updateCurFault = workdir + updateCurFault;
             }
-            File f = new File(updateCurCrash);
+            File f = new File(updateCurFault);
             if(f.exists()) {
-                UPDATE_CRASH = f;
+                UPDATE_FAULT = f;
             }
         }
 
@@ -399,16 +399,16 @@ public class Conf {
 
         
 
-        if(RESTART == null || CRASH == null || WORKLOAD == null || CUR_CRASH_FILE == null || PRETREATMENT == null) {
+        if(RESTART == null || CRASH == null || WORKLOAD == null || CUR_FAULT_FILE == null || PRETREATMENT == null) {
         	throw new IOException();
         }
 
-        System.out.println("=========================CrashFuzzer Configuration=========================");
+        System.out.println("=========================FaultFuzz Configuration=========================");
         System.out.println("Controller port: "+CONTROLLER_PORT);
         System.out.println("Configuration file: "+FAV_TRIGGER_CONFIG.getAbsolutePath());
         System.out.println("Root report path: "+FileUtil.root);
-        System.out.println("Current crash point file: "+CUR_CRASH_FILE.getAbsolutePath());
-        System.out.println("Update current crash point script: "+UPDATE_CRASH.getAbsolutePath());
+        System.out.println("Current crash point file: "+CUR_FAULT_FILE.getAbsolutePath());
+        System.out.println("Update current crash point script: "+UPDATE_FAULT.getAbsolutePath());
         System.out.println("Prepare cluster script: "+(PRETREATMENT==null?"":PRETREATMENT.getAbsolutePath()));
         System.out.println("Workload script: "+WORKLOAD.getAbsolutePath());
         System.out.println("Checker script: "+CHECKER.getAbsolutePath());

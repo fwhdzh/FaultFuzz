@@ -6,8 +6,8 @@ case "$choice" in
 esac
 
 
-echo "docker-compose -p fav-hdfs -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs/hdfs-compose.yaml down"
-docker-compose -p fav-hdfs -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs/hdfs-compose.yaml down
+echo "docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs/hdfs-compose.yaml down"
+docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs/hdfs-compose.yaml down
 
 echo "docker image rm fwhdzh/c1nn"
 docker image rm fwhdzh/c1nn

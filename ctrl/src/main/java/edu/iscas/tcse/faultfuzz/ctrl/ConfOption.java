@@ -4,11 +4,11 @@ public enum ConfOption {
 	PRETREATMENT, //the script used to prepare the initial enviroment for a test
 	WORKLOAD, //the workload to be tested (including starting the system)
 	MONITOR, //the script used to collect trace and logs generated at test runtime
-	UPDATE_CRASH, //the script to update current fault sequence (CUR_CRASH_FILE) to every node in the cluster
+	UPDATE_FAULT, //the script to update current fault sequence (CUR_FAULT_FILE) to every node in the cluster
 	CRASH, //the script to crash a node according to the ip
 	RESTART, //the script to restart a node according to the ip
 	BUG_REPORT, // the path to put generated bug reports
-	CUR_CRASH_FILE, //the file to store the current fault sequence
+	CUR_FAULT_FILE, //the file to store the current fault sequence
 	MONITOR_DIRS, //the path to put traces and logs
 	CHECKER, //the script to check failure symptoms
 	FAULT_CSTR, //the fault constraints, e.g., "2:{ip1,ip2,ip3};1:{ip4,ip5}" means for nodes {ip1,ip2,ip3},

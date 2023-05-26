@@ -16,13 +16,13 @@ import org.apache.commons.io.FileUtils;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.CoverageCollector;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPos;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;
 import edu.iscas.tcse.faultfuzz.ctrl.FuzzInfo;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.Monitor;
 import edu.iscas.tcse.faultfuzz.ctrl.Network;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPos;
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;
 import edu.iscas.tcse.faultfuzz.ctrl.random.RandomFaultSequence.RandomFaultPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
 
@@ -137,7 +137,7 @@ public class RandomFuzzer {
 		//add instereting test cases to queue
 //		monitor.generateAllFilesForTest(String.valueOf(totalExecutions), target.logInfo, q.faultSeq);
 //		MyXMLReader.read_trace_map(monitor.getRootReport(String.valueOf(seq.hashCode()))+"cov/cov.xml");
-//		FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), tmpRootDir);
+//		FileUtil.copyFileToDir(conf.CUR_FAULT_FILE.getAbsolutePath(), tmpRootDir);
 		FileUtil.generateFAVLogInfo(seedName,testID, target.logInfo);
 		coverage.read_bitmap(FileUtil.root_tmp+testID+"/"+FileUtil.coverageDir);
 		int nb = coverage.has_new_bits();
@@ -187,7 +187,7 @@ public class RandomFuzzer {
 		FuzzInfo.total_bitmap_entries++;
 		FileUtil.writePostTestInfo(testID, q.bitmap_size, q.exec_s);
 		FileUtil.copyToTested(testID, usedSeconds, conf);
-//		FileUtil.delete(conf.CUR_CRASH_FILE.getAbsolutePath());
+//		FileUtil.delete(conf.CUR_FAULT_FILE.getAbsolutePath());
 		if(!Conf.DEBUG) {
 			FileUtil.delete(FileUtil.root_tmp+testID);
 		}
@@ -233,7 +233,7 @@ public class RandomFuzzer {
 		faultsToTests.computeIfAbsent(0, key -> 0);
 		faultsToTests.computeIfPresent(0, (key, value) -> value + 1);
 		String tmpRootDir = monitor.getTmpReportDir(testID);
-		FileUtil.copyFileToDir(conf.CUR_CRASH_FILE.getAbsolutePath(), tmpRootDir);
+		FileUtil.copyFileToDir(conf.CUR_FAULT_FILE.getAbsolutePath(), tmpRootDir);
 		FileUtil.generateFAVLogInfo("", testID, target.logInfo, FaultSequence.getEmptyIns());
 		
 //		MyXMLReader.read_trace_map(monitor.getRootReport("init")+"cov/cov.xml");

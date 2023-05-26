@@ -75,7 +75,7 @@ FAULTFUZZ_JVMFLAGS =
 -javaagent:<FaultFuzz_path>/Phosphor-0.0.5-SNAPSHOT.jar
 =useFav=true,forZk=true,
 jdkFile=true,recordPath=<trace_path>,recordPath=<io_path>,covPath=<coverage_path>,
-currentCrash=<current_fault_sequence_path>,controllerSocket=<host_ip:controller_port_number>,aflPort=<port_number_for_receiving_record_coverage_info>
+currentFault=<current_fault_sequence_path>,controllerSocket=<host_ip:controller_port_number>,aflPort=<port_number_for_receiving_record_coverage_info>
 ```
 
 The parameters are explained as follows: 
@@ -108,10 +108,10 @@ we should specify:
 * CHECKER: The string path for the script used for checking failure symptoms.
 * MONITOR: The string path for the script used for collecting runtime
   information from the target cluster.
-* CUR_CRASH_FILE: The string path for the file used for storing
+* CUR_FAULT_FILE: The string path for the file used for storing
   current fault sequence under test.
-* UPDATE_CRASH: The string path for the script used for copying
-  CUR_CRASH_FILE to each node of the target cluster.
+* UPDATE_FAULT: The string path for the script used for copying
+  CUR_FAULT_FILE to each node of the target cluster.
 * ROOT_DIR: The string path for the directory used for storing test
   outputs.
 * TEST_TIME: To specify the test time.
@@ -157,14 +157,7 @@ these steps:
 3. Using the Docker images. See [INSTALL.md](./INSTALL.md)
 4. Run FaultFuzz. See [INSTALL.md](./INSTALL.md)
 
-We can check outputs of FaultFuzz and alternative approaches:
-
-```bash
-cd ~/crashfuzz/zk-3.6.3-c1/crashfuzz-outputs
-cd ~/crashfuzz/zk-3.6.3-c1/crashfuzz_minus-outputs
-cd ~/crashfuzz/zk-3.6.3-c1/brute-outputs
-cd ~/crashfuzz/zk-3.6.3-c1/random-outputs
-```
+We can check outputs of FaultFuzz on #ROOT_DIR#.
 
 ## Found Bugs
 

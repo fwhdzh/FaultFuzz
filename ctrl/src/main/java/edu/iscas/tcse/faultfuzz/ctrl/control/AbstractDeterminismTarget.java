@@ -88,8 +88,8 @@ public abstract class AbstractDeterminismTarget extends AbstractTarget{
 		String runInfoPath = m.getTmpReportDir(mTestID);
 		logInfo.add(Stat.log("Collecting run-time information ..."));
 		m.collectRunTimeInfo(runInfoPath);
-		Stat.debug(AbstractDeterminismTarget.class, "copy " + mConf.CUR_CRASH_FILE.getAbsolutePath() + " to " + runInfoPath);
-		FileUtil.copyFileToDir(mConf.CUR_CRASH_FILE.getAbsolutePath(), runInfoPath);
+		Stat.debug(AbstractDeterminismTarget.class, "copy " + mConf.CUR_FAULT_FILE.getAbsolutePath() + " to " + runInfoPath);
+		FileUtil.copyFileToDir(mConf.CUR_FAULT_FILE.getAbsolutePath(), runInfoPath);
 		result = runInfoPath;
 		return result;
 	}

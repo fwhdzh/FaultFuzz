@@ -1,4 +1,4 @@
-public static void loadCurrentCrashPoint(String cur_crash_path) {
+public static void loadcurrentFaultPoint(String cur_crash_path) {
 import org.json.JSONArray;
 import org.json.JSONObject;   
    

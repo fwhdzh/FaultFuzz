@@ -15,10 +15,10 @@
 We also provide Docker images for a distributed ZooKeeper cluster with
 five nodes, already configured with all dependencies and which is ready-to-use
 for this package. The Docker image is hosted at [Docker
-Hub](https://hub.docker.com/repository/docker/world4gaoyu/c1zk1,
-https://hub.docker.com/repository/docker/world4gaoyu/c1zk2,
-https://hub.docker.com/repository/docker/world4gaoyu/c1zk3,
-https://hub.docker.com/repository/docker/world4gaoyu/c1zk4,
-https://hub.docker.com/repository/docker/world4gaoyu/c1zk5).
+Hub](https://hub.docker.com/repository/docker/fwhdzh/c1zk1,
+https://hub.docker.com/repository/docker/fwhdzh/c1zk2,
+https://hub.docker.com/repository/docker/fwhdzh/c1zk3,
+https://hub.docker.com/repository/docker/fwhdzh/c1zk4,
+https://hub.docker.com/repository/docker/fwhdzh/c1zk5).
 
 More instructions on how to install the dependencies or use the docker image can be found in the `INSTALL.md` file provided in this package.

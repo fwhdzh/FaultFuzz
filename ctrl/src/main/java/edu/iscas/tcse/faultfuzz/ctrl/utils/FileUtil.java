@@ -272,7 +272,7 @@ public class FileUtil {
     	String timeInfo = newBugFileWindow +"m-"+execedSeconds/(60*newBugFileWindow);
     	File des = new File(root_tested + timeInfo +"/"+testID);
     	
-        File faultFile = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_CRASH_FILE.getName());
+        File faultFile = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_FAULT_FILE.getName());
         File seedFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.seed_file);
 
 		File fsFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.faultSeqFile);
@@ -364,7 +364,7 @@ public class FileUtil {
         		
 				FileUtils.copyDirectoryToDirectory(ioTraces, des);
 				
-				File faultSeq = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_CRASH_FILE.getName());
+				File faultSeq = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_FAULT_FILE.getName());
 				if(faultSeq.exists()) {
 					FileUtils.copyFileToDirectory(faultSeq, des);
 				}
@@ -431,7 +431,7 @@ public class FileUtil {
 	public static void copyToUntriggered(String testID, Conf conf) {
 		File des = new File(root_non_triggered + testID);
     	
-        File faultFile = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_CRASH_FILE.getName());
+        File faultFile = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_FAULT_FILE.getName());
         File seedFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.seed_file);
         
         if(faultFile.exists()){
@@ -455,7 +455,7 @@ public class FileUtil {
 	public static void recordSkippedTests(String testID, List<QueueEntry> mutates, Conf conf) {
 		int count = 1;
 		for(QueueEntry m:mutates) {
-			File f = new File(FileUtil.root_skipped+testID+"/mutation"+count+"/"+conf.CUR_CRASH_FILE.getName());
+			File f = new File(FileUtil.root_skipped+testID+"/mutation"+count+"/"+conf.CUR_FAULT_FILE.getName());
 			genereteFaultSequenceFile(m.faultSeq,f);
 		}
 	}
@@ -491,7 +491,7 @@ public class FileUtil {
 		}
 	}
 
-	public static FaultSequence loadCurrentCrashPoint(String cur_crash_path) {
+	public static FaultSequence loadcurrentFaultPoint(String cur_crash_path) {
 		FaultSequence faultSeq = null;
     	try {
             faultSeq = new FaultSequence();

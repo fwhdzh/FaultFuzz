@@ -44,7 +44,7 @@ public class Replayer {
 		List<IOPoint> ioPoints = fsc.constructIOPointList(filepath + "/" + FileUtil.ioTracesDir);
         QueueEntry e = new QueueEntry();
         e.ioSeq = ioPoints;
-        FaultSequence faultSeq = FileUtil.loadCurrentCrashPoint(filepath + "/zk363curCrash");
+        FaultSequence faultSeq = FileUtil.loadcurrentFaultPoint(filepath + "/zk363curCrash");
 		if (faultSeq == null) {
 			faultSeq = new FaultSequence();
 			// faultSeq.seq.add(null);

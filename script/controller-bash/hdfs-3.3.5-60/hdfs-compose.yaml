@@ -18,7 +18,7 @@ services:
     hostname: C1NN
     cap_add:
       - NET_ADMIN
-    # env_file: ~/code/crashfuzz-ctrl/script/raft-java/.env
+    # env_file: ~/code/faultfuzz/script/raft-java/.env
     # deploy:
     #   mode: replicated
     #   replicas: 6
@@ -175,6 +175,6 @@ networks:
       - subnet: 172.42.0.0/24
 
 
-# docker-compose -p fav-hdfs -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml up -d
-# docker-compose -p fav-hdfs -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml down
-# docker-compose -p fav-hdfs -f ~/code/crashfuzz-ctrl/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml exec C1NN /bin/bash
+# docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml up -d
+# docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml down
+# docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml exec C1NN /bin/bash

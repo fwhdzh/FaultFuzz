@@ -341,14 +341,14 @@ public enum PhosphorOption {
          }
      },
     //for favtrigger
-    CURRENT_CRASH(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
+    CURRENT_FAULT(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
         @Override
         public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
             if(isPresent) {
                 String value = commandLine.getOptionValue(optionName);
                 File file = new File(value);
                 Configuration.CUR_CRASH = file.getAbsolutePath();
-                CurrentFaultSequence.loadCurrentCrashPoint(Configuration.CUR_CRASH);
+                CurrentFaultSequence.loadcurrentFaultPoint(Configuration.CUR_CRASH);
             }
         }
     },
