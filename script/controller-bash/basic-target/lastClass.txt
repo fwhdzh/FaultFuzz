@@ -1,0 +1,355 @@
+// class version 52.0 (52)
+// access flags 0x21
+public class java/net/SocketOutputStream extends java/io/FileOutputStream {
+
+
+  @Ledu/columbia/cs/psl/phosphor/runtime/TaintInstrumented;() // invisible
+  // compiled from: SocketOutputStream.java
+
+  // access flags 0x2
+  private Ljava/net/AbstractPlainSocketImpl; impl
+
+  // access flags 0x2
+  private [B temp
+
+  // access flags 0x2
+  private Ljava/net/Socket; socket
+
+  // access flags 0x2
+  private Z closing
+
+  // access flags 0x0
+  <init>(Ljava/net/AbstractPlainSocketImpl;)V throws java/io/IOException 
+   L0
+   L1
+    LINENUMBER 58 L1
+    ALOAD 0
+    ALOAD 1
+    INVOKEVIRTUAL java/net/AbstractPlainSocketImpl.getFileDescriptor ()Ljava/io/FileDescriptor;
+    INVOKESPECIAL java/io/FileOutputStream.<init> (Ljava/io/FileDescriptor;)V
+   L2
+    LINENUMBER 47 L2
+    ALOAD 0
+    ACONST_NULL
+    PUTFIELD java/net/SocketOutputStream.impl : Ljava/net/AbstractPlainSocketImpl;
+   L3
+    LINENUMBER 48 L3
+    ALOAD 0
+    ICONST_1
+    NEWARRAY T_BYTE
+    PUTFIELD java/net/SocketOutputStream.temp : [B
+   L4
+    LINENUMBER 49 L4
+    ALOAD 0
+    ACONST_NULL
+    PUTFIELD java/net/SocketOutputStream.socket : Ljava/net/Socket;
+   L5
+    LINENUMBER 161 L5
+    ALOAD 0
+    ICONST_0
+    PUTFIELD java/net/SocketOutputStream.closing : Z
+   L6
+    LINENUMBER 59 L6
+    ALOAD 0
+    ALOAD 1
+    PUTFIELD java/net/SocketOutputStream.impl : Ljava/net/AbstractPlainSocketImpl;
+   L7
+    LINENUMBER 60 L7
+    ALOAD 0
+    ALOAD 1
+    INVOKEVIRTUAL java/net/AbstractPlainSocketImpl.getSocket ()Ljava/net/Socket;
+    PUTFIELD java/net/SocketOutputStream.socket : Ljava/net/Socket;
+   L8
+    LINENUMBER 61 L8
+    RETURN
+   L9
+    MAXSTACK = 2
+    MAXLOCALS = 2
+
+  // access flags 0x11
+  public final getChannel()Ljava/nio/channels/FileChannel;
+   L0
+   L1
+    LINENUMBER 76 L1
+    ACONST_NULL
+    ARETURN
+   L2
+    MAXSTACK = 1
+    MAXLOCALS = 1
+
+  // access flags 0x102
+  private native socketWrite0(Ljava/io/FileDescriptor;[BII)V throws java/io/IOException 
+
+  // access flags 0x2
+  private socketWrite([BII)V throws java/io/IOException 
+   L0
+    TRYCATCHBLOCK L1 L2 L3 java/net/SocketException
+    TRYCATCHBLOCK L1 L2 L4 null
+    TRYCATCHBLOCK L3 L5 L4 null
+   L6
+    LINENUMBER 101 L6
+    ILOAD 3
+    IFLE L7
+    ILOAD 2
+    IFLT L7
+    ILOAD 3
+    ALOAD 1
+    ARRAYLENGTH
+    ILOAD 2
+    ISUB
+    IF_ICMPLE L8
+   L7
+    LINENUMBER 102 L7
+   FRAME FULL [java/net/SocketOutputStream [B I I] []
+    ILOAD 3
+    IFNE L9
+   L10
+    LINENUMBER 103 L10
+    RETURN
+   L9
+    LINENUMBER 105 L9
+   FRAME FULL [java/net/SocketOutputStream [B I I] []
+    NEW java/lang/ArrayIndexOutOfBoundsException
+    DUP
+   L11
+    NEW java/lang/StringBuilder
+    DUP
+    INVOKESPECIAL java/lang/StringBuilder.<init> ()V
+    LDC "len == "
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    ILOAD 3
+    INVOKEVIRTUAL java/lang/StringBuilder.append (I)Ljava/lang/StringBuilder;
+    LDC " off == "
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    ILOAD 2
+    INVOKEVIRTUAL java/lang/StringBuilder.append (I)Ljava/lang/StringBuilder;
+    LDC " buffer length == "
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    ALOAD 1
+    ARRAYLENGTH
+    INVOKEVIRTUAL java/lang/StringBuilder.append (I)Ljava/lang/StringBuilder;
+    INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
+    INVOKESPECIAL java/lang/ArrayIndexOutOfBoundsException.<init> (Ljava/lang/String;)V
+    ATHROW
+   L8
+    LINENUMBER 109 L8
+   FRAME FULL [java/net/SocketOutputStream [B I I] []
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.impl : Ljava/net/AbstractPlainSocketImpl;
+    INVOKEVIRTUAL java/net/AbstractPlainSocketImpl.acquireFD ()Ljava/io/FileDescriptor;
+    ASTORE 4
+   L1
+    LINENUMBER 111 L1
+    ALOAD 0
+    ALOAD 4
+    ALOAD 1
+    ILOAD 2
+    ILOAD 3
+    INVOKESPECIAL java/net/SocketOutputStream.socketWrite0$$PHOSPHORTAGGED (Ljava/io/FileDescriptor;[BII)V
+   L2
+    LINENUMBER 123 L2
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.impl : Ljava/net/AbstractPlainSocketImpl;
+    INVOKEVIRTUAL java/net/AbstractPlainSocketImpl.releaseFD ()V
+   L12
+    LINENUMBER 124 L12
+    GOTO L13
+   L3
+    LINENUMBER 112 L3
+   FRAME FULL [java/net/SocketOutputStream [B I I java/io/FileDescriptor] [java/net/SocketException]
+    ASTORE 5
+   L14
+    LINENUMBER 113 L14
+    ALOAD 5
+    INSTANCEOF sun/net/ConnectionResetException
+    IFEQ L15
+   L16
+    LINENUMBER 114 L16
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.impl : Ljava/net/AbstractPlainSocketImpl;
+    INVOKEVIRTUAL java/net/AbstractPlainSocketImpl.setConnectionResetPending ()V
+   L17
+    LINENUMBER 115 L17
+    NEW java/net/SocketException
+    DUP
+    LDC "Connection reset"
+    INVOKESPECIAL java/net/SocketException.<init> (Ljava/lang/String;)V
+    ASTORE 5
+   L15
+    LINENUMBER 117 L15
+   FRAME FULL [java/net/SocketOutputStream [B I I java/io/FileDescriptor java/net/SocketException] []
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.impl : Ljava/net/AbstractPlainSocketImpl;
+    INVOKEVIRTUAL java/net/AbstractPlainSocketImpl.isClosedOrPending ()Z
+    IFEQ L18
+   L19
+    LINENUMBER 118 L19
+    NEW java/net/SocketException
+    DUP
+    LDC "Socket closed"
+    INVOKESPECIAL java/net/SocketException.<init> (Ljava/lang/String;)V
+    ATHROW
+   L18
+    LINENUMBER 120 L18
+   FRAME FULL [java/net/SocketOutputStream [B I I java/io/FileDescriptor java/net/SocketException] []
+    ALOAD 5
+    ATHROW
+   L4
+    LINENUMBER 123 L4
+   FRAME FULL [java/net/SocketOutputStream [B I I java/io/FileDescriptor] [java/lang/Throwable]
+    ASTORE 6
+   L5
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.impl : Ljava/net/AbstractPlainSocketImpl;
+    INVOKEVIRTUAL java/net/AbstractPlainSocketImpl.releaseFD ()V
+   L20
+    LINENUMBER 124 L20
+    ALOAD 6
+    ATHROW
+   L13
+    LINENUMBER 125 L13
+   FRAME FULL [java/net/SocketOutputStream [B I I java/io/FileDescriptor] []
+    RETURN
+   L21
+    MAXSTACK = 5
+    MAXLOCALS = 7
+
+  // access flags 0x1
+  public write(I)V throws java/io/IOException 
+   L0
+   L1
+    LINENUMBER 133 L1
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.temp : [B
+    ICONST_0
+    ILOAD 1
+    I2B
+    BASTORE
+   L2
+    LINENUMBER 134 L2
+    ALOAD 0
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.temp : [B
+    ICONST_0
+    ICONST_1
+    INVOKESPECIAL java/net/SocketOutputStream.socketWrite ([BII)V
+   L3
+    LINENUMBER 135 L3
+    RETURN
+   L4
+    MAXSTACK = 4
+    MAXLOCALS = 2
+
+  // access flags 0x1
+  public write([B)V throws java/io/IOException 
+   L0
+   L1
+    LINENUMBER 143 L1
+    ALOAD 0
+    ALOAD 1
+    ICONST_0
+    ALOAD 1
+    ARRAYLENGTH
+    INVOKESPECIAL java/net/SocketOutputStream.socketWrite ([BII)V
+   L2
+    LINENUMBER 144 L2
+    RETURN
+   L3
+    MAXSTACK = 4
+    MAXLOCALS = 2
+
+  // access flags 0x1
+  public write([BII)V throws java/io/IOException 
+   L0
+   L1
+    LINENUMBER 155 L1
+    ALOAD 0
+    ALOAD 1
+    ILOAD 2
+    ILOAD 3
+    INVOKESPECIAL java/net/SocketOutputStream.socketWrite ([BII)V
+   L2
+    LINENUMBER 156 L2
+    RETURN
+   L3
+    MAXSTACK = 4
+    MAXLOCALS = 4
+
+  // access flags 0x1
+  public close()V throws java/io/IOException 
+   L0
+   L1
+    LINENUMBER 164 L1
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.closing : Z
+    IFEQ L2
+   L3
+    LINENUMBER 165 L3
+    RETURN
+   L2
+    LINENUMBER 166 L2
+   FRAME FULL [java/net/SocketOutputStream] []
+    ALOAD 0
+    ICONST_1
+    PUTFIELD java/net/SocketOutputStream.closing : Z
+   L4
+    LINENUMBER 167 L4
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.socket : Ljava/net/Socket;
+    IFNULL L5
+   L6
+    LINENUMBER 168 L6
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.socket : Ljava/net/Socket;
+    INVOKEVIRTUAL java/net/Socket.isClosed ()Z
+    IFNE L7
+   L8
+    LINENUMBER 169 L8
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.socket : Ljava/net/Socket;
+    INVOKEVIRTUAL java/net/Socket.close ()V
+    GOTO L7
+   L5
+    LINENUMBER 171 L5
+   FRAME FULL [java/net/SocketOutputStream] []
+    ALOAD 0
+    GETFIELD java/net/SocketOutputStream.impl : Ljava/net/AbstractPlainSocketImpl;
+    INVOKEVIRTUAL java/net/AbstractPlainSocketImpl.close ()V
+   L7
+    LINENUMBER 172 L7
+   FRAME FULL [java/net/SocketOutputStream] []
+    ALOAD 0
+    ICONST_0
+    PUTFIELD java/net/SocketOutputStream.closing : Z
+   L9
+    LINENUMBER 173 L9
+    RETURN
+   L10
+    MAXSTACK = 2
+    MAXLOCALS = 1
+
+  // access flags 0x4
+  protected finalize()V
+   L0
+   L1
+    LINENUMBER 178 L1
+    RETURN
+   L2
+    MAXSTACK = 0
+    MAXLOCALS = 1
+
+  // access flags 0x10A
+  private static native init()V
+
+  // access flags 0x8
+  static <clinit>()V
+   L0
+   L1
+    LINENUMBER 44 L1
+    INVOKESTATIC java/net/SocketOutputStream.init ()V
+   L2
+    LINENUMBER 45 L2
+    RETURN
+   L3
+    MAXSTACK = 0
+    MAXLOCALS = 0

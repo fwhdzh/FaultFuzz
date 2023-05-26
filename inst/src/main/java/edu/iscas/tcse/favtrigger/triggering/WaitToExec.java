@@ -2,11 +2,14 @@ package edu.iscas.tcse.favtrigger.triggering;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.alibaba.fastjson.JSONObject;
 
 import edu.columbia.cs.psl.phosphor.Configuration;
 import edu.iscas.tcse.favtrigger.MyLogger;
@@ -18,6 +21,46 @@ import edu.iscas.tcse.favtrigger.tracing.RecordTaint;
 
 public class WaitToExec { //for docker
     public static final String cannotSchedule = "FAV-CANNOT-SCHEDULE-THIS-CRASH-POINT";
+
+	public static void triggerAndRecordFaultPoint(String path) throws IOException {
+		checkFaultPoint(path);
+		RecordTaint.recordFaultPoint(path);
+	}
+
+	public static void checkFaultPoint(String path) {
+		MyLogger.log("checkFaultPoint begin! path is: "+path);
+		Thread thread = Thread.currentThread();
+        List<String> callstack = RecordTaint.getCallStack(thread, 4);
+		MyLogger.log("callstack is :"+JSONObject.toJSONString(callstack));
+        FAVEntry entry = new FAVEntry();
+        long procID = FAVTaint.getProcessID();
+        String crashNode = FAVTaint.getIP();
+        entry.PATH = path;
+        entry.CALLSTACK = callstack;
+        entry.ip = crashNode;
+
+		// handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
+		// MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
+
+		MyLogger.log("exec mode: " + Configuration.EXEC_MODE);
+
+		if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.FaultFuzz || Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.Replay) {
+			handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
+		} else if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.CrashFuzz) {
+			handleCrashPoint(procID, crashNode, entry, callstack, path);
+		}
+
+		if (Configuration.REPLAY_MODE) {
+			handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
+		} else if (Configuration.DETERMINE_STATE != -1) {
+			handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
+		} else {
+			handleCrashPoint(procID, crashNode, entry, callstack, path);
+		}
+
+		MyLogger.log("checkFaultPoint end!");
+	}
+
     public static void checkCrashEvent(String path, String contentID) {
         Thread thread = Thread.currentThread();
         List<String> callstack = RecordTaint.getCallStack(thread, 4);
@@ -29,7 +72,15 @@ public class WaitToExec { //for docker
         entry.ip = crashNode;
 
 		// handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
-		MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
+		// MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
+
+		MyLogger.log("exec mode: " + Configuration.EXEC_MODE);
+
+		if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.FaultFuzz || Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.Replay) {
+			handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
+		} else if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.CrashFuzz) {
+			handleCrashPoint(procID, crashNode, entry, callstack, path);
+		}
 
 		if (Configuration.REPLAY_MODE) {
 			handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
@@ -116,20 +167,19 @@ public class WaitToExec { //for docker
 			// controller:"+procInfo);
 
 			fuzzCommand = inStream.readUTF();
-			CurrentFaultSequence.faultSeq.curFault = new AtomicInteger(inStream.readInt());
-			int curAppearIdx = inStream.readInt();
-			// System.out.println(procID+"!!!!!WaitToExec Read msg from
-			// controller:"+controllerResponse);
+			// CurrentFaultSequence.faultSeq.curFault = new AtomicInteger(inStream.readInt());
+			// int curAppearIdx = inStream.readInt();
 
 			inStream.close();
 			outStream.close();
 			// objOut.close();
 			socket.close();
 
-			String suffix = " [" + id + "] For io " + ioID + ", received curFault index is "
-					+ CurrentFaultSequence.faultSeq.curFault
-					+ ", curAppearIdx is " + curAppearIdx + ", my fault size is "
-					+ CurrentFaultSequence.faultSeq.seq.size();
+			String suffix = " [" + id + "] For io " + ioID
+					// + ", received curFault index is " + CurrentFaultSequence.faultSeq.curFault
+					// + ", curAppearIdx is " + curAppearIdx
+					// + ", my fault size is " + CurrentFaultSequence.faultSeq.seq.size()
+					;
 			if (fuzzCommand.equals(TriggerEvent.CONTI.toString())
 					|| fuzzCommand.equals(TriggerEvent.REBOOT.toString())) {
 				MyLogger.log(nodeIP + ":" + procID + " System WaitToExec received keep exec command!" + fuzzCommand

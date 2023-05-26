@@ -1,0 +1,9 @@
+fault point=1433581100
+event=CRASH
+pos=BEFORE
+nodeIp=172.24.58.115
+ioID=-190164449
+ioCallStack=[edu.iscas.tcse.bt.BTMain.main(BTMain.java:49)]
+path=/home/fengwenhan/data/phosphor_test/test_out/1.txt
+ioAppearIdx=1
+end

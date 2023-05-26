@@ -417,8 +417,8 @@ extends AbstractController
 		public void replyToNode(DataOutputStream outStream, String command, int curFault, int curAppear)
 				throws IOException {
 			outStream.writeUTF(command);
-			outStream.writeInt(curFault);
-			outStream.writeInt(curAppear);
+			// outStream.writeInt(curFault);
+			// outStream.writeInt(curAppear);
 			closeTheSocketConnection();
 		}
 

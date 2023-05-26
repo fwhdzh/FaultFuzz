@@ -14,11 +14,14 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
+import com.alibaba.fastjson.JSONObject;
+
 import edu.columbia.cs.psl.phosphor.Configuration;
 import edu.columbia.cs.psl.phosphor.runtime.Taint;
 import edu.columbia.cs.psl.phosphor.struct.LazyByteArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.LazyReferenceArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.TaintedIntWithObjTag;
+import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPos;
 // import edu.columbia.cs.psl.phosphor.struct.harmony.util.HashMap;
 import edu.iscas.tcse.favtrigger.MyLogger;
 //import edu.iscas.tcse.favtrigger.instrumenter.SysTime;
@@ -191,6 +194,13 @@ public class RecordTaint {
         //String path = Configuration.FAV_RECORD_PATH+"tmp";
 	    return path;
 	}
+
+	// public static String getRecordPath(String ip) {
+	// 	// MyLogger.log("getRecordPath is invoked");
+	//     String path = Configuration.FAV_RECORD_PATH+ip+FAVTaint.getProcessID()+"/"+Thread.currentThread().getId();
+    //     //String path = Configuration.FAV_RECORD_PATH+"tmp";
+	//     return path;
+	// }
 
 	public static int byteArrayToInt(byte[] b) {
         return   b[3] & 0xFF |
@@ -420,23 +430,28 @@ public class RecordTaint {
 		return true;
 	}
 	public static FileOutputStream getRecordOutStream() {
+		MyLogger.debug("getRecordOutStream begin!");
 		// if(!Configuration.USE_FAV || !Configuration.RECORD_PHASE) {
 		if(!Configuration.USE_FAV) {
 			return null;
 		}
         List<String> callstack = getCallStack(Thread.currentThread(), 3);
+		MyLogger.debug("callstack is: " + JSONObject.toJSONString(callstack));
 		// System.out.println("*****check recordoutstream******"+callstack);
         if(callstack.toString().contains("org.jacoco.agent") || callstack.toString().contains("edu.iscas.tcse.favtrigger")) {
 			return null;
         }
+		MyLogger.debug("are entering  getRecordPath()...");
 		// System.out.println("*****return nonnull recordoutstream******"+callstack);
 		String path = getRecordPath();
+		MyLogger.debug("path is: " + path);
 		File recordFile = new File(path);
 		if(!recordFile.getParentFile().exists()) {
 			recordFile.getParentFile().mkdirs();
 		}
 		try {
 			FileOutputStream out = new FileOutputStream(recordFile, true);
+			MyLogger.debug("getRecordOutStream end!");
 			return out;
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -444,7 +459,98 @@ public class RecordTaint {
 			return null;
 		}
 	}
-	public static void recordTaintEntry(long timestamp, FileOutputStream out, String path, byte b, Taint taint, String md5) throws IOException {
+
+	public static FileOutputStream getRecordOutStreamInUserAPI() {
+		MyLogger.debug("getRecordOutStreamInUserAPI begin!");
+		// if(!Configuration.USE_FAV || !Configuration.RECORD_PHASE) {
+		if(!Configuration.USE_FAV) {
+			return null;
+		}
+        List<String> callstack = getCallStack(Thread.currentThread(), 3);
+		MyLogger.debug("callstack is: " + JSONObject.toJSONString(callstack));
+		// System.out.println("*****check recordoutstream******"+callstack);
+		// if(callstack.toString().contains("org.jacoco.agent") || callstack.toString().contains("edu.iscas.tcse.favtrigger")) {
+        if(callstack.toString().contains("org.jacoco.agent") || callstack.toString().contains("edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAfl.save_result")) {
+			return null;
+        }
+		MyLogger.debug("are entering  getRecordPath()...");
+		// System.out.println("*****return nonnull recordoutstream******"+callstack);
+		String path = getRecordPath();
+		MyLogger.debug("path is: " + path);
+		File recordFile = new File(path);
+		if(!recordFile.getParentFile().exists()) {
+			recordFile.getParentFile().mkdirs();
+		}
+		try {
+			FileOutputStream out = new FileOutputStream(recordFile, true);
+			MyLogger.debug("getRecordOutStreamInUserAPI end!");
+			return out;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static void recordFaultPoint(String path) throws IOException {
+		MyLogger.log("recordFaultPoint begin! path:"+path);
+		// FileOutputStream out = RecordTaint.getRecordOutStream();
+		FileOutputStream out = RecordTaint.getRecordOutStreamInUserAPI();
+		if(out == null || path == null) {
+			return;
+		}
+		MyLogger.log("out fd is :" + out.getFD().toString());
+		long timestamp = RecordTaint.getTimestamp();
+		Thread thread = Thread.currentThread();
+		List<String> callstack = getCallStack(thread, 4);
+		MyLogger.log("callstack is :"+JSONObject.toJSONString(callstack));
+		FAVEntry entry = new FAVEntry(timestamp, thread.getId(), thread.hashCode(), path, Taint.emptyTaint(), callstack);
+		entry.recPosition = FaultPos.BEFORE.toString();
+//		int finds = JavaAfl.hasNewBits(JavaAfl.last_io_map, JavaAfl.map);
+		entry.newCovs = 0;
+
+		MyLogger.log("start record...");
+		if(Configuration.ASYC_TRACE) {
+		    ArrayList<FAVEntry> entries = RecordsHandler.traces.get(getRecordPath());
+	        if(entries == null) {
+	            entries = new ArrayList<FAVEntry>();
+	        }
+	        entries.add(entry);
+	        RecordsHandler.traces.put(getRecordPath(), entries);
+	        RecordsHandler.outs.put(getRecordPath(), out);
+		} else {
+		    RecordsHandler.recordAnEntry(out, entry);
+		    out.close();
+		}
+		MyLogger.log("recordFaultPoint end! path:"+path);
+	}
+
+	public static void recordFaultPoint(FileOutputStream out, long timestamp, List<String> callstack, String nodeIp, String path) throws IOException {
+		if(out == null || path == null) {
+			return;
+		}
+		Thread thread = Thread.currentThread();
+
+		FAVEntry entry = new FAVEntry(timestamp, thread.getId(), thread.hashCode(), path, Taint.emptyTaint(), callstack);
+		entry.recPosition = FaultPos.BEFORE.toString();
+//		int finds = JavaAfl.hasNewBits(JavaAfl.last_io_map, JavaAfl.map);
+		entry.newCovs = 0;
+
+		if(Configuration.ASYC_TRACE) {
+		    ArrayList<FAVEntry> entries = RecordsHandler.traces.get(getRecordPath());
+	        if(entries == null) {
+	            entries = new ArrayList<FAVEntry>();
+	        }
+	        entries.add(entry);
+	        RecordsHandler.traces.put(getRecordPath(), entries);
+	        RecordsHandler.outs.put(getRecordPath(), out);
+		} else {
+		    RecordsHandler.recordAnEntry(out, entry);
+		    out.close();
+		}
+	}
+
+	public static void recordTaintEntry(long timestamp, FileOutputStream out, String path, byte b, Taint taint, String faultPos) throws IOException {
 		// System.out.println("invoke recordTaintEntry");
 		// MyLogger.log("invoke recordTaintEntry");
 		//if(out == null || taint == null || path == null) {
@@ -467,7 +573,7 @@ public class RecordTaint {
 		List<String> callstack = getCallStack(thread, 4);
 
 		FAVEntry entry = new FAVEntry(timestamp, thread.getId(), thread.hashCode(), path, Taint.emptyTaint(), callstack);
-		entry.recPosition = md5;
+		entry.recPosition = faultPos;
 //		int finds = JavaAfl.hasNewBits(JavaAfl.last_io_map, JavaAfl.map);
 		entry.newCovs = 0;
 //		JavaAfl.last_io_map = Arrays.copyOf(JavaAfl.map, JavaAfl.map.length);

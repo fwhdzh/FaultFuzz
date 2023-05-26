@@ -71,7 +71,7 @@ public class FaultSequenceConstructor {
 		}
         List<IOPoint> constructedIOPoints = constructIOPointList(ioPoints);
         Stat.debug(this.getClass(), "constructedIOPoints: " + constructedIOPoints.size() + JSONObject.toJSONString(injectedFaultPointList));
-		q.ioSeq = ioPoints;
+		q.ioSeq = constructedIOPoints;
 		if (q.faultSeq == null || q.faultSeq.isEmpty()) {
 			q.faultSeq = new FaultSequence();
 		}

@@ -132,6 +132,7 @@ public class Fuzzer {
 		List<FaultPoint> injectedFaultPointList = tbdResult.injectedFaultPointList;
 		Stat.debug("Begin to construct fault sequence...");
 		constructor.constructQueueEntry(q, unorderedIOPoints, injectedFaultPointList);
+		Stat.debug("q is after constructed! q is: " + JSONObject.toJSONString(q));
 		
 		if (nb > 0) {
 			add_to_queue(q, testID);
@@ -148,7 +149,12 @@ public class Fuzzer {
 			Mutation.initializeLocalNotTestedFaultId(q);
 			Mutation.mutateFaultSequence(q, conf);
 			totalSeedCases++;
+
+			if (q.mutates == null || q.mutates.size() == 0) {
+				candidate_queue.remove(q);
+			}
 		}
+		Stat.debug("q is after mutation! q is: " + JSONObject.toJSONString(q));
 
 		updateFuzzInfoInSaveIfInterestring(q, rst, testID, target.a_exec_seconds, nb);
 
@@ -165,6 +171,13 @@ public class Fuzzer {
 
         recordGlobalInfo();
 
+		if(q == null || q.mutates.isEmpty()) {
+    		int seedIdx = candidate_queue.indexOf(q);
+			candidate_queue.remove(seedIdx);
+        	FileUtil.removeFromQueue(q.fname, conf);
+        	FuzzInfo.fuzzedFiles.add(q.fname);
+        	FileUtil.copyToFuzzed(q.fname, FuzzInfo.getUsedSeconds());
+    	}
 		
 	}
 
@@ -298,6 +311,9 @@ public class Fuzzer {
 		Mutation.initializeFaultPointsToMutate(q, conf);
 		Mutation.initializeLocalNotTestedFaultId(q);
 		Mutation.mutateFaultSequence(q, conf);
+		if (q.mutates == null || q.mutates.size() == 0) {
+			candidate_queue.remove(q);
+		}
 		totalSeedCases++;
 	}
 
@@ -744,7 +760,8 @@ public class Fuzzer {
 		seed.mutates.remove(mIndex);
 
 		if(seed.mutates == null || seed.mutates.isEmpty()) {
-    		candidate_queue.remove(pair.seedIdx);
+    		int seedIdx = pair.seedIdx;
+			candidate_queue.remove(seedIdx);
         	FileUtil.removeFromQueue(seed.fname, conf);
         	FuzzInfo.fuzzedFiles.add(seed.fname);
         	FileUtil.copyToFuzzed(seed.fname, FuzzInfo.getUsedSeconds());

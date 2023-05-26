@@ -64,15 +64,15 @@ output_path: Path for the instrumented JRE.
 ```
 
 We can configure every node of the target system to use the
-instrumented JRE and include the CrashFuzz as the Java agent with a
+instrumented JRE and include the FaultFuzz as the Java agent with a
 JVM argument for run time instrumentation. Take ZooKeeper as an
 example. We can modify zkEnv.sh file and add following configuration:
 
 ```
 JAVA = <instrumented_jre_path>/bin/java 
-CRASHFUZZ_JVMFLAGS =
--Xbootclasspath/a:<CrashFuzz_path>/Phosphor-0.0.5-SNAPSHOT.jar
--javaagent:<CrashFuzz_path>/Phosphor-0.0.5-SNAPSHOT.jar
+FAULTFUZZ_JVMFLAGS =
+-Xbootclasspath/a:<FAULTFUZZ_path>/Phosphor-0.0.5-SNAPSHOT.jar
+-javaagent:<FaultFuzz_path>/Phosphor-0.0.5-SNAPSHOT.jar
 =useFav=true,forZk=true,
 jdkFile=true,recordPath=<trace_path>,recordPath=<io_path>,covPath=<coverage_path>,
 currentCrash=<current_fault_sequence_path>,controllerSocket=<host_ip:controller_port_number>,aflPort=<port_number_for_receiving_record_coverage_info>
@@ -81,7 +81,7 @@ currentCrash=<current_fault_sequence_path>,controllerSocket=<host_ip:controller_
 The parameters are explained as follows: 
 
 ```
-useFav: true for using CrashFuzz.
+useFav: true for using FaultFuzz.
 forZk: true for tracking ZooKeeper socket messages.
 jdkFile: true for tracking reads/writes to local files.
 ```
@@ -136,13 +136,13 @@ We should customize scripts used in the property file for every target
 system and workload. We show the scripts used in our evaluation in
 `scripts/` directory.
 
-Then, we can run the following command to start CrashFuzz:
+Then, we can run the following command to start FaultFuzz:
 
 ```
-java -cp CCrashFuzzer-0.0.1-SNAPSHOT.jar edu.iscas.CCrashFuzzer.CloudFuzzMain <controller_port_number> <property_file_path>
+java -cp FaultFuzz-0.0.1-SNAPSHOT.jar edu.iscas.tcse.faultfuzz.ctrl.CloudFuzzMain <controller_port_number> <property_file_path>
 ```
 
-**NOTE**: Distributed systems run with nondeterminism, and CrashFuzz
+**NOTE**: Distributed systems run with nondeterminism, and FaultFuzz
 combines random factors when selecting a fault sequence to test.
 Therefore, we may not get exactly the same results as the experiment
 in our paper.
@@ -152,12 +152,12 @@ in our paper.
 We show an example to run FaultFuzz on ZooKeeper. You can follow
 these steps:
 
-1. Install CrashFuzz. See [INSTALL.md](./INSTALL.md)
+1. Install FaultFuzz. See [INSTALL.md](./INSTALL.md)
 2. Pull images from Dockerhub. See [INSTALL.md](./INSTALL.md)
 3. Using the Docker images. See [INSTALL.md](./INSTALL.md)
-4. Run CrashFuzz. See [INSTALL.md](./INSTALL.md)
+4. Run FaultFuzz. See [INSTALL.md](./INSTALL.md)
 
-We can check outputs of CrashFuzz and alternative approaches:
+We can check outputs of FaultFuzz and alternative approaches:
 
 ```bash
 cd ~/crashfuzz/zk-3.6.3-c1/crashfuzz-outputs
@@ -168,10 +168,10 @@ cd ~/crashfuzz/zk-3.6.3-c1/random-outputs
 
 ## Found Bugs
 
-CrashFuzz has found five crash recovery bugs in three widely-used
+FaultFuzz has found five crash recovery bugs in three widely-used
 cloud systems including [ZooKeeper v3.6.3](https://zookeeper.apache.org/), [HDFS v3.3.1](https://hadoop.apache.org/) 
 and [HBase v2.4.6](https://hbase.apache.org/). 
-The following table shows the bugs detected by CrashFuzz in these
+The following table shows the bugs detected by FaultFuzz in these
 systems for now.
 
 | Bug ID                                                                 |     Failure Symptom      |
