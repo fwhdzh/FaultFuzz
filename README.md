@@ -13,11 +13,11 @@ described in our paper. The artifact has the following structure:
   for testing ZooKeeper, HBase and HDFS.
 
 Inside the `scripts` directory, there are the following directories
-* `zk-3.6.3-c1/`: Some helper scripts for running `FaultFuzz` for
+* `zk-3.6.3/`: Some helper scripts for running `FaultFuzz` for
   ZooKeeper v3.6.3 or setting up the environment via Docker.
-* `hbase-2.4.8-c1/`: Some helper scripts for running `FaultFuzz` for
+* `hbase-2.4.8/`: Some helper scripts for running `FaultFuzz` for
   HBase v2.4.8 or setting up the environment via Docker.
-* `hdfs-3.3.1-c1-new/`: Some helper scripts for running `FaultFuzz` for
+* `hdfs-3.3.1/`: Some helper scripts for running `FaultFuzz` for
   HDFS v3.3.1 or setting up the environment via Docker.
 * `zk-3.8.1/`: Some helper scripts for running `FaultFuzz` for
   ZooKeeper v3.8.1 or setting up the environment via Docker.
