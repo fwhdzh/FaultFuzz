@@ -1,7 +1,7 @@
-# Artifact for "FaultFuzz: Coverage Guided Fault Injection for Distributed Systems"
+# FaultFuzz: Coverage Guided Fault Injection for Distributed Systems
 
-The artifact contains the instructions and scripts to re-run the evaluation
-described in our paper. The artifact has the following structure:
+The repository contains the instructions and scripts to re-run the evaluation
+described in our paper. The repository has the following structure:
 
 * `script/`: This is the directory that contains the scripts needed to
   re-run the experiments presented in our paper.

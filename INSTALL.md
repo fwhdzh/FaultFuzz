@@ -12,7 +12,7 @@ Make a directory `faultfuzz` in your host machine (See
 mkdir ~/faultfuzz
 ```
 
-Copy `scripts/zk-3.8.1` in our artifact package to `~/faultfuzz`.
+Copy `scripts/zk-3.8.1` to `~/faultfuzz`.
 
 Navigate to the `zk-3.8.1` directory:
 
