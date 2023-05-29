@@ -10,8 +10,8 @@ OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source $OWN_DIR/cluster-info.sh
 # source $OWN_DIR/configuration.sh
 
-echo "docker-compose -p fav-zk -f ~/code/faultfuzz/script/controller-bash/zk-3.8.1-60/zk-compose.yaml down"
-docker-compose -p fav-zk -f ~/code/faultfuzz/script/controller-bash/zk-3.8.1-60/zk-compose.yaml down
+echo "docker-compose -p fav-zk -f zk-compose.yaml down"
+docker-compose -p fav-zk -f zk-compose.yaml down
 
 echo "rm images of cluster..."
 for name in "${imageName[@]}"

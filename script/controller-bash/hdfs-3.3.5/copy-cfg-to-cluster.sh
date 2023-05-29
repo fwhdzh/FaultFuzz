@@ -1,5 +1,6 @@
 OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-CONFIG_DIR=$OWN_DIR/../../../configuration/hdfs-3.3.5
+# CONFIG_DIR=$OWN_DIR/../../../configuration/hdfs
+CONFIG_DIR=$OWN_DIR/configuration-3.3.5
 
 source $OWN_DIR/cluster-info.sh
 
