@@ -33,6 +33,6 @@ fi
 done
 }
 
-waitMaster "/hbase-2.4.4/master" "Node does not exist"
-waitMaster "/hbase-2.4.4/running" "Node does not exist"
+waitMaster "/hbase/master" "Node does not exist"
+waitMaster "/hbase/running" "Node does not exist"
 echo "The HMaster has been online!!!"

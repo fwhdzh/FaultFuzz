@@ -1,3 +1,5 @@
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 function checkAlive(){
   node=$1
   character=$2
@@ -5,7 +7,7 @@ function checkAlive(){
   result=$(echo $workerRst | grep "${character}")
   if [[ "$result" == "" ]]; then
         echo "jps $node: $workerRst"
-        sh failTest.sh "${node} ${character} was not started"
+        sh ${OWN_DIR}/failTest.sh "${node} ${character} was not started"
   fi
 }
 
@@ -81,25 +83,25 @@ do
     esac
 done
 
-sh jpsCluster.sh
+sh ${OWN_DIR}/jpsCluster.sh
 
-sh checkException.sh $3
+sh ${OWN_DIR}/checkException.sh $3
 
 jpsAll=$( sh jpsCluster.sh)
 hasRunJar=$(echo $jpsAll| grep "JarBootstrapMain")
 if [[ "$hasRunJar" != "" ]]; then
-    sh failTest.sh "The client was not exit!"
+    sh ${OWN_DIR}/failTest.sh "The client was not exit!"
 
 fi
 
 zkInfo=$( sh getZKInfo.sh )
 hasFAVTable=$(echo $zkInfo | grep "FAVMyInfo")
 if [[ "$hasFAVTable" != "" ]]; then
-    sh failTest.sh "The FAVMyInfo node is still in ZK:$hasFAVTable"
+    sh ${OWN_DIR}/failTest.sh "The FAVMyInfo node is still in ZK:$hasFAVTable"
 fi
 
 nonExistNode=$(echo $zkInfo | grep "Node does not exist")
 if [[ "$nonExistNode" != "" ]]; then
-    sh failTest.sh "There are nodes not exist in ZK:$nonExistNode"
+    sh ${OWN_DIR}/failTest.sh "There are nodes not exist in ZK:$nonExistNode"
 fi
 echo $zkInfo

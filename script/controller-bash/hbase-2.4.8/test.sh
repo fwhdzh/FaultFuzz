@@ -1,6 +1,6 @@
 OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-java -cp $OWN_DIR/FaultFuzz-workload-HBaseCases-0.0.1-SNAPSHOT.jar edu.iscas.HBaseCases.NormalTestNew 172.27.0.8 11181 check nullcrash nullstart $OWN_DIR/failTest.sh
+java -cp $OWN_DIR/FaultFuzz-workload-HBaseCases-0.0.1-SNAPSHOT.jar edu.iscas.tcse.HBaseCases.NormalTestNew 172.27.0.8 11181 check nullcrash nullstart $OWN_DIR/failTest.sh
 
 END_TIME=`date +%s`
 EXECUTING_TIME=`expr $END_TIME - $START_TIME`

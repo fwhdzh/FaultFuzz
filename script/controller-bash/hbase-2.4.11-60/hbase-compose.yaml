@@ -118,6 +118,6 @@ networks:
       - subnet: 172.41.0.0/24
 
 
-# docker-compose -p fav-hbase -f ~/code/faultfuzz/script/controller-bash/hbase-2.4.11-60/hbase-compose.yaml up -d
-# docker-compose -p fav-hbase -f ~/code/faultfuzz/script/controller-bash/hbase-2.4.11-60/hbase-compose.yaml down
-# docker-compose -p fav-hbase -f ~/code/faultfuzz/script/controller-bash/hbase-2.4.11-60/hbase-compose.yaml exec C1NN /bin/bash
+# docker-compose -p fav-hbase -f hbase-compose.yaml up -d
+# docker-compose -p fav-hbase -f hbase-compose.yaml down
+# docker-compose -p fav-hbase -f hbase-compose.yaml exec C1NN /bin/bash

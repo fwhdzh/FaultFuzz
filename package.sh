@@ -1,6 +1,6 @@
 if [ -z "$1" ]; then
     echo "Error: package target is required."
-    echo "Package target is one of zk-3.6.3, hdfs-3.3.1, hbase-2.4.4, zk-3.8.1"
+    echo "Package target is one of zk-3.6.3, hdfs-3.3.1, hbase-2.4.8, zk-3.8.1"
     exit 1
 fi
 
@@ -34,7 +34,7 @@ if [ "$PACKAGE_TARGET" = "zk-3.6.3" ]; then
   WORKLOAD_ROOT_DIR=${OWN_DIR}/workload/ZKCases/target/FaultFuzz-workload-ZKCases-0.0.1-SNAPSHOT.jar
 elif [ "$PACKAGE_TARGET" = "hdfs-3.3.1" ]; then
   WORKLOAD_ROOT_DIR=${OWN_DIR}/workload/HDFSCasesV3/target/FaultFuzz-workload-HDFSCasesV3-0.0.1-SNAPSHOT.jar
-elif [ "$PACKAGE_TARGET" = "hbase-2.4.4" ]; then
+elif [ "$PACKAGE_TARGET" = "hbase-2.4.8" ]; then
   WORKLOAD_ROOT_DIR=${OWN_DIR}/workload/HBaseCases/target/FaultFuzz-workload-HBaseCases-0.0.1-SNAPSHOT.jar
 elif [ "$PACKAGE_TARGET" = "zk-3.8.1" ]; then
   WORKLOAD_ROOT_DIR=${OWN_DIR}/workload/ZKCases/target/FaultFuzz-workload-ZKCases-0.0.1-SNAPSHOT.jar
