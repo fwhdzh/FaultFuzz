@@ -1,4 +1,4 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 #sh clearRst.sh
 #sh clearDockerRst.sh
@@ -36,19 +36,19 @@ echo "Start datanode on C1Slave3:"
 docker exec -t C1Slave3 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start datanode && jps'
 
 echo "waiting for active namenode ..."
-sh $SCRIPT_DIR/activeNN.sh
+sh $OWN_DIR/activeNN.sh
 #sh leaveSafe.sh
 
 export PHOS_OPTS="-Xbootclasspath/a:FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFav=false,hdfsRpc=true"
 
-docker cp $SCRIPT_DIR/dfs1-cli.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.5
-docker cp $SCRIPT_DIR/ubuntuFailTest.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.5
+docker cp $OWN_DIR/dfs1-cli.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.5
+docker cp $OWN_DIR/ubuntuFailTest.sh C1Slave4:/home/gaoyu/evaluation/hadoop-3.3.5
 docker exec -t C1Slave4 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && sh dfs1-cli.sh'
 
-# echo "java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh $SCRIPT_DIR/failTest.sh"
-# java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh $SCRIPT_DIR/failTest.sh
+# echo "java -cp $OWN_DIR/FaultFuzz-workload-HDFSCasesV3-0.0.1-SNAPSHOT.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh $OWN_DIR/failTest.sh"
+# java -cp $OWN_DIR/FaultFuzz-workload-HDFSCasesV3-0.0.1-SNAPSHOT.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh $OWN_DIR/failTest.sh
 
-# java -cp $SCRIPT_DIR/dfscases.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/faultfuzzer/hdfs-3.3.1-c1-new/failTest.sh
+# java -cp $OWN_DIR/FaultFuzz-workload-HDFSCasesV3-0.0.1-SNAPSHOT.jar edu.iscas.tcse.HDFSCasesV3.NormalTest check start.sh stop.sh /data1/gaoyu/faultfuzzer/hdfs-3.3.1-c1-new/failTest.sh
 
 END_TIME=`date +%s`
 EXECUTING_TIME=`expr $END_TIME - $START_TIME`

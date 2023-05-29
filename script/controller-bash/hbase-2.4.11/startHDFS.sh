@@ -1,4 +1,4 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 #docker exec -t C1hb-hdfs /bin/bash -ic '/home/gaoyu/evaluation/hb-hadoop-3.2.2/bin/hdfs namenode -format'
 docker exec -t C1hb-hdfs /bin/bash -ic 'cd /home/gaoyu/evaluation/hb-hadoop-3.2.2/ && rm -rf tmp && rm -rf nndir && rm -rf dndir && cp -r tmp-init tmp && cp -r dndir-init dndir && cp -r nndir-init nndir && ls'
@@ -29,8 +29,8 @@ let end_=10#${end}
 take=$(( end_ - start_ ))/60
 
 if [[ $take -ge 10 ]]; then
-  sh $SCRIPT_DIR/failTest.sh "The hdfs does not exit safe mode in 10 mins!"
-  sh $SCRIPT_DIR/jpsCluster.sh
+  sh $OWN_DIR/failTest.sh "The hdfs does not exit safe mode in 10 mins!"
+  sh $OWN_DIR/jpsCluster.sh
   exit 0
   break
 

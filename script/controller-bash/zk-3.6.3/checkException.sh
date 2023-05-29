@@ -1,4 +1,4 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 monitor_path=$1
 
@@ -28,19 +28,19 @@ error=$( echo $error | grep -v "$repeatError" )
 fi
 
 if [ "$exceptions" != "" ]; then
-  sh $SCRIPT_DIR/failTest.sh "Got exceptions: $exceptions"
+  sh $OWN_DIR/failTest.sh "Got exceptions: $exceptions"
 else
   echo "No buggy exceptions!"
 fi
 
 if [ "$fatal" != "" ]; then
-  sh $SCRIPT_DIR/failTest.sh "Got FATAL: $fatal"
+  sh $OWN_DIR/failTest.sh "Got FATAL: $fatal"
 else
   echo "No FATAL!"
 fi
 
 if [ "$error" != "" ]; then
-  sh $SCRIPT_DIR/failTest.sh "Got ERROR: $error"
+  sh $OWN_DIR/failTest.sh "Got ERROR: $error"
 else
   echo "No ERROR!"
 fi

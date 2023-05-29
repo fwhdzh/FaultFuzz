@@ -5,10 +5,10 @@ case "$choice" in
   * ) echo "Invalid choice, exiting script..."; exit;;
 esac
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-source $SCRIPT_DIR/cluster-info.sh
-# source $SCRIPT_DIR/configuration.sh
+source $OWN_DIR/cluster-info.sh
+# source $OWN_DIR/configuration.sh
 
 echo "docker-compose -p fav-zk -f ~/code/faultfuzz/script/controller-bash/zk-3.8.1-60/zk-compose.yaml down"
 docker-compose -p fav-zk -f ~/code/faultfuzz/script/controller-bash/zk-3.8.1-60/zk-compose.yaml down

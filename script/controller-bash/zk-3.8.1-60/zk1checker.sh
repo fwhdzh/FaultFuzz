@@ -1,4 +1,4 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 #checker.sh [alive_ip1, alive_ip2, alive_ip3] [dead_ip1, dead_ip2]
 function checkAlive(){
@@ -8,7 +8,7 @@ function checkAlive(){
   result=$(echo $workerRst | grep "${character}")
   if [[ "$result" == "" ]]; then
         echo "jps $node: $workerRst"
-        sh $SCRIPT_DIR/failTest.sh "${node} ${character} was not started"
+        sh $OWN_DIR/failTest.sh "${node} ${character} was not started"
   fi
 }
 
@@ -56,11 +56,11 @@ do
     echo "dead: $s" 
 done
 
-sh $SCRIPT_DIR/jpsCluster.sh
+sh $OWN_DIR/jpsCluster.sh
 
 workdir=$(pwd)
 
-connectString=$(sh $SCRIPT_DIR/aliveServers.sh)
+connectString=$(sh $OWN_DIR/aliveServers.sh)
 
 connectString=$(echo "$connectString" | sed 's/ZK5/ZK6/g')
 connectString=$(echo "$connectString" | sed 's/ZK4/ZK5/g')
@@ -70,15 +70,15 @@ connectString=$(echo "$connectString" | sed 's/ZK1/ZK2/g')
 connectString=$(echo "$connectString" | sed 's/C1ZK/172\.40\.0\./g')
 echo $connectString
 
-# java -cp $SCRIPT_DIR/ZKCases-0.0.1-SNAPSHOT.jar edu.iscas.tcse.ZKCases.ZKChecker "$connectString" $workdir/failTest.sh
+# java -cp $OWN_DIR/ZKCases-0.0.1-SNAPSHOT.jar edu.iscas.tcse.ZKCases.ZKChecker "$connectString" $workdir/failTest.sh
 
-sh $SCRIPT_DIR/checkException.sh $3
+sh $OWN_DIR/checkException.sh $3
 
 #sh zk1checkData.sh
 
-jpsAll=$( sh $SCRIPT_DIR/jpsCluster.sh)
+jpsAll=$( sh $OWN_DIR/jpsCluster.sh)
 hasRunJar=$(echo $jpsAll| grep "JarBootstrapMain")
 if [[ "$hasRunJar" != "" ]]; then
-    sh $SCRIPT_DIR/failTest.sh "The client was not exit!"
+    sh $OWN_DIR/failTest.sh "The client was not exit!"
 
 fi

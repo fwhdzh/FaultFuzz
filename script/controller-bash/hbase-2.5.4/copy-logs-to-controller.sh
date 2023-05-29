@@ -1,4 +1,4 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 echo "mkdir $1"
 mkdir $1
@@ -7,8 +7,8 @@ mkdir $1
 for name in "${clusterName[@]}"
 do
   if [[ "$name" == "C1hb-zk" ]]; then
-    # echo "docker cp $SCRIPT_DIR/fav-env.sh $name:/home/gaoyu/evaluation/hd-zk-3.6.3"
-    # docker cp $SCRIPT_DIR/fav-env.sh $name:/home/gaoyu/evaluation/hd-zk-3.6.3
+    # echo "docker cp $OWN_DIR/fav-env.sh $name:/home/gaoyu/evaluation/hd-zk-3.6.3"
+    # docker cp $OWN_DIR/fav-env.sh $name:/home/gaoyu/evaluation/hd-zk-3.6.3
     echo "$1/$name"
     mkdir $1/$name
     echo "docker cp $name:/home/gaoyu/evaluation/hb-zk-3.6.3/logs $1/$name"

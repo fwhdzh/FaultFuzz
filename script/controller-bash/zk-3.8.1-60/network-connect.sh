@@ -1,6 +1,6 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-source $SCRIPT_DIR/configuration.sh
+source $OWN_DIR/configuration.sh
 
 sourceIP=$1
 destIP=$2

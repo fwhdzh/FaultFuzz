@@ -1,6 +1,6 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-source $SCRIPT_DIR/cluster-info.sh
+source $OWN_DIR/cluster-info.sh
 
 # 循环遍历数组，对每个元素执行命令
 echo "clear error file on cluster..."

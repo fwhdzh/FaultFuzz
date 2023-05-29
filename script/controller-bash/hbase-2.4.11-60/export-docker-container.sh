@@ -10,9 +10,9 @@
 # docker export -o /home/fengwenhan/fav-hdfs/C1WPS.tar C1WPS
 # docker export -o /home/fengwenhan/fav-hdfs/C1hd-zk.tar C1hd-zk
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-source $SCRIPT_DIR/cluster-info.sh
+source $OWN_DIR/cluster-info.sh
 
 tarFolder=/home/fengwenhan/data/fav-hbase
 

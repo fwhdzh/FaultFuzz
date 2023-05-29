@@ -1,4 +1,4 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 monitor_path=$1
 
@@ -18,7 +18,7 @@ exceptions=$( grep -nr "Exception" $(find $monitor_path -name "*.out") | grep -v
 #fi
 
 if [ "$exceptions" != "" ]; then
-  sh $SCRIPT_DIR/failTest.sh "Got exceptions: $exceptions"
+  sh $OWN_DIR/failTest.sh "Got exceptions: $exceptions"
 else
   echo "No buggy exceptions!"
 fi
@@ -28,7 +28,7 @@ if [ "$fatalfile" != "" ]; then
   echo "fatalfile is not null"
   fatal=$( grep -nr "FATAL" $fatalfile )
   if [ "$fatal" != "" ]; then
-    sh $SCRIPT_DIR/failTest.sh "Got FATAL: $fatal"
+    sh $OWN_DIR/failTest.sh "Got FATAL: $fatal"
   else
     echo "No FATAL!"
   fi
@@ -47,7 +47,7 @@ if [ "$errorfile" != "" ]; then
       #only keep the error when it is repeated.
       error=$( echo $error | grep -v "$repeatError" )
     fi
-    sh $SCRIPT_DIR/failTest.sh "Got ERROR: $error"
+    sh $OWN_DIR/failTest.sh "Got ERROR: $error"
   else
     echo "No ERROR!"
   fi
@@ -66,19 +66,19 @@ fi
 # fi
 
 # if [ "$exceptions" != "" ]; then
-#   sh $SCRIPT_DIR/failTest.sh "Got exceptions: $exceptions"
+#   sh $OWN_DIR/failTest.sh "Got exceptions: $exceptions"
 # else
 #   echo "No buggy exceptions!"
 # fi
 
 # if [ "$fatal" != "" ]; then
-#   sh $SCRIPT_DIR/failTest.sh "Got FATAL: $fatal"
+#   sh $OWN_DIR/failTest.sh "Got FATAL: $fatal"
 # else
 #   echo "No FATAL!"
 # fi
 
 # if [ "$error" != "" ]; then
-#   sh $SCRIPT_DIR/failTest.sh "Got ERROR: $error"
+#   sh $OWN_DIR/failTest.sh "Got ERROR: $error"
 # else
 #   echo "No ERROR!"
 # fi

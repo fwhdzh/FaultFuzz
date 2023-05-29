@@ -1,7 +1,7 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-CONFIG_DIR=$SCRIPT_DIR/../../../configuration/hdfs-3.3.5
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+CONFIG_DIR=$OWN_DIR/../../../configuration/hdfs-3.3.5
 
-source $SCRIPT_DIR/cluster-info.sh
+source $OWN_DIR/cluster-info.sh
 
 for name in "${clusterName[@]}"
 do

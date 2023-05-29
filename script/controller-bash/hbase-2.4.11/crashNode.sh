@@ -1,6 +1,6 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-source $SCRIPT_DIR/cluster-info.sh
+source $OWN_DIR/cluster-info.sh
 
 function prepareCrash {
         nodeName=$(docker network inspect $clusterNetName | grep -B 5 "$1" | grep Name | awk -F"\"" '{print $4}')
@@ -17,7 +17,7 @@ function crash {
 	docker kill $nodeName
 }
 
-sh $SCRIPT_DIR/getZKInfo.sh
+sh $OWN_DIR/getZKInfo.sh
 prepareCrash $1
 crash $1
 sleep 5

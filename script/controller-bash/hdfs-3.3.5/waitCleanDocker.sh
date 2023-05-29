@@ -1,4 +1,4 @@
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+OWN_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 function waitClean(){
 start=$(date +%s)
@@ -23,8 +23,8 @@ let end_=10#${end}
 take=$(( end_ - start_ ))/60
 
 if [[ $take -ge 10 ]]; then
-  sh $SCRIPT_DIR/failTest.sh "The docker was not cleaned in 10 mins!"
-  sh $SCRIPT_DIR/jpsCluster.sh
+  sh $OWN_DIR/failTest.sh "The docker was not cleaned in 10 mins!"
+  sh $OWN_DIR/jpsCluster.sh
   exit 0
   break
 else
