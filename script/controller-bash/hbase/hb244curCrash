@@ -1,0 +1,27 @@
+fault point=2084235396
+event=CRASH
+pos=BEFORE
+nodeIp=172.27.0.4
+ioID=594815983
+ioCallStack=[org.apache.hadoop.hbase.shaded.protobuf.generated.RegionServerStatusProtos$RegionServerStatusService$BlockingStub.reportRegionStateTransition(RegionServerStatusProtos.java), org.apache.hadoop.hbase.regionserver.HRegionServer.reportRegionStateTransition(HRegionServer.java:2445), org.apache.hadoop.hbase.regionserver.HRegionServer.postOpenDeployTasks(HRegionServer.java:2353), org.apache.hadoop.hbase.regionserver.handler.AssignRegionHandler.process(AssignRegionHandler.java:152), org.apache.hadoop.hbase.executor.EventHandler.run(EventHandler.java:104), java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149), java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624), java.lang.Thread.run(Thread.java:748)]
+path=FAVMSG:172.27.0.2&5#2
+ioAppearIdx=1
+end
+fault point=1118589991
+event=CRASH
+pos=BEFORE
+nodeIp=172.27.0.5
+ioID=1443630371
+ioCallStack=[org.apache.hadoop.hbase.shaded.protobuf.generated.RegionServerStatusProtos$RegionServerStatusService$BlockingStub.regionServerReport(RegionServerStatusProtos.java), org.apache.hadoop.hbase.regionserver.HRegionServer.tryRegionServerReport(HRegionServer.java:1274), org.apache.hadoop.hbase.regionserver.HRegionServer.run(HRegionServer.java:1092)]
+path=FAVMSG:172.27.0.2&72#36
+ioAppearIdx=71
+end
+fault point=1690663956
+event=REBOOT
+pos=BEFORE
+nodeIp=172.27.0.5
+ioID=-1528798698
+ioCallStack=[org.apache.hadoop.hbase.shaded.protobuf.generated.RegionServerStatusProtos$RegionServerStatusService$BlockingStub.reportRegionStateTransition(RegionServerStatusProtos.java), org.apache.hadoop.hbase.regionserver.HRegionServer.reportRegionStateTransition(HRegionServer.java:2445), org.apache.hadoop.hbase.regionserver.handler.UnassignRegionHandler.process(UnassignRegionHandler.java:133), org.apache.hadoop.hbase.executor.EventHandler.run(EventHandler.java:104), java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149), java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624), java.lang.Thread.run(Thread.java:748)]
+path=FAVMSG:172.27.0.2&184#50
+ioAppearIdx=4
+end

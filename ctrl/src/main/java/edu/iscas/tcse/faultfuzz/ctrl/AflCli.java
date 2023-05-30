@@ -150,13 +150,8 @@ public class AflCli {
 	public static int maxCliCommandTryNumber = 150;
 
 	public static boolean executeUtilSuccess(List<MaxDownNodes> cluster, final Conf conf, AflCommand command, long waitTime) {
-		boolean result = false;
-		List<String> aliveList = new ArrayList<String>();
-		for (MaxDownNodes subCluster : cluster) {
-			for (final String alive : subCluster.aliveGroup) {
-				aliveList.add(alive);
-			}
-		}
+		boolean result;
+		List<String> aliveList = getAliveNodesInCluster(cluster);
 		boolean[] success = new boolean[aliveList.size()];
 		int[] exeCount = new int[aliveList.size()];
 		Arrays.fill(success, false);
@@ -224,6 +219,115 @@ public class AflCli {
 		}
 		result = true;
 		Stat.log("executeUtilSuccess with command: " + JSONObject.toJSONString(command) + "success!");
+		return result;
+	}
+
+	public static List<String> getAliveNodesInCluster(List<MaxDownNodes> cluster) {
+		boolean result = false;
+		List<String> aliveList = new ArrayList<String>();
+		for (MaxDownNodes subCluster : cluster) {
+			for (final String alive : subCluster.aliveGroup) {
+				aliveList.add(alive);
+			}
+		}
+		return aliveList;
+	}
+
+	// public static boolean executeUtilSuccess(String ip, final Conf conf, AflCommand command, long waitTime) {
+	// 	boolean success = false;
+	// 	int exeCount = 0;
+	// 	boolean execTooManyTimes = false;
+	// 	while (!success) {
+	// 		String[] args = new String[3];
+	// 		args[0] = ip;
+	// 		args[1] = String.valueOf(conf.AFL_PORT);
+	// 		args[2] = command.toString();
+	// 		// args[2] = AflCommand.STABLE.toString();
+	// 		if (exeCount == 0) {
+	// 			Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args));
+	// 		} else {
+	// 			Stat.debug("Execute AflCli.main with args: " + JSONObject.toJSONString(args));
+	// 		}
+
+	// 		try {
+	// 			interactWithNode(args);
+	// 			success = true;
+	// 		} catch (AflException e) {
+	// 			// TODO Auto-generated catch block
+	// 			success = false;
+	// 			exeCount++;
+
+	// 			Stat.debug("Execute AflCli.main with args: " + JSONObject.toJSONString(args) + " failed!");
+	// 			Stat.debug(e.getMessage());
+	// 			if (exeCount > 0 && exeCount % 10 == 0) {
+	// 				Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args) + " failed for "
+	// 						+ exeCount + "times");
+	// 				Stat.log(e.getMessage());
+	// 			}
+	// 			if (!e.getMessage().contains("Connection refused")) {
+	// 				e.printStackTrace();
+	// 			}
+	// 			// Stat.log(e.getCause().toString());
+
+	// 			if (exeCount > maxCliCommandTryNumber) {
+	// 				execTooManyTimes = true;
+	// 			}
+
+	// 		}
+	// 	}
+	// 	boolean result = success;
+	// 	return result;
+	// }
+
+	public static boolean executeUtilSuccess(String[] args) {
+		boolean success = false;
+		int exeCount = 0;
+		boolean execTooManyTimes = false;
+		while ((!success) && (!execTooManyTimes)) {
+			// String[] args = new String[3];
+			// args[0] = ip;
+			// args[1] = String.valueOf(conf.AFL_PORT);
+			// args[2] = command.toString();
+			// args[2] = AflCommand.STABLE.toString();
+			if (exeCount == 0) {
+				Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args));
+			} else {
+				Stat.debug("Execute AflCli.main with args: " + JSONObject.toJSONString(args));
+			}
+
+			try {
+				interactWithNode(args);
+				success = true;
+			} catch (AflException e) {
+				// TODO Auto-generated catch block
+				success = false;
+				exeCount++;
+
+				Stat.debug("Execute AflCli.main with args: " + JSONObject.toJSONString(args) + " failed!");
+				Stat.debug(e.getMessage());
+				if (exeCount > 0 && exeCount % 10 == 0) {
+					Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args) + " failed for "
+							+ exeCount + "times");
+					Stat.log(e.getMessage());
+				}
+				if (!e.getMessage().contains("Connection refused")) {
+					e.printStackTrace();
+				}
+				// Stat.log(e.getCause().toString());
+
+				if (exeCount > maxCliCommandTryNumber) {
+					execTooManyTimes = true;
+				}
+
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		boolean result = success;
 		return result;
 	}
 }

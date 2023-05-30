@@ -1,6 +1,6 @@
 if [ -z "$1" ]; then
     echo "Error: package target is required."
-    echo "Package target is one of zk-3.6.3, hdfs-3.3.1, hbase-2.4.8, zk-3.8.1"
+    echo "Package target is one of zk-3.6.3, hdfs-3.3.1, hbase-2.4.8, zk-3.8.1. hdfs-3.3.5, hbase-2.4.11"
     exit 1
 fi
 
@@ -15,7 +15,15 @@ rm -r ${PACKAGE_DIR}
 
 mkdir -p ${PACKAGE_DIR}
 
-SCRIPT_ROOT_DIR=${OWN_DIR}/script/controller-bash/$PACKAGE_TARGET
+declare SCRIPT_ROOT_DIR
+
+if [ "$PACKAGE_TARGET" = "hdfs-3.3.1" ]; then
+  SCRIPT_ROOT_DIR=${OWN_DIR}/script/controller-bash/hdfs-3.3.1-60
+elif [ "$PACKAGE_TARGET" = "hdfs-3.3.5" ]; then
+  SCRIPT_ROOT_DIR=${OWN_DIR}/script/controller-bash/hdfs-3.3.5-60
+else
+  SCRIPT_ROOT_DIR=${OWN_DIR}/script/controller-bash/$PACKAGE_TARGET
+fi
 cp -r ${SCRIPT_ROOT_DIR}/* ${PACKAGE_DIR}
 
 PACKAGE_CONF_DIR=${PACKAGE_DIR}/configuration

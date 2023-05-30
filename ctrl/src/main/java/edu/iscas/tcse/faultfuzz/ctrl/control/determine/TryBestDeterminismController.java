@@ -3,6 +3,7 @@ package edu.iscas.tcse.faultfuzz.ctrl.control.determine;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
@@ -209,19 +210,42 @@ public class TryBestDeterminismController extends ReplayController{
 					Stat.log("We will give up this test since the I/O point to inject fault didn't appear for now...");
 				}
 				
-				boolean aflCommandResult =  AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NO_SEND, 300000);
+				// boolean aflCommandResult =  AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NO_SEND, 300000);
+
+				List<AflCliNoSendThread> aflCliNoSendThreadList = new ArrayList<>();
+				List<String> aliveNodes = AflCli.getAliveNodesInCluster(currentCluster);
+				for (String node: aliveNodes) {
+					String[] args = new String[3];
+					args[0] = node;
+					args[1] = String.valueOf(favconfig.AFL_PORT);
+					args[2] = AflCommand.DETERMINE_NO_SEND.toString();
+					AflCliNoSendThread aCliNoSendThread = new AflCliNoSendThread(args);
+					aflCliNoSendThreadList.add(aCliNoSendThread);
+					aCliNoSendThread.start();
+				}
+				for (AflCliNoSendThread aflCliNoSendThread: aflCliNoSendThreadList) {
+					/**
+					 * These thread will finish as they are designed. The parameter of join is meaningless. 
+					 */
+					aflCliNoSendThread.join(600000);
+				}
+				boolean aflCommandResult = true;
+				for (AflCliNoSendThread aflCliNoSendThread: aflCliNoSendThreadList) {
+					if (aflCliNoSendThread.result == false) {
+						aflCommandResult = false;
+						break;
+					}
+				}
+
 				if (!aflCommandResult) {
 					finishFlag = true;
 					return;
 				}
-				while (faultPointList.size() > 0) {
-					FaultPointBlocked b = faultPointList.get(0);
-					faultPointList.remove(0);
-					handleFPB(b);
-					actualFPBList.add(b);
-				}
+
+				freeAllFPB();
 
 				finishFlag = true;
+				
 
 				// if (timeOut) {
 				// result = 1;
@@ -231,6 +255,46 @@ public class TryBestDeterminismController extends ReplayController{
 				e.printStackTrace();
 			}
         }
+
+		synchronized public void freeAllFPB() throws IOException, AflException, AbortFaultException {
+			while (faultPointList.size() > 0) {
+				FaultPointBlocked b = faultPointList.get(0);
+				faultPointList.remove(0);
+				handleFPB(b);
+				actualFPBList.add(b);
+			}
+		}
+
+		public class AflCliNoSendThread extends Thread {
+			private final CountDownLatch mDoneSignal;
+			private final String[] args;
+
+			public boolean result;
+
+			public AflCliNoSendThread(CountDownLatch mDoneSignal, String[] args) {
+				this.mDoneSignal = mDoneSignal;
+				this.args = args;
+			}
+
+			public AflCliNoSendThread(String[] args) {
+				this.mDoneSignal = null;
+				this.args = args;
+			}
+
+			@Override
+			public void run() {
+				boolean flag = AflCli.executeUtilSuccess(args);
+				if (flag) {
+					try {
+						freeAllFPB();
+					} catch (IOException | AflException | AbortFaultException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				result = flag;
+			}
+		}
 
 		@Override
         public void handleFPB(FaultPointBlocked b) throws IOException, AflException, AbortFaultException {

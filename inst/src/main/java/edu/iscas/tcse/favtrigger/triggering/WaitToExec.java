@@ -117,10 +117,10 @@ public class WaitToExec { //for docker
 			String threadInfo  = "" + Thread.currentThread().getId() + ":" + Thread.currentThread().getName();
 
 			String info = "";
-			info = info + "WaitToExec write ioID: " + ioID.intValue() + "\n";
-			info = info + "WaitToExec write nodeIP: " + nodeIP + "\n";
-			info = info + "WaitToExec write cliId" + cliId + "\n";
-			info = info + "WaitToExec write nodeIP path is " + path + "\n";
+			info = info + "WaitToExec handle ioID: " + ioID.intValue() + "\n";
+			info = info + "WaitToExec handle nodeIP: " + nodeIP + "\n";
+			info = info + "WaitToExec handle cliId" + cliId + "\n";
+			info = info + "WaitToExec handle nodeIP path is " + path + "\n";
 			info = info + "thread id " + threadInfo + "\n";
 			MyLogger.log(info);
 
@@ -130,10 +130,15 @@ public class WaitToExec { //for docker
 				if (!Configuration.REPLAY_NOW) {
 					return;
 				} 
-			} else if (Configuration.DETERMINE_STATE != -1) {
-				if (Configuration.DETERMINE_STATE == 0) {
-					return;
-				}
+			}  
+			// if (Configuration.DETERMINE_STATE != -1) {
+			// 	if (Configuration.DETERMINE_STATE == 0) {
+			// 		return;
+			// 	}
+			// }
+			if (Configuration.DETERMINE_STATE == 0) {
+				MyLogger.log("DETERMINE_STATE is 0! return!" );
+				return;
 			}
 
 			// System.out.println(procID+" meet current crash point!");
@@ -165,6 +170,8 @@ public class WaitToExec { //for docker
 			outStream.flush();
 			// System.out.println(procID+"!!!!!WaitToExec Send msg to
 			// controller:"+procInfo);
+
+			MyLogger.log("" + cliId + "has been sent to controller!");
 
 			fuzzCommand = inStream.readUTF();
 			// CurrentFaultSequence.faultSeq.curFault = new AtomicInteger(inStream.readInt());

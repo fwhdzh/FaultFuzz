@@ -22,16 +22,28 @@ echo "Start journal node on C1Slave3:"
 docker exec -t C1Slave3 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start journalnode && jps'
 
 echo "Start namenode -format mycluster:"
-docker exec -t C1NN /bin/bash -ic '/home/gaoyu/evaluation/hadoop-3.3.5/bin/hdfs namenode -format mycluster && jps'
+docker exec -t C1NN /bin/bash -ic 'source $FAV_HOME/evaluation/hadoop-3.3.5/fav-env.sh && export HDFS_NAMENODE_OPTS=" -XX:+UseParallelGC -Xmx4g $PHOS_OPTS $TIME_OPTS" && /home/gaoyu/evaluation/hadoop-3.3.5/bin/hdfs namenode -format mycluster && jps'
+# export HDFS_NAMENODE_OPTS="$HDFS_NAMENODE_OPTS -XX:+UseParallelGC -Xmx4g $FAV_OPTS $TIME_OPTS"
+
+# echo "Start namenode -format mycluster:"
+# docker exec -t C1NN /bin/bash -ic '/home/gaoyu/evaluation/hadoop-3.3.5/bin/hdfs namenode -format mycluster && jps'
 echo "Start zkfc -formatZK -force"
 docker exec -t C1NN /bin/bash -ic '/home/gaoyu/evaluation/hadoop-3.3.5/bin/hdfs zkfc -formatZK -force && jps'
 
 echo "Start namenode on C1NN:"
-docker exec -t C1NN /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start namenode && jps'
+docker exec -t C1NN /bin/bash -ic 'source $FAV_HOME/evaluation/hadoop-3.3.5/fav-env.sh && export HDFS_NAMENODE_OPTS=" -XX:+UseParallelGC -Xmx4g $FAV_OPTS $TIME_OPTS" && cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start namenode && jps'
+# echo "Start namenode on C1NN:"
+# docker exec -t C1NN /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start namenode && jps'
+
 echo "Start namenode -bootstrapStandby on C1Master1:"
-docker exec -t C1Master1 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs namenode -bootstrapStandby -force'
+docker exec -t C1Master1 /bin/bash -ic 'source $FAV_HOME/evaluation/hadoop-3.3.5/fav-env.sh && export HDFS_NAMENODE_OPTS=" -XX:+UseParallelGC -Xmx4g $PHOS_OPTS $TIME_OPTS" && cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs namenode -bootstrapStandby -force'
 echo "Start namenode on C1Master1:"
-docker exec -t C1Master1 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start namenode && jps'
+docker exec -t C1Master1 /bin/bash -ic 'source $FAV_HOME/evaluation/hadoop-3.3.5/fav-env.sh && export HDFS_NAMENODE_OPTS=" -XX:+UseParallelGC -Xmx4g $FAV_OPTS $TIME_OPTS" && cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start namenode && jps'
+
+# echo "Start namenode -bootstrapStandby on C1Master1:"
+# docker exec -t C1Master1 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs namenode -bootstrapStandby -force'
+# echo "Start namenode on C1Master1:"
+# docker exec -t C1Master1 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start namenode && jps'
 
 echo "Start zkfc on C1NN:"
 docker exec -t C1NN /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.5/ && bin/hdfs --daemon start zkfc && jps'

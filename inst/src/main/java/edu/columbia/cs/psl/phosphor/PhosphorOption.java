@@ -714,6 +714,10 @@ public enum PhosphorOption {
         public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
             if(isPresent) {
                 Configuration.EXEC_MODE = EXEC_MODE_SET.valueOf(commandLine.getOptionValue(optionName));
+                if (Configuration.EXEC_MODE == EXEC_MODE_SET.FaultFuzz) {
+                    Configuration.DETERMINE_STATE = 2;
+                }
+                
             }
         }
     };

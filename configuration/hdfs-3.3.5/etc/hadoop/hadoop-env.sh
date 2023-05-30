@@ -63,7 +63,7 @@ export HADOOP_HOME=/home/gaoyu/evaluation/hadoop-3.3.5
 . $FAV_HOME/evaluation/hadoop-3.3.5/fav-env.sh
 #export TIME_OPTS="-Dfile.encoding=UTF8 -Duser.timezone=GMT+08"
 export TIME_OPTS=""
-export HDFS_NAMENODE_OPTS="$HDFS_NAMENODE_OPTS -XX:+UseParallelGC -Xmx4g $FAV_OPTS $TIME_OPTS"
+# export HDFS_NAMENODE_OPTS="$HDFS_NAMENODE_OPTS -XX:+UseParallelGC -Xmx4g $FAV_OPTS $TIME_OPTS"
 export HDFS_DATANODE_OPTS="$HDFS_DATANODE_OPTS -XX:+UseParallelGC -Xmx4g $FAV_OPTS $TIME_OPTS"
 export HDFS_SECONDARYNAMENODE_OPTS="$HDFS_SECONDARYNAMENODE_OPTS -XX:+UseParallelGC -Xmx4g $FAV_OPTS $TIME_OPTS"
 export HDFS_ZKFC_OPTS="$PHOS_OPTS $TIME_OPTS"
