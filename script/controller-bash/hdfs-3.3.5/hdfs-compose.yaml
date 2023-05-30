@@ -9,7 +9,7 @@ services:
     image: fwhdzh/c1nn
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.2
+        ipv4_address: 172.42.0.2
     restart: "no"
     tty: true
     stdin_open: true
@@ -28,7 +28,7 @@ services:
     image: fwhdzh/c1rm
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.3
+        ipv4_address: 172.42.0.3
     restart: "no"
     tty: true
     stdin_open: true
@@ -42,7 +42,7 @@ services:
     image: fwhdzh/c1master1
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.4
+        ipv4_address: 172.42.0.4
     restart: "no"
     tty: true
     stdin_open: true
@@ -56,7 +56,7 @@ services:
     image: fwhdzh/c1master2
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.5
+        ipv4_address: 172.42.0.5
     restart: "no"
     tty: true
     stdin_open: true
@@ -70,7 +70,7 @@ services:
     image: fwhdzh/c1slave1
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.6
+        ipv4_address: 172.42.0.6
     restart: "no"
     tty: true
     stdin_open: true
@@ -84,7 +84,7 @@ services:
     image: fwhdzh/c1slave2
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.7
+        ipv4_address: 172.42.0.7
     restart: "no"
     tty: true
     stdin_open: true
@@ -98,7 +98,7 @@ services:
     image: fwhdzh/c1slave3
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.8
+        ipv4_address: 172.42.0.8
     restart: "no"
     tty: true
     stdin_open: true
@@ -112,7 +112,7 @@ services:
     image: fwhdzh/c1slave4
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.9
+        ipv4_address: 172.42.0.9
     restart: "no"
     tty: true
     stdin_open: true
@@ -126,7 +126,7 @@ services:
     image: fwhdzh/c1hs
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.10
+        ipv4_address: 172.42.0.10
     restart: "no"
     tty: true
     stdin_open: true
@@ -140,7 +140,7 @@ services:
     image: fwhdzh/c1wps
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.11
+        ipv4_address: 172.42.0.11
     restart: "no"
     tty: true
     stdin_open: true
@@ -154,7 +154,7 @@ services:
     image: fwhdzh/c1hd-zk
     networks:
       fav-raft:
-        ipv4_address: 172.26.0.12
+        ipv4_address: 172.42.0.12
     restart: "no"
     tty: true
     stdin_open: true
@@ -172,7 +172,7 @@ networks:
     ipam:
       driver: default
       config:
-      - subnet: 172.26.0.0/24
+      - subnet: 172.42.0.0/24
 
 
 # docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs-3.3.5/hdfs-compose.yaml up -d

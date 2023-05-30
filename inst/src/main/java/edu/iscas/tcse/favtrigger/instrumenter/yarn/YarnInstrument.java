@@ -46,8 +46,8 @@ public class YarnInstrument {
         return s+"*"+bufsize;
     }
 
-    // input: FAVMSG:172.26.0.1&3#2
-    // output: 172.26.0.1
+    // input: FAVMSG:172.42.0.1&3#2
+    // output: 172.42.0.1
     public static String getRemoteAddrFromSource(String source) {
         //System.out.println("!!!GY getRemoteAddrFromSource:"+source);
         if(source.equals(FAVPathType.FAVMSG.toString()+":")) {//do not have the remote server info
@@ -57,8 +57,8 @@ public class YarnInstrument {
         }
     }
 
-    // input: 172.26.0.1&3#2
-    // output: 172.26.0.1
+    // input: 172.42.0.1&3#2
+    // output: 172.42.0.1
     public static String getRemoteAddrFromSourceLogicClockMsg(String source) {
         if(source.equals(FAVPathType.FAVMSG.toString()+":")) {
             return "";
@@ -66,9 +66,9 @@ public class YarnInstrument {
         return source.substring(0, source.lastIndexOf("&"));
     }
 
-    // input: FAVMSG:172.26.0.1&3#2
+    // input: FAVMSG:172.42.0.1&3#2
     // output: 3#2
-    // input: 172.26.0.1&3#2
+    // input: 172.42.0.1&3#2
     // output: 3#2
     public static String getMsgIdFromSourceLogicClockMsg(String source) {
         if(source.equals(FAVPathType.FAVMSG.toString()+":")) {

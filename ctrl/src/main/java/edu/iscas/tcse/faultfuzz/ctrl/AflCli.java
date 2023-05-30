@@ -223,7 +223,6 @@ public class AflCli {
 	}
 
 	public static List<String> getAliveNodesInCluster(List<MaxDownNodes> cluster) {
-		boolean result = false;
 		List<String> aliveList = new ArrayList<String>();
 		for (MaxDownNodes subCluster : cluster) {
 			for (final String alive : subCluster.aliveGroup) {

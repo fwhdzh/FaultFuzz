@@ -5,37 +5,37 @@ function start {
         daemonName=""
 		daemon2Name=""
         case $1 in
-           172.26.0.2)
+           172.42.0.2)
               nodeName="C1NN"
               daemonName="namenode"
 			  daemon2Name="zkfc"
               ;;
-           172.26.0.4)
+           172.42.0.4)
               nodeName="C1Master1"
               daemonName="namenode"
 			  daemon2Name="zkfc"
               ;;
-           172.26.0.5)
+           172.42.0.5)
               nodeName="C1Master2"
               daemonName="namenode"
 			  daemon2Name="zkfc"
               ;;
-           172.26.0.6)
+           172.42.0.6)
               nodeName="C1Slave1"
               daemonName="datanode"
 			  daemon2Name="journalnode"
               ;;
-		   172.26.0.7)
+		   172.42.0.7)
               nodeName="C1Slave2"
               daemonName="datanode"
 			  daemon2Name="journalnode"
               ;;
-		   172.26.0.8)
+		   172.42.0.8)
               nodeName="C1Slave3"
               daemonName="datanode"
 			  daemon2Name="journalnode"
               ;;
-		   172.26.0.9)
+		   172.42.0.9)
               nodeName="C1Slave4"
               daemonName="datanode"
 			  daemon2Name="journalnode"

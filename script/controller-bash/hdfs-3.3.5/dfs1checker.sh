@@ -23,23 +23,23 @@ for s in ${alivearr[@]}
 do
     echo "alive: $s"
     case $s in
-      172.26.0.2)
+      172.42.0.2)
         checkAlive "C1NN" "NameNode"
         checkAlive "C1NN" "DFSZKFailoverController"
         ;;
-      172.26.0.4)
+      172.42.0.4)
         checkAlive "C1Master1" "NameNode"
         checkAlive "C1Master1" "DFSZKFailoverController"
         ;;
-      172.26.0.6)
+      172.42.0.6)
         checkAlive "C1Slave1" "DataNode"
         checkAlive "C1Slave1" "JournalNode"
         ;;
-      172.26.0.7)
+      172.42.0.7)
         checkAlive "C1Slave2" "DataNode"
         checkAlive "C1Slave2" "JournalNode"
         ;;
-      172.26.0.8)
+      172.42.0.8)
         checkAlive "C1Slave3" "DataNode"
         checkAlive "C1Slave3" "JournalNode"
         ;;
