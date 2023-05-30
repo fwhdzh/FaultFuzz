@@ -75,7 +75,7 @@ public class FaultSequenceConstructor {
 		if (q.faultSeq == null || q.faultSeq.isEmpty()) {
 			q.faultSeq = new FaultSequence();
 		}
-        logIoPointList(constructedIOPoints);
+        // logIoPointList(constructedIOPoints);
 		FaultSequenceConstructor.FaultListConstructionResult fResult = mapIOPointToFaultList(constructedIOPoints, injectedFaultPointList);
 		q.max_match_fault = fResult.max_match_fault;
 		q.candidate_io = fResult.candidate_io;

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 
 import edu.iscas.tcse.faultfuzz.ctrl.Conf.EVALUATE_TARGET_SET;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
@@ -17,8 +18,8 @@ import edu.iscas.tcse.faultfuzz.ctrl.control.AbstractDeterminismTarget.FaultSeqA
 import edu.iscas.tcse.faultfuzz.ctrl.control.NormalTarget;
 import edu.iscas.tcse.faultfuzz.ctrl.control.determine.TryBestDeterminismTarget;
 import edu.iscas.tcse.faultfuzz.ctrl.control.determine.TryBestDeterminismTarget.TryBestDeterminismTResult;
-import edu.iscas.tcse.faultfuzz.ctrl.control.filter.CoverageGuidedFilter;
-import edu.iscas.tcse.faultfuzz.ctrl.control.filter.EnumerationFilter;
+import edu.iscas.tcse.faultfuzz.ctrl.filter.CoverageGuidedFilter;
+import edu.iscas.tcse.faultfuzz.ctrl.filter.EnumerationFilter;
 import edu.iscas.tcse.faultfuzz.ctrl.selection.FIFOQueueEntrySelector;
 import edu.iscas.tcse.faultfuzz.ctrl.selection.SelectionInfo;
 import edu.iscas.tcse.faultfuzz.ctrl.selection.SelectionInfo.QueuePair;
@@ -132,7 +133,8 @@ public class Fuzzer {
 		List<FaultPoint> injectedFaultPointList = tbdResult.injectedFaultPointList;
 		Stat.debug("Begin to construct fault sequence...");
 		constructor.constructQueueEntry(q, unorderedIOPoints, injectedFaultPointList);
-		Stat.debug("q is after constructed! q is: " + JSONObject.toJSONString(q));
+		// Stat.debug("q is after constructed! q is: " + JSONObject.toJSONString(q, SerializerFeature.IgnoreNonFieldGetter));
+		Stat.debug("q is after constructed!" );
 		
 		if (nb > 0) {
 			add_to_queue(q, testID);
@@ -154,7 +156,8 @@ public class Fuzzer {
 				candidate_queue.remove(q);
 			}
 		}
-		Stat.debug("q is after mutation! q is: " + JSONObject.toJSONString(q));
+		Stat.debug("q is after mutation! ");
+		// Stat.debug("q is after mutation! q is: " + JSONObject.toJSONString(q, SerializerFeature.IgnoreNonFieldGetter));
 
 		updateFuzzInfoInSaveIfInterestring(q, rst, testID, target.a_exec_seconds, nb);
 
@@ -460,7 +463,7 @@ public class Fuzzer {
 		 * We reuse q to save memory.
 		 */
 		constructor.constructQueueEntry(q, unorderedIOPoints, injectedFaultPointList);
-		Stat.debug("After construction, the fault sequence is: " + JSONObject.toJSONString(q.faultSeq));
+		Stat.debug("After construction, the fault sequence is: " + JSONObject.toJSONString(q.faultSeq, SerializerFeature.IgnoreNonFieldGetter));
 		
 		boolean isInteresting = false;
 		if (conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.FaultFuzzer || conf.EVALUATE_TARGET == EVALUATE_TARGET_SET.CrashFuzzerMinus) {

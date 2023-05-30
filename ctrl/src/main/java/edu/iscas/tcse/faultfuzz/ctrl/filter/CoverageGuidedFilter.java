@@ -1,4 +1,4 @@
-package edu.iscas.tcse.faultfuzz.ctrl.control.filter;
+package edu.iscas.tcse.faultfuzz.ctrl.filter;
 
 import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultStat;

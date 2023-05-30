@@ -5,23 +5,28 @@ And we use ZooKeeper as an example to run FaultFuzz.
 
 ### Install FaultFuzz
 
-Make a directory `faultfuzz` in your host machine (See
-[REQUIREMENTS.md], tested on Ubuntu):
+First, please clone the project to your computer using Git, and then navigate to its main directory.
 
 ```bash
-mkdir ~/faultfuzz
+git clone https://github.com/tcse-iscas/FaultFuzz.git
+cd faultfuzz
 ```
 
-Copy `scripts/zk-3.8.1` to `~/faultfuzz`.
-
-Navigate to the `zk-3.8.1` directory:
+FaultFuzz is built based on Maven. To install it, please use the following command.
 
 ```bash
-cd ~/faultfuzz/zk-3.8.1
+mvn install
 ```
+
+We provide a `package.sh` script to put configurations, jar package and scripts together. Please use the following command:
+```bash
+./package.sh zk-3.6.3
+cd ./package/zk-3.6.3
+```
+
 
 Execute `chmod 777 <file.sh>` for the scripts in the
-`~/faultfuzz/zk-3.8.1` directory.
+`package/zk-3.6.3` directory.
 
 ### Pull Images from Dockerhub
 
@@ -56,12 +61,13 @@ Use docker images to build a ZooKeeper cluster with five nodes
 (execute as a root user):
 
 ```bash
-sh ~/faultfuzz/zk-3.8.1/buildCluster.sh
+docker-compose -p fav-zk -f zk-compose.yaml up -d
 ```
 
-Note that before executing buildCluster.sh, make sure you do not have a docker network which is named as fav-zookeeper1 and the IP range 172.30.0.0/16 is not occupied.
+Note that before executing this command, make sure you do not have a docker network which is named as fav-zookeeper1 and the IP range 172.30.0.0/16 is not occupied.
 
-If you did not install firewalld in your machine, you may not need to run the following commands in `buildCluster.sh`. Just make sure the host machine can communicate with the nodes in the ZooKeeper cluster.
+If there is a firewall in your machine, the following commands may help.
+Just make sure the host machine can communicate with the nodes in the ZooKeeper cluster.
 
 ```
 firewall-cmd --permanent --zone=public --add-rich-rule='rule family=ipv4 source address=172.30.0.0/16 accept'
@@ -83,7 +89,6 @@ Append the following content to `/etc/hosts` and make sure the host machine can 
 Run the following commands to start FaultFuzz:
 
 ```bash
-cd ~/faultfuzz/zk-3.8.1
 sh faultfuzz.sh
 ```
 
