@@ -127,12 +127,84 @@ public class QueueEntry {
 		this.faultSeq.reset();
 	}
 
+
+	private double calculateExecTimeScore() {
+		double bound = 3;
+		int avgExecuteSecond = FuzzInfo.total_execs == 0 ? 0 : (int) (FuzzInfo.exec_us / FuzzInfo.total_execs);
+		double ratio = this.exec_s == 0 ? bound : (double) avgExecuteSecond / (double) this.exec_s;
+		double score = Math.min(ratio, bound);
+		// Stat.log("execTimeScore: " + score);
+		return score;
+	}
+
+	private double calculateCovScore() {
+		double bound = 3;
+		int avgBitmapSize = FuzzInfo.total_bitmap_entries == 0 ? 0 : (int) (FuzzInfo.total_bitmap_size / FuzzInfo.total_bitmap_entries);
+		double ratio =  avgBitmapSize == 0 ? bound : (double) this.bitmap_size / (double) avgBitmapSize ;
+		double score = Math.min(ratio, bound);
+		// Stat.log("covScore: " + score);
+		return score;
+	}
+
+	private double calculateWaitingRoundScore() {
+		double bound = 0.1;
+		double ratio = FuzzInfo.total_execs == 0 ? 0 : (double) this.handicap / (double) FuzzInfo.total_execs;
+		double score = Math.max(ratio, bound);
+		// Stat.log("waitingRoundScore: " + score);
+		return score;
+	}
+
+	private double calculateFaultScore() {
+		double bound = 0.1;
+		int faultsBound = 6;
+		double score = 0;
+		int faults = this.faultSeq.seq.size();
+		// Stat.log("faults: " + faults);
+		if (faults <= faultsBound) {
+			score = faults;
+		} else {
+			double ratio =  1d / (double) (faults - 5) ;
+			double base = Math.max(ratio, bound);
+			score = base;
+		}
+		// Stat.log("faultScore: " + score);
+		return score;
+	}
+
+	public int getPerfScore() {
+		int perf_score = 0;
+
+		double execTimeScore = calculateExecTimeScore();
+		double covScore = calculateCovScore();
+		double waitingRoundScore = calculateWaitingRoundScore();
+		double faultScore = calculateFaultScore();
+
+		int execTimeRadio = 10;
+		int covRadio = 10;
+		int waitingRoundRadio = 10;
+		int faultRadio = 10;
+
+		perf_score = (int) (execTimeScore * execTimeRadio + covScore * covRadio + waitingRoundScore * waitingRoundRadio + faultScore * faultRadio);
+
+		Stat.log("perf_score: " + perf_score);
+
+		if (perf_score < 1) {
+			perf_score = 1;
+		}
+
+		Stat.log("perf_score: " + perf_score);
+
+		if (perf_score > FuzzConf.HAVOC_MAX_MULT * 100)
+			perf_score = FuzzConf.HAVOC_MAX_MULT * 100;
+		return perf_score;
+	}
+
 	/*
 	 * Calculate case desirability score to adjust the length of havoc fuzzing.
 	 * A helper function for fuzz_one(). Maybe some of these constants should
 	 * go into config.h.
 	 */
-	public int getPerfScore() {
+	public int getPerfScoreBackUp() {
 		int avg_exec_us = FuzzInfo.total_execs == 0 ? 0 : (int) (FuzzInfo.exec_us / FuzzInfo.total_execs);
 		int avg_bitmap_size = FuzzInfo.total_bitmap_entries == 0 ? 0 : (int) (FuzzInfo.total_bitmap_size / FuzzInfo.total_bitmap_entries);
 		// int avg_bitmap_size = (int) (FuzzInfo.total_bitmap_size / FuzzInfo.total_bitmap_entries);

@@ -81,7 +81,8 @@ public class ScoreQueueEntrySelector {
 
         // List<EntryAndScore> list = ScoreAddedStrategy.computeTotalScore(queue);
         // List<EntryAndScore> list = ScoreCombinedStrategy.computeTotalScore(queue);
-        List<EntryAndScore> list = FWHScoreStrategy.computeTotalScore(queue);
+        // List<EntryAndScore> list = FWHScoreStrategy.computeTotalScore(queue);
+        List<EntryAndScore> list = FaultFuzzScoreStrategy.computeTotalScore(queue);
 
         EntryAndScore.logScoresList("retrieveAPairList", list);
         int k = conf.FAULT_SEQUENCE_BATCH_SIZE;

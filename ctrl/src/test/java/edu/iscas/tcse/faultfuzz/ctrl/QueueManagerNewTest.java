@@ -9,13 +9,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence;
-import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
-import edu.iscas.tcse.faultfuzz.ctrl.Stat;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+
 import edu.iscas.tcse.faultfuzz.ctrl.FaultSequence.FaultPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.selection.OldQueueEntrySelector;
 import edu.iscas.tcse.faultfuzz.ctrl.selection.SelectionInfo;
-import edu.iscas.tcse.faultfuzz.ctrl.selection.SelectionInfo.QueuePair;
 
 public class QueueManagerNewTest {
 
@@ -40,6 +39,7 @@ public class QueueManagerNewTest {
         entry2.faultSeq = fs2;
         result.add(entry1);
         result.add(entry2);
+        Stat.log(JSONObject.toJSONString(result, SerializerFeature.IgnoreNonFieldGetter));
         return result;
     }
 
@@ -56,7 +56,10 @@ public class QueueManagerNewTest {
         list.add(seedEntry1);
         list.add(seedEntry2);
         SelectionInfo.QueuePair pair = OldQueueEntrySelector.tryToGetAQueueEntryWithGlobalNewPoint(list);
-        Stat.log(pair.mutate.faultSeq.seq.get(0).getFaultID());
+        Stat.log(JSONObject.toJSONString(pair, SerializerFeature.IgnoreNonFieldGetter));
+        Stat.log(pair.mutate.faultSeq.seq.size());
+        FaultPoint fp = pair.mutate.faultSeq.seq.get(0);
+        Stat.log(fp.getFaultID());
         Assert.assertEquals(entry1.faultSeq, pair.mutate.faultSeq);
         Assert.assertEquals(seedEntry1.faultSeq, pair.seed.faultSeq);
     }

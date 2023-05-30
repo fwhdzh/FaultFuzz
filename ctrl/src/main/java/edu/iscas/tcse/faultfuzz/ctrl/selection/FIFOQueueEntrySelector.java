@@ -5,7 +5,6 @@ import java.util.List;
 
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
-import edu.iscas.tcse.faultfuzz.ctrl.selection.SelectionInfo.QueuePair;
 
 public class FIFOQueueEntrySelector {
     public static SelectionInfo.QueuePair retrieveAnEntry(List<QueueEntry> candidate_queue) {
