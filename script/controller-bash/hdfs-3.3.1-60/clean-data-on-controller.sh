@@ -6,7 +6,7 @@ case "$choice" in
 esac
 
 
-rm -r /data/fengwenhan/data/faultfuzz_hdfs_recovery/*
-rm -r /data/fengwenhan/data/faultfuzz_hdfs/*
-rm -r /data/fengwenhan/data/faultfuzz_hdfs_logs/*
-rm -r /data/fengwenhan/data/faultfuzz_hdfs_jar_and_start/*
+rm -r /home/fengwenhan/data/faultfuzz_hdfs_recovery/*
+rm -r /home/fengwenhan/data/faultfuzz_hdfs/*
+rm -r /home/fengwenhan/data/faultfuzz_hdfs_logs/*
+rm -r /home/fengwenhan/data/faultfuzz_hdfs_jar_and_start/*

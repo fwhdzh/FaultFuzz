@@ -72,25 +72,25 @@ docker cp C1Slave3:/home/gaoyu/evaluation/hadoop-3.3.5/journal-local $1/monitor/
 #docker cp C1WPS:/home/gaoyu/evaluation/hadoop-3.3.5/logs $1/C1WPS
 
 mkdir $1/fav-rst
-docker cp C1NN:/home/gaoyu/dfs331-fav-rst $1/fav-rst/
-mv $1/fav-rst/dfs331-fav-rst/* $1/fav-rst/
-rm -r $1/fav-rst/dfs331-fav-rst
+docker cp C1NN:/home/gaoyu/dfs335-fav-rst $1/fav-rst/
+mv $1/fav-rst/dfs335-fav-rst/* $1/fav-rst/
+rm -r $1/fav-rst/dfs335-fav-rst
 
-docker cp C1Master1:/home/gaoyu/dfs331-fav-rst $1/fav-rst/
-mv $1/fav-rst/dfs331-fav-rst/* $1/fav-rst/
-rm -r $1/fav-rst/dfs331-fav-rst
+docker cp C1Master1:/home/gaoyu/dfs335-fav-rst $1/fav-rst/
+mv $1/fav-rst/dfs335-fav-rst/* $1/fav-rst/
+rm -r $1/fav-rst/dfs335-fav-rst
 
-docker cp C1Slave1:/home/gaoyu/dfs331-fav-rst $1/fav-rst/
-mv $1/fav-rst/dfs331-fav-rst/* $1/fav-rst/
-rm -r $1/fav-rst/dfs331-fav-rst
+docker cp C1Slave1:/home/gaoyu/dfs335-fav-rst $1/fav-rst/
+mv $1/fav-rst/dfs335-fav-rst/* $1/fav-rst/
+rm -r $1/fav-rst/dfs335-fav-rst
 
-docker cp C1Slave2:/home/gaoyu/dfs331-fav-rst $1/fav-rst/
-mv $1/fav-rst/dfs331-fav-rst/* $1/fav-rst/
-rm -r $1/fav-rst/dfs331-fav-rst
+docker cp C1Slave2:/home/gaoyu/dfs335-fav-rst $1/fav-rst/
+mv $1/fav-rst/dfs335-fav-rst/* $1/fav-rst/
+rm -r $1/fav-rst/dfs335-fav-rst
 
-docker cp C1Slave3:/home/gaoyu/dfs331-fav-rst $1/fav-rst/
-mv $1/fav-rst/dfs331-fav-rst/* $1/fav-rst/
-rm -r $1/fav-rst/dfs331-fav-rst
+docker cp C1Slave3:/home/gaoyu/dfs335-fav-rst $1/fav-rst/
+mv $1/fav-rst/dfs335-fav-rst/* $1/fav-rst/
+rm -r $1/fav-rst/dfs335-fav-rst
 
 mkdir $1/cov
 mkdir $1/cov/C1NN
