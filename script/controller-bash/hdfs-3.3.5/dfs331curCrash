@@ -1,0 +1,9 @@
+fault point=-698653872
+event=CRASH
+pos=BEFORE
+nodeIp=172.42.0.4
+ioID=1152461451
+ioCallStack=[org.apache.hadoop.hdfs.protocolPB.DatanodeProtocolServerSideTranslatorPB.sendHeartbeat(DatanodeProtocolServerSideTranslatorPB.java), org.apache.hadoop.hdfs.protocol.proto.DatanodeProtocolProtos$DatanodeProtocolService$2.callBlockingMethod(DatanodeProtocolProtos.java:33881), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:600), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:568), org.apache.hadoop.ipc.ProtobufRpcEngine2$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine2.java:552), org.apache.hadoop.ipc.RPC$Server.call(RPC.java:1093), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:1035), org.apache.hadoop.ipc.Server$RpcCall.run(Server.java:963), java.security.AccessController.doPrivileged(Native Method), javax.security.auth.Subject.doAs(Subject.java:422), org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1878), org.apache.hadoop.ipc.Server$Handler.run(Server.java:2966)]
+path=FAVMSG:READFAVMSG:172.42.0.7&49#25
+ioAppearIdx=55
+end

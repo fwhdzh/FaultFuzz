@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>FaultFuzz-parent</artifactId>
+    <groupId>edu.iscas.tcse</groupId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+
+  <groupId>edu.iscas.tcse</groupId>
+  <artifactId>FaultFuzz-workload</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>FaultFuzz-workload</name>
+
+  <modules>
+    <module>BasicInstTarget</module>
+    <module>ZKCases</module>
+    <module>HDFSCasesV3</module>
+    <module>HBaseCases</module>
+  </modules>
+</project>

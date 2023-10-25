@@ -1,0 +1,180 @@
+# version: "3"
+version: "3.5"
+
+# name: fav
+
+
+services:
+  C1NN:
+    image: fwhdzh/c1nn
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.2
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1NN
+    hostname: C1NN
+    cap_add:
+      - NET_ADMIN
+    # env_file: ~/code/faultfuzz/script/raft-java/.env
+    # deploy:
+    #   mode: replicated
+    #   replicas: 6
+    
+
+  C1RM:
+    image: fwhdzh/c1rm
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.3
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1RM
+    hostname: C1RM
+    cap_add:
+      - NET_ADMIN
+
+  C1Master1:
+    image: fwhdzh/c1master1
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.4
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1Master1
+    hostname: C1Master1
+    cap_add:
+      - NET_ADMIN
+
+  C1Master2:
+    image: fwhdzh/c1master2
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.5
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1Master2
+    hostname: C1Master2
+    cap_add:
+      - NET_ADMIN
+
+  C1Slave1:
+    image: fwhdzh/c1slave1
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.6
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1Slave1
+    hostname: C1Slave1
+    cap_add:
+      - NET_ADMIN
+
+  C1Slave2:
+    image: fwhdzh/c1slave2
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.7
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1Slave2
+    hostname: C1Slave2
+    cap_add:
+      - NET_ADMIN
+
+  C1Slave3:
+    image: fwhdzh/c1slave3
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.8
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1Slave3
+    hostname: C1Slave3
+    cap_add:
+      - NET_ADMIN
+
+  C1Slave4:
+    image: fwhdzh/c1slave4
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.9
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1Slave4
+    hostname: C1Slave4
+    cap_add:
+      - NET_ADMIN
+
+  C1HS:
+    image: fwhdzh/c1hs
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.10
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1HS
+    hostname: C1HS
+    cap_add:
+      - NET_ADMIN
+  
+  C1WPS:
+    image: fwhdzh/c1wps
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.11
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1WPS
+    hostname: C1WPS
+    cap_add:
+      - NET_ADMIN
+
+  C1hd-zk:
+    image: fwhdzh/c1hd-zk
+    networks:
+      fav-raft:
+        ipv4_address: 172.42.0.12
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1hd-zk
+    hostname: C1hd-zk
+    cap_add:
+      - NET_ADMIN
+    
+
+networks:
+  fav-raft:
+    name: fav-hdfs
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.42.0.0/24
+
+
+# docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml up -d
+# docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml down
+# docker-compose -p fav-hdfs -f ~/code/faultfuzz/script/controller-bash/hdfs-3.3.5-60/hdfs-compose.yaml exec C1NN /bin/bash

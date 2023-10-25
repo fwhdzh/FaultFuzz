@@ -1,0 +1,15 @@
+org/apache/hadoop/hdfs/tools*
+org/apache/hadoop/hdfs/web*
+org/apache/hadoop/hdfs/shortcircuit*
+org/apache/hadoop/hdfs/client*
+org/apache/hadoop/hdfs/inotify*
+org/apache/hadoop/hdfs/net*
+org/apache/hadoop/hdfs/security/token*
+org/apache/hadoop/hdfs/util*
+org/apache/hadoop/hdfs/AddBlockFlag$
+org/apache/hadoop/hdfs/BlockMissingException$
+org/apache/hadoop/hdfs/CannotObtainBlockLengthException$
+org/apache/hadoop/hdfs/ClientContext$
+org/apache/hadoop/hdfs/ClientGSIContext$
+org/apache/hadoop/hdfs/UnknownCipherSuiteException$
+org/apache/hadoop/hdfs/UnknownCryptoProtocolVersionException$

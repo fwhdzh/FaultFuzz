@@ -1,0 +1,18 @@
+fault point=-621510141
+event=CRASH
+pos=BEFORE
+nodeIp=172.30.0.4
+ioID=-876318508
+ioCallStack=[org.apache.zookeeper.server.quorum.QuorumPacket.deserialize(QuorumPacket.java:85), org.apache.jute.BinaryInputArchive.readRecord(BinaryInputArchive.java:134), org.apache.zookeeper.server.quorum.LearnerHandler.run(LearnerHandler.java:472)]
+path=FAVMSG:READ172.30.0.2&5#1
+ioAppearIdx=4
+end
+fault point=1262091608
+event=CRASH
+pos=BEFORE
+nodeIp=172.30.0.5
+ioID=1942540384
+ioCallStack=[org.apache.zookeeper.server.quorum.QuorumPacket.serialize(QuorumPacket.java:68), org.apache.jute.BinaryOutputArchive.writeRecord(BinaryOutputArchive.java:126), org.apache.zookeeper.server.quorum.LearnerHandler.sendPackets(LearnerHandler.java:368), org.apache.zookeeper.server.quorum.LearnerHandler.access$200(LearnerHandler.java:65), org.apache.zookeeper.server.quorum.LearnerHandler$1.run(LearnerHandler.java:751)]
+path=FAVMSG:172.30.0.3&59#19
+ioAppearIdx=28
+end

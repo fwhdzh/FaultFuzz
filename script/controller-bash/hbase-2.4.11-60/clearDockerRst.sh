@@ -1,0 +1,20 @@
+#sh clearZK.sh
+docker exec -t C1HM1 /bin/bash -ic 'rm -r /home/gaoyu/hb244-fav-rst'
+docker exec -t C1HM1 /bin/bash -ic 'rm -r /home/gaoyu/HB244-CacheFolder'
+docker exec -t C1HM2 /bin/bash -ic 'rm -r /home/gaoyu/hb244-fav-rst'
+docker exec -t C1HM2 /bin/bash -ic 'rm -r /home/gaoyu/HB244-CacheFolder'
+#docker exec -it WPS /bin/bash -ic 'rm -r /home/gaoyu/HB244-CacheFolder'
+#docker exec -it WPS /bin/bash -ic 'rm -r /home/gaoyu/hb244-fav-rst'
+
+docker exec -t C1RS1 /bin/bash -ic 'rm -r /home/gaoyu/HB244-CacheFolder'
+docker exec -t C1RS1 /bin/bash -ic 'rm -r /home/gaoyu/hb244-fav-rst'
+docker exec -t C1RS2 /bin/bash -ic 'rm -r /home/gaoyu/hb244-fav-rst'
+docker exec -t C1RS2 /bin/bash -ic 'rm -r /home/gaoyu/HB244-CacheFolder'
+docker exec -t C1RS3 /bin/bash -ic 'rm -r /home/gaoyu/hb244-fav-rst'
+docker exec -t C1RS3 /bin/bash -ic 'rm -r /home/gaoyu/HB244-CacheFolder'
+
+docker exec -t C1RS1 /bin/bash -ic 'rm -r /home/gaoyu/fuzzcov'
+docker exec -t C1RS2 /bin/bash -ic 'rm -r /home/gaoyu/fuzzcov'
+docker exec -t C1RS3 /bin/bash -ic 'rm -r /home/gaoyu/fuzzcov'
+docker exec -t C1HM1 /bin/bash -ic 'rm -r /home/gaoyu/fuzzcov'
+docker exec -t C1HM2 /bin/bash -ic 'rm -r /home/gaoyu/fuzzcov'

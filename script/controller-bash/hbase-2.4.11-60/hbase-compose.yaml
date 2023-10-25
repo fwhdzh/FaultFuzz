@@ -1,0 +1,123 @@
+# version: "3"
+version: "3.5"
+
+# name: fav
+
+
+services:
+  C1HM1:
+    image: fwhdzh/c1hm1
+    networks:
+      fav-hbase:
+        ipv4_address: 172.41.0.2
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1HM1
+    hostname: C1HM1
+    cap_add:
+      - NET_ADMIN
+    # env_file: ~/code/faultfuzz/script/raft-java/.env
+    # deploy:
+    #   mode: replicated
+    #   replicas: 6
+    
+
+  C1HM2:
+    image: fwhdzh/c1hm2
+    networks:
+      fav-hbase:
+        ipv4_address: 172.41.0.3
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1HM2
+    hostname: C1HM2
+    cap_add:
+      - NET_ADMIN
+
+  C1RS1:
+    image: fwhdzh/c1rs1
+    networks:
+      fav-hbase:
+        ipv4_address: 172.41.0.4
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1RS1
+    hostname: C1RS1
+    cap_add:
+      - NET_ADMIN
+
+  C1RS2:
+    image: fwhdzh/c1rs2
+    networks:
+      fav-hbase:
+        ipv4_address: 172.41.0.5
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1RS2
+    hostname: C1RS2
+    cap_add:
+      - NET_ADMIN
+
+  C1RS3:
+    image: fwhdzh/c1rs3
+    networks:
+      fav-hbase:
+        ipv4_address: 172.41.0.6
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1RS3
+    hostname: C1RS3
+    cap_add:
+      - NET_ADMIN
+
+  C1hb-hdfs:
+    image: fwhdzh/c1hb-hdfs
+    networks:
+      fav-hbase:
+        ipv4_address: 172.41.0.7
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1hb-hdfs
+    hostname: C1hb-hdfs
+    cap_add:
+      - NET_ADMIN
+
+  C1hb-zk:
+    image: fwhdzh/c1hb-zk
+    networks:
+      fav-hbase:
+        ipv4_address: 172.41.0.8
+    restart: "no"
+    tty: true
+    stdin_open: true
+    command: ["/bin/bash"]
+    container_name: C1hb-zk
+    hostname: C1hb-zk
+    cap_add:
+      - NET_ADMIN
+
+networks:
+  fav-hbase:
+    name: fav-hbase
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.41.0.0/24
+
+
+# docker-compose -p fav-hbase -f hbase-compose.yaml up -d
+# docker-compose -p fav-hbase -f hbase-compose.yaml down
+# docker-compose -p fav-hbase -f hbase-compose.yaml exec C1NN /bin/bash

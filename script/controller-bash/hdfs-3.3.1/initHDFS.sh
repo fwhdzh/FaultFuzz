@@ -1,0 +1,8 @@
+#docker exec -t C1hd-zk /bin/bash -ic 'cd /home/gaoyu/evaluation/hd-zk-3.6.3 && bin/zkCli.sh -server localhost:11181 deleteall hadoop-ha'
+docker exec -t C1NN /bin/bash -ic 'rm -rf /tmp/* && cd /home/gaoyu/evaluation/hadoop-3.3.1/ && rm -rf nndir && rm -rf tmp && cp -r nndir-init nndir && ls'
+docker exec -t C1Master1 /bin/bash -ic 'rm -rf /tmp/* && cd /home/gaoyu/evaluation/hadoop-3.3.1/ && rm -rf nndir && rm -rf tmp && cp -r nndir-init nndir && ls'
+#docker exec -t C1Master2 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.1/ && rm -rf nndir && rm -rf tmp && cp -r nndir-init nndir && ls'
+docker exec -t C1Slave1 /bin/bash -ic 'rm -rf /tmp/* && cd /home/gaoyu/evaluation/hadoop-3.3.1/ && rm -rf dndir && rm -rf journal-local && rm -rf tmp && cp -r dndir-init dndir && cp -r journal-local-init journal-local && ls'
+docker exec -t C1Slave2 /bin/bash -ic 'rm -rf /tmp/* && cd /home/gaoyu/evaluation/hadoop-3.3.1/ && rm -rf dndir && rm -rf journal-local && rm -rf tmp && cp -r dndir-init dndir && cp -r journal-local-init journal-local && ls'
+docker exec -t C1Slave3 /bin/bash -ic 'rm -rf /tmp/* && cd /home/gaoyu/evaluation/hadoop-3.3.1/ && rm -rf dndir && rm -rf journal-local && rm -rf tmp && cp -r dndir-init dndir && cp -r journal-local-init journal-local && ls'
+#docker exec -t C1Slave4 /bin/bash -ic 'cd /home/gaoyu/evaluation/hadoop-3.3.1/ && rm -rf dndir && rm -rf journal-local && rm -rf tmp && cp -r dndir-init dndir && cp -r journal-local-init journal-local && ls'
