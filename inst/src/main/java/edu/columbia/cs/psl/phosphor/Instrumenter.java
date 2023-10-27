@@ -56,7 +56,7 @@ public class Instrumenter {
     public static Map<String, ClassNode> classes = Collections.synchronizedMap(new HashMap<>());
     public static InputStream sourcesFile;
     public static InputStream sinksFile;
-    public static InputStream taintThroughFile;
+    // public static InputStream taintThroughFile;
     public static boolean ANALYZE_ONLY;
     static String curPath;
     static int nTotal = 0;

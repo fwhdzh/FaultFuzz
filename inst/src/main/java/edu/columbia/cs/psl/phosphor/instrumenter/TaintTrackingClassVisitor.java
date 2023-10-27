@@ -1266,7 +1266,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
                 ga.visitEnd();
             }
         }
-        if(Configuration.USE_FAULT_FUZZ && (Configuration.FOR_ZK || Configuration.ZK_CLI)) {
+        if(Configuration.USE_FAULT_FUZZ && Configuration.FOR_ZK) {
         	if(this.className.equals("org/apache/jute/BinaryOutputArchive")){
             	MethodVisitor mv;
                 int acc = Opcodes.ACC_PUBLIC;
@@ -1303,7 +1303,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
                 ga.visitEnd();
             }
         }
-        if(Configuration.USE_FAULT_FUZZ && (Configuration.FOR_ZK || Configuration.ZK_CLI)) {
+        if(Configuration.USE_FAULT_FUZZ && Configuration.FOR_ZK) {
         	if(this.className.equals("org/apache/jute/BinaryInputArchive")){
             	MethodVisitor mv;
                 int acc = Opcodes.ACC_PUBLIC;

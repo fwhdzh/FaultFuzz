@@ -51,9 +51,6 @@ public class JRERunMode {
         	if(callStackString.toString().contains("edu.iscas.tcse") || callStackString.toString().contains("edu.columbia.cs.psl.phosphor")) {
         		return Taint.emptyTaint();
         	}
-            // if(Configuration.FAVDEBUG) {
-            //     System.out.println("FAVTrigger read a byte from:"+linkSource);
-            // }
             return FAVTaint.newFAVTaint(cname, mname, desc, type, tag, linkSource);
         } else {
             return Taint.emptyTaint();

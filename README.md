@@ -3,11 +3,11 @@
 ## What is FaultFuzz
 FaultFuzz is a tool designed for fault injection testing for distributed systems. Leveraging Fuzzing techniques, FaultFuzz enables systematic fault injection testing at the I/O point granularity of the target distributed system.
 
-![](https://raw.githubusercontent.com/fwhdzh/pic/main/FaultFuzz-overview.png)
+<!-- ![](https://raw.githubusercontent.com/fwhdzh/pic/main/FaultFuzz-overview.png) -->
 
-<!-- <div style="text-align:center">
+<div style="text-align:center">
     <img src="https://raw.githubusercontent.com/fwhdzh/pic/main/FaultFuzz-overview.png" style="width:60%">
-</div> -->
+</div>
 
 ## Paper
 For more information on the design of FaultFuzz, please refer to the following papers:

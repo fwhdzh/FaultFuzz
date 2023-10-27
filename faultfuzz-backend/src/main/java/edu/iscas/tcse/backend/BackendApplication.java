@@ -1,7 +1,10 @@
 package edu.iscas.tcse.backend;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.iscas.tcse.backend.ReportReader.BugReportGetParams;
 import edu.iscas.tcse.backend.ReportReader.BugReportPostParams;
 
@@ -20,8 +26,8 @@ import edu.iscas.tcse.backend.ReportReader.BugReportPostParams;
 @RestController
 public class BackendApplication {
 
-	public boolean isTest = false;
-	public Thread currentTestThread;
+	public boolean faultFuzzIsRun = false;
+	public Thread faultFuzzThread;
 
 	public static void main(String[] args) {
 		SpringApplication.run(BackendApplication.class, args);
@@ -47,7 +53,17 @@ public class BackendApplication {
 		t = t + "PHOS_OPTS" + "=" +"\"";
 		t = t + "-Xbootclasspath/a:" + conf.instPath + " ";
 		t = t + "-javaagent:" + conf.instPath + "=";
-		t = t + "useFaultFuzz=" + "false" + "\"";
+		t = t + "useFaultFuzz=" + "false" + ",";
+		if (conf.preDefinedInst != null && conf.preDefinedInst.contains("HDFSNetwork")) {
+			t = t + "hdfsRpc" + "=true" + ",";
+		}
+		if (conf.preDefinedInst != null && conf.preDefinedInst.contains("HBaseNetwork")) {
+			t = t + "hbaseRpc" + "=true" + ",";
+		}
+		if (t.charAt(t.length() - 1) == ',') {
+			t = t.substring(0, t.length() - 1);
+			t = t + "\"";
+		}
 		t = t + "\n";
 
 		t = t + "export" + " ";
@@ -56,15 +72,32 @@ public class BackendApplication {
 		t = t + "-javaagent:" + conf.instPath + "=";
 		t = t + "useFaultFuzz=" + conf.useFaultFuzz + ",";
 		for (String inst : conf.preDefinedInst) {
-			t = t + inst + "=true" + ",";
+			if (inst.equals("AppLevel")) {
+				t = t + "useInjectAnnotation" + "=true" + ",";
+			} else if (inst.equals("ZKNetwork")) {
+				t = t + "forZk" + "=true" + ",";
+			} else if (inst.equals("HDFSNetwork")) {
+				t = t + "forHdfs" + "=true" + ",";
+				t = t + "zkApi" + "=true" + ",";
+			} else if (inst.equals("HBaseNetwork")) {
+				t = t + "forHbase" + "=true" + ",";
+				t = t + "hdfsApi" + "=true" + ",";
+				t = t + "zkApi" + "=true" + ",";
+			} else {
+				t = t + inst + "=true" + ",";
+			}
 		}
-		t = t + "recordPath=" + conf.recordPath + ",";
+
+		t = t + "recordPath=" + conf.observerHomePath + "/fav-rst" + ",";
+		t = t + "cacheDir=" + conf.observerHomePath + "/CacheFolder" + ",";
+		t = t + "covPath=" + conf.observerHomePath + "/fuzzcov" + ",";
+
 		t = t + "dataPaths=" + conf.dataPaths + ",";
-		t = t + "cacheDir=" + conf.cacheDir + ",";
+		
 		t = t + "controllerSocket=" + conf.controllerSocket + ",";
 		t = t + "mapSize=" + conf.mapSize + ",";
 		t = t + "wordSize=" + conf.wordSize + ",";
-		t = t + "covPath=" + conf.covPath + ",";
+		
 		t = t + "covIncludes=" + conf.covIncludes + ",";
 		t = t + "aflAllow=" + conf.aflAllow + ",";
 		t = t + "aflDeny=" + conf.aflDeny + ",";
@@ -110,12 +143,50 @@ public class BackendApplication {
 		return s;
 	}
 
-	@PostMapping("/begin/test")
-	public String beginTest(@RequestBody BugReportPostParams params) {
+	public String readBugReportPathFromCtrlConfFile(File ctrlConfFile) throws IOException {
+		String bugReportPath = null;
+		List<String> lines = null;
+		lines = Files.readAllLines(ctrlConfFile.toPath());
+		String rootPath = null;
+		for (String line : lines) {
+			if (line.startsWith("ROOT_DIR")) {
+				rootPath = line.substring(line.indexOf("=") + 1);
+				break;
+			}
+		}
+		bugReportPath = rootPath + "/TEST_REPORT";
+		return bugReportPath;
+	}
 
-		if (isTest || (currentTestThread != null && currentTestThread.isAlive())) {
-			System.out.println("test is running");
-			return "test is running";
+	public String readPretreatmentPathFromCtrlConfFile(File ctrlConfFile) throws IOException {
+		String pretreatmentPath = null;
+		List<String> lines = null;
+		lines = Files.readAllLines(ctrlConfFile.toPath());
+		for (String line : lines) {
+			if (line.startsWith("PRETREATMENT")) {
+				pretreatmentPath = line.substring(line.indexOf("=") + 1);
+				break;
+			}
+		}
+		if (pretreatmentPath == null) {
+			return null;
+		}
+		if (!pretreatmentPath.startsWith("/")){
+			File workDir = ctrlConfFile.getParentFile();
+			pretreatmentPath = workDir.getAbsolutePath() + "/" + pretreatmentPath;
+		}
+		return pretreatmentPath;
+	}
+
+	public String bugReportPath;
+	public String pretreatmentPath;
+
+	@PostMapping("/begin/test")
+	public String beginTest(@RequestBody BugReportPostParams params) throws IOException {
+
+		if (faultFuzzIsRun || (faultFuzzThread != null && faultFuzzThread.isAlive())) {
+			System.out.println("FaultFuzz is running! please stop it first!");
+			return "FaultFuzz is running! please stop it first!";
 		}
 
 		String s = "";
@@ -136,29 +207,39 @@ public class BackendApplication {
 			e.printStackTrace();
 		}
 
+		File file = new File(params.ctrlPropertiesPath);
+		if (!file.exists()) {
+			throw new RuntimeException("properties file not exist!");
+		}
+		File workDir = file.getParentFile();
+
+		bugReportPath = readBugReportPathFromCtrlConfFile(file);
+
+		if (bugReportPath == null || bugReportPath.length() == 0) {
+			throw new RuntimeException("bug report path is null!");
+		}
+		System.out.println("bugReportPath is: " + bugReportPath);
+
+		pretreatmentPath = readPretreatmentPathFromCtrlConfFile(file);
+		if (pretreatmentPath == null || pretreatmentPath.length() == 0) {
+			throw new RuntimeException("pretreatment path is null!");
+		}
+		System.out.println("pretreatmentPath is: " + pretreatmentPath);
+
 		Thread t = new Thread() {
 			@Override
 			public void run() {
 				super.run();
+				// List<String> result = RunCommand.run(beginCommand,
+				// "/data/fengwenhan/code/faultfuzz/package/zk-3.6.3", tmpFile);
+
 				List<String> result = RunCommand.run(beginCommand,
-						"/data/fengwenhan/code/faultfuzz/package/zk-3.6.3", tmpFile);
-				// try {
-				// FileOutputStream fos = new FileOutputStream(tmpFile);
-				// for (String line : result) {
-				// fos.write(line.getBytes());
-				// fos.write("\n".getBytes());
-				// }
-				// fos.close();
-				// } catch (IOException e) {
-				// e.printStackTrace();
-				// }
-				// for (String line : result) {
-				// System.out.println(line);
-				// }
+						workDir.getAbsolutePath(), tmpFile);
+				faultFuzzIsRun = false;
 			}
 		};
-		isTest = true;
-		currentTestThread = t;
+		faultFuzzIsRun = true;
+		faultFuzzThread = t;
 		t.start();
 		return beginCommand;
 	}
@@ -168,20 +249,25 @@ public class BackendApplication {
 	}
 
 	@PostMapping("/stop/test")
-	public String stopTest(@RequestBody StopTestParams params) {
-		if (isTest && (currentTestThread != null && currentTestThread.isAlive())) {
-			currentTestThread.interrupt();
-			String path = params.pretreatment;
+	public String stopTest() {
+		String rootPath = System.getProperty("user.dir");
+		File clearMaster = new File(rootPath + "/scripts/clear-master-process.sh");
+		System.out.println("clearMaster path: " + clearMaster.getAbsolutePath());
+
+		if (faultFuzzIsRun && (faultFuzzThread != null && faultFuzzThread.isAlive())) {
+			faultFuzzThread.interrupt();
+			// String path = params.pretreatment;
 			Thread clearThread = new Thread() {
 				@Override
 				public void run() {
-					RunCommand.run(path);
-					RunCommand.run("/data/fengwenhan/code/faultfuzz/faultfuzz-backend/scripts/clear-master-process.sh");
+					// RunCommand.run(path);
+					RunCommand.run(pretreatmentPath);
+					RunCommand.run(clearMaster.getAbsolutePath());
 				}
 			};
 			clearThread.start();
 
-			isTest = false;
+			faultFuzzIsRun = false;
 			return "stop test";
 		} else {
 			return "test is not running";
@@ -192,7 +278,9 @@ public class BackendApplication {
 
 	@GetMapping("/report")
 	public String getReport(@RequestBody BugReportGetParams params) throws IOException {
-		String path = params.bugReportLocation;
+		
+		// String path = params.bugReportLocation;
+		String path = bugReportPath;
 		ReportReader rr = new ReportReader();
 		String s = rr.readReport(path);
 		System.out.println(s);
@@ -226,5 +314,160 @@ public class BackendApplication {
 		System.out.println(s);
 		return s;
 	}
+
+	public int replayCount = 0;
+
+	static class ReplayPostParams {
+		public String replayCtrlJarPath;
+		public String replayConfPath;
+		public String favRSTPath;
+	}
+
+	static class ReplayPostResponse {
+		public int id;
+		public String info;
+
+		public ReplayPostResponse(int id, String info) {
+			this.id = id;
+			this.info = info;
+		}
+		public int getId() {
+			return id;
+		}
+		public void setId(int id) {
+			this.id = id;
+		}
+		public String getInfo() {
+			return info;
+		}
+		public void setInfo(String info) {
+			this.info = info;
+		}
+
+		
+	}
+
+	@PostMapping("/replay")
+	public String replay(@RequestBody ReplayPostParams params) throws JsonProcessingException {
+		if (faultFuzzIsRun || (faultFuzzThread != null && faultFuzzThread.isAlive())) {
+			System.out.println("FaultFuzz is running! please stop it first!");
+			return "FaultFuzz is running! please stop it first!";
+		}
+		File reportFile = new File("replay-report");
+		if (reportFile.exists()) {
+			reportFile.delete();
+		}
+		String s = "";
+		s = s + "java";
+		s = s + " " + "-cp" + " " + params.replayCtrlJarPath;
+		s = s + " " + "edu.iscas.tcse.faultfuzz.ctrl.replay.Replayer";
+		s = s + " " + params.replayConfPath;
+		s = s + " " + params.favRSTPath;
+		s = s + " " + reportFile.getAbsolutePath();
+
+		replayCount++;
+		System.out.println("replayCount: " + replayCount);
+		ReplayPostResponse response = new ReplayPostResponse(replayCount, s);
+		ObjectMapper mapper = new ObjectMapper();
+		String responseString = mapper.writeValueAsString(response);
+		 
+		System.out.println(responseString);
+		// return responseString;
+
+		final String replayCommand = s;
+		final File replayTmpFile = new File("replay-process");
+		if (replayTmpFile.exists()) {
+			replayTmpFile.delete();
+		}
+		try {
+			replayTmpFile.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		File file = new File(params.replayCtrlJarPath);
+		if (!file.exists()) {
+			throw new RuntimeException("properties file not exist!");
+		}
+		File workDir = file.getParentFile();
+
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				// List<String> result = RunCommand.run(replayCommand,
+				// 		"/data/fengwenhan/code/faultfuzz/package/zk-3.6.3", replayTmpFile);
+				List<String> result = RunCommand.run(replayCommand,
+						workDir.getAbsolutePath(), replayTmpFile);
+				faultFuzzIsRun = false;
+				System.out.println("replay is finished!");
+			}
+		};
+
+		faultFuzzIsRun = true;
+		faultFuzzThread = t;
+
+		t.start();
+		return responseString;
+		
+	}
+
+	@PostMapping("/replay/stop")
+	public String stopRepaly() {
+		String rootPath = System.getProperty("user.dir");
+		File clearReplay = new File(rootPath + "/scripts/clear-replay-process.sh");
+		System.out.println(clearReplay.getAbsolutePath());
+		if (faultFuzzIsRun && (faultFuzzThread != null && faultFuzzThread.isAlive())) {
+			faultFuzzThread.interrupt();
+			Thread clearThread = new Thread() {
+				@Override
+				public void run() {
+					// RunCommand.run(path);
+					// RunCommand.run("/data/fengwenhan/code/faultfuzz/faultfuzz-backend/scripts/clear-replay-process.sh");
+					RunCommand.run(clearReplay.getAbsolutePath());
+				}
+			};
+			clearThread.start();
+			faultFuzzIsRun = false;
+			return "stop replay";
+		} else {
+			return "replay is not running";
+		}
+	}
+
+	static class ReplayReportGetParams {
+		public int id;
+	}
+
+	@GetMapping("/replay/report")
+	public String replayReport(@RequestBody ReplayReportGetParams params) {
+		System.out.println("handle replay report request");
+		System.out.println("params.id = " + params.id);
+		System.out.println("replayCount: " + replayCount);
+		int id = params.id;
+		if (id != replayCount) {
+			return "Cannot find replay task";
+		}
+		File reportFile = new File("replay-report");
+		if (!reportFile.exists()) {
+			return "replay report not exist, it may have not been generated yet because replay task is still running.";
+		}
+		String s = "";
+		s = s + "The detail of replay report can be found in: " + reportFile.getAbsolutePath() + "\n";
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(reportFile));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				s = s + line + "\n";
+			}
+			br.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println(s);
+		return s;
+	}
+
+	
 
 }

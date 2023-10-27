@@ -31,6 +31,7 @@ public class ReplayConf {
 
 
     public String DataDir;
+    public String reportPath;
 
     public String REPLAY_TRACE_PATH;
     // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_backup_6_full_workload/queue/6_2f";
@@ -42,7 +43,7 @@ public class ReplayConf {
     public ReplayConf(File currentWorkload, File cHECKER, File mONITOR, File pRETREATMENT, File cRASH, File rEBOOT,
             File nETWORK_DISCONNECTION, File nETWORK_RECONNECTION, List<FaultType> faultTypeList,
             List<MaxDownNodes> maxDownGroup, int aFL_PORT, int cONTROLLER_PORT, long hangSeconds,
-            int dETERMINE_WAIT_TIME, String dataDir, String rEPLAY_TRACE_PATH) {
+            int dETERMINE_WAIT_TIME, String dataDir, String reportPath, String rEPLAY_TRACE_PATH) {
         this.currentWorkload = currentWorkload;
         this.CHECKER = cHECKER;
         this.MONITOR = mONITOR;
@@ -81,5 +82,10 @@ public class ReplayConf {
         // this.DataDir = conf.ROOTDIR;
 
         this.REPLAY_TRACE_PATH = tracePath;   
+    }
+
+    public ReplayConf(Conf conf, String tracePath, String reportPath) {
+        this(conf, tracePath);
+        this.reportPath = reportPath;
     }
 }

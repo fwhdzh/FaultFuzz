@@ -1,12 +1,14 @@
 package edu.iscas.tcse.faultfuzz.ctrl.control.determine;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
-import edu.iscas.tcse.faultfuzz.ctrl.Conf;
+import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Fuzzer;
+import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.RunCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
 import edu.iscas.tcse.faultfuzz.ctrl.control.AbstractDeterminismTarget;
@@ -31,26 +33,40 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
     private TryBestDeterminismTResult mResult;
     private boolean finishWorkload;
 
+	public int controllerPort;
+	public List<MaxDownNodes> maxDownGroup;
+	public int determineWaitTime;
+
 	
     
-    @Override
-	public void beforeTarget(QueueEntryRuntime entryRuntime, Conf conf, String testID, long waitSeconds) {
-		super.beforeTarget(entryRuntime, conf, testID, waitSeconds);		
+	public void beforeTarget(QueueEntryRuntime entryRuntime, Cluster cluster, int aflPort, File curFaultFile, File monitor, String testID, long waitSeconds, int controllerPort, List<MaxDownNodes> maxDownGroup, int determineWaitTime) {
+		
+		// Cluster cluster = new Cluster(conf);
+		// int aflPort = conf.AFL_PORT;
+		// File curFaultFile = conf.CUR_FAULT_FILE;
+		// File monitor = conf.MONITOR;
+
+		
+		super.beforeTarget(entryRuntime, cluster, aflPort, curFaultFile, monitor, testID, waitSeconds);		
+		
+		this.controllerPort = controllerPort;
+		this.maxDownGroup = maxDownGroup;
+		this.determineWaitTime = determineWaitTime;
 	}
 
 	@Override
     public void doTarget() {
-        runATestWithTryBestDetermineControl(mSeqPair, mConf, mTestID, mWaitSeconds);
+        runATestWithTryBestDetermineControl(mSeqPair, controllerPort, curFaultFile, maxDownGroup, aflPort, determineWaitTime, mTestID, mWaitSeconds);
     }
 
     @Override
     public TryBestDeterminismTResult afterTarget() {
         // TODO Auto-generated method stub
         // sendNotReplayToCluster(controllerResult.finalCluster);
-		AflCli.executeUtilSuccess(controllerResult.finalCluster, mConf, AflCommand.DETERMINE_NO_SEND, 300000);
+		AflCli.executeUtilSuccess(controllerResult.finalCluster, aflPort, AflCommand.DETERMINE_NO_SEND, 300000);
 		// For replay target, we should collect run-time information for all scenarios.
 		String runInfoPath = collectRuntimeInfo(controllerResult.finalCluster);
-		copyLogsToControllerWithTestId(mTestID);
+		// copyLogsToControllerWithTestId(mTestID);
 		boolean findBug = checkIfABugExist(runInfoPath);
 		mResult = generateTryBestDeterminismTResult(finishWorkload, controllerResult.allFaultsAreInjected , findBug, controllerResult.injectedFaultPointList);
 		Stat.log("TryBestDeterminismTResult is "+mResult.resultCode);
@@ -58,7 +74,7 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		return mResult;
     }
 
-    private int runATestWithTryBestDetermineControl(QueueEntryRuntime entryRuntime, final Conf conf, String testID, long waitSeconds) {
+    private int runATestWithTryBestDetermineControl(QueueEntryRuntime entryRuntime, int controllerPort, File curFaultFile, List<MaxDownNodes> maxDownGroup, int aflPort, int determineWaitTime, String testID, long waitSeconds) {
 		logInfo.add(Stat.log("=========================Going to conduct test "+testID+"("+waitSeconds+"s)========================="));
 		logInfo.add(Stat.log(""));
 		logInfo.add(Stat.log("Fault sequence info {"));
@@ -71,7 +87,8 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
-		final TryBestDeterminismController tbdController = new TryBestDeterminismController(mCluster, conf.CONTROLLER_PORT, conf);
+		// final TryBestDeterminismController tbdController = new TryBestDeterminismController(mCluster, conf.CONTROLLER_PORT, conf);
+		final TryBestDeterminismController tbdController = new TryBestDeterminismController(mCluster, controllerPort, curFaultFile, maxDownGroup, aflPort, determineWaitTime);
 		// final ReplayController dController = new ReplayController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(tbdController.cluster.prepareCluster());
@@ -179,9 +196,9 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		if (controllerResult.allFaultsAreInjected) {
 			FaultSequence seq = mSeqPair.faultSeq;
 			logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
-			logInfo.addAll(mCluster.runChecker(mConf, controllerResult.finalCluster, runInfoPath+FileUtil.monitorDir));
+			logInfo.addAll(mCluster.runChecker(controllerResult.finalCluster, runInfoPath+FileUtil.monitorDir));
 			// logInfo.addAll(dController.cluster.runChecker(conf, dController.currentCluster, runInfoPath+FileUtil.monitorDir));
-			int checkBugRst = checkBug(seq, mConf);
+			int checkBugRst = checkBug(seq);
 			if (checkBugRst == 1) {
 				result = true;
 			}
@@ -252,9 +269,9 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		return faultMode;
 	}
 
-	public ArrayList<String> copyLogsToController(String logsDir) {
-		if (mConf.COPY_LOGS_TO_CONTROLLER != null) {
-			String path = mConf.COPY_LOGS_TO_CONTROLLER.getAbsolutePath();
+	public ArrayList<String> copyLogsToController(File copyLogsToController, String logsDir) {
+		if (copyLogsToController != null) {
+			String path = copyLogsToController.getAbsolutePath();
 			String workingDir = path.substring(0, path.lastIndexOf("/"));
 			return RunCommand.run(path + " " + logsDir, workingDir);
 		} else {
@@ -262,9 +279,9 @@ public class TryBestDeterminismTarget extends AbstractDeterminismTarget{
 		}
 	}
 
-	public ArrayList<String> copyLogsToControllerWithTestId(String testID) {
+	public ArrayList<String> copyLogsToControllerWithTestId(File copyLogsToController, String clusterLogsInConterllerDir, String testID) {
 		ArrayList<String> result = null;
-		result = copyLogsToController(mConf.CLUSTER_LOGS_IN_CONTROLLER_DIR + "/" + testID);
+		result = copyLogsToController(copyLogsToController, clusterLogsInConterllerDir + "/" + testID);
 		return result;
 	}
 

@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
@@ -21,7 +22,7 @@ import edu.iscas.tcse.faultfuzz.ctrl.filter.EnumerationFilter;
 import edu.iscas.tcse.faultfuzz.ctrl.model.FaultPoint;
 import edu.iscas.tcse.faultfuzz.ctrl.model.FaultSequence;
 import edu.iscas.tcse.faultfuzz.ctrl.model.IOPoint;
-import edu.iscas.tcse.faultfuzz.ctrl.replay.Replayer;
+import edu.iscas.tcse.faultfuzz.ctrl.report.BeautifulReport;
 import edu.iscas.tcse.faultfuzz.ctrl.runtime.QueueEntryRuntime;
 import edu.iscas.tcse.faultfuzz.ctrl.selection.FIFOQueueEntrySelector;
 import edu.iscas.tcse.faultfuzz.ctrl.selection.SelectionInfo;
@@ -38,7 +39,6 @@ public class Fuzzer {
     public static boolean running = false;
     
     public static List<QueueEntry> candidate_queue;
-    public static List<QueueEntry> fuzzed_queue;
     
 	long handicap;
 	long depth;
@@ -48,12 +48,12 @@ public class Fuzzer {
 	EntryConstructor constructor;
 
     public Fuzzer(Conf conf) {
-    	monitor = new Monitor(conf);
+    	// monitor = new Monitor(conf);
+		monitor = new Monitor(conf.MONITOR.getAbsolutePath());
     	stat = new Stat();
     	this.conf = conf;
     	coverage = new CoverageCollector();
     	candidate_queue = new ArrayList<QueueEntry>();
-    	fuzzed_queue = new ArrayList<QueueEntry>();
 
 		recoveryManager = new JSONBasedRecoveryManager();
 		constructor = new EntryConstructor();
@@ -70,7 +70,7 @@ public class Fuzzer {
 
 	public void updateQueueEntryRuntimeInfo(QueueEntry entry) {
 		entry.handicap = 0;
-		entry.fuzzed_time = 0;
+		// entry.fuzzed_time = 0;
 	}
 
 	private void updateFuzzInfoInSaveIfInterestring(QueueEntry q, int faultMode, String testID, long exec_seconds, int nb) {
@@ -123,7 +123,7 @@ public class Fuzzer {
 		long usedSeconds = FuzzInfo.getUsedSeconds();
 		if (CoverageGuidedFilter.checkIfInteresting(faultMode, nb, q)) // imply faultMode == 0
 		{
-			FileUtil.copyToQueue(testID, conf);
+			FileUtil.copyToQueue(testID, conf.CUR_FAULT_FILE.getName());
 		} else {
 			if(faultMode >0) {
 				if(faultMode == 1) {
@@ -138,7 +138,10 @@ public class Fuzzer {
 				}
 			}
 		}
-		FileUtil.copyToTested(testID, usedSeconds, conf);
+		FileUtil.copyToTested(testID, usedSeconds, conf.CUR_FAULT_FILE.getName());
+
+		FileUtil.copyDirToPersist(testID);
+
 	}
 
 
@@ -146,7 +149,8 @@ public class Fuzzer {
 	public void performNoFaultRun(QueueEntry entry) {
 		TryBestDeterminismTarget target = new TryBestDeterminismTarget();
 		QueueEntryRuntime entryRuntime = new QueueEntryRuntime(entry);
-		target.beforeTarget(entryRuntime, conf, entry.fname, conf.hangSeconds);
+		Cluster cluster = new Cluster(conf);
+		target.beforeTarget(entryRuntime, cluster, conf.AFL_PORT, conf.CUR_FAULT_FILE, conf.MONITOR, entry.fname, conf.hangSeconds, conf.CONTROLLER_PORT, conf.maxDownGroup, conf.DETERMINE_WAIT_TIME);
 		target.doTarget();
 		TryBestDeterminismTResult tbdResult = target.afterTarget();
 		int rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.resultCode);
@@ -174,18 +178,20 @@ public class Fuzzer {
 		 * Even if the fault sequence does not trigger new basic blocks,
 		 * we mutate it since it is the empty fault sequence of another workload.
 		 */
-		candidate_queue.add(entry);
-		updateQueueEntryRuntimeInfo(entry);
-		initializeUniqueIOId(entry);
-		if (entry.recovery_io_id == null || entry.recovery_io_id.isEmpty()) {
-			entry.recovery_io_id = new HashSet<Integer>();
-		}
-		Mutation.initializeFaultPointsToMutate(entry, conf);
-		Mutation.initializeLocalNotTestedFaultId(entry);
-		Mutation.mutateFaultSequence(entry, conf);
-		if (entry.mutates == null || entry.mutates.size() == 0) {
-			candidate_queue.remove(entry);
-		}
+		// candidate_queue.add(entry);
+		// updateQueueEntryRuntimeInfo(entry);
+		// initializeUniqueIOId(entry);
+		// if (entry.recovery_io_id == null || entry.recovery_io_id.isEmpty()) {
+		// 	entry.recovery_io_id = new HashSet<Integer>();
+		// }
+		// Mutation.initializeFaultPointsToMutate(entry, conf.MAX_FAULTS, conf.maxDownGroup);
+		// Mutation.initializeLocalNotTestedFaultId(entry);
+		// Mutation.mutateFaultSequence(entry);
+		// if (entry.mutates == null || entry.mutates.size() == 0) {
+		// 	candidate_queue.remove(entry);
+		// }
+
+		addToQueueAndMutateInSaveIfInterestring(entry, null);
 		
 		Stat.debug("q is after mutation! ");
 		// Stat.debug("q is after mutation! q is: " + JSONObject.toJSONString(q, SerializerFeature.IgnoreNonFieldGetter));
@@ -271,7 +277,7 @@ public class Fuzzer {
 
 		if (isInteresting) {
 			Stat.log("Begin to mutate...");
-			addToQueueAndMutateInSaveIfInterestring(q, testID, seedQ);
+			addToQueueAndMutateInSaveIfInterestring(q, seedQ);
 		}
 
 		Stat.log("Record evaluation data...");
@@ -315,7 +321,8 @@ public class Fuzzer {
 
 		TryBestDeterminismTarget target = new TryBestDeterminismTarget();
 		QueueEntryRuntime entryRuntime = new QueueEntryRuntime(q);
-		target.beforeTarget(entryRuntime, conf, testID, waitTime);
+		Cluster cluster = new Cluster(conf);
+		target.beforeTarget(entryRuntime, cluster, conf.AFL_PORT, conf.CUR_FAULT_FILE, conf.MONITOR, testID, waitTime, conf.CONTROLLER_PORT, conf.maxDownGroup, conf.DETERMINE_WAIT_TIME);
 		target.doTarget();
 		TryBestDeterminismTResult tbdResult = target.afterTarget();
 		rst = TryBestDeterminismTarget.mapTBDResutToFaultMode(tbdResult.resultCode);
@@ -325,7 +332,7 @@ public class Fuzzer {
 
 		q.fname = testID;
 		
-		FileUtil.updateQueueInfo(pair.seed.fname, pair.seed.mutates, pair.seed.fuzzed_time, pair.seed.handicap);
+		FileUtil.updateQueueInfo(pair.seed.fname, pair.seed.mutates, pair.seed.handicap);
 		if (rst != -1) {
 			updateMetricOfQueuePair(pair);
 		}
@@ -362,8 +369,8 @@ public class Fuzzer {
 		q.faultSeq.reset();
 
 		// rst = target.run_target(q.faultSeq, conf, testID+"-retry", conf.hangSeconds*2);
-
-		target.beforeTarget(faultSeqAndIOSeq, conf, testID+"-retry", conf.hangSeconds*2);
+		Cluster cluster = new Cluster(conf);
+		target.beforeTarget(faultSeqAndIOSeq, cluster, conf.AFL_PORT, conf.CUR_FAULT_FILE, conf.MONITOR, testID+"-retry", conf.hangSeconds*2, conf.CONTROLLER_PORT, conf.maxDownGroup, conf.DETERMINE_WAIT_TIME);
 		target.doTarget();
 		tbdResult = target.afterTarget();
 		// rst = tbdResult.result;
@@ -388,34 +395,65 @@ public class Fuzzer {
 		return rst;
 	}
 	
-	private void addToQueueAndMutateInSaveIfInterestring(QueueEntry q, String testID, QueueEntry seedQ) {
-
-		candidate_queue.add(q);
-		updateQueueEntryRuntimeInfo(q);
-		initializeRecoveryIOIdWithUniqueIOId(q, seedQ);
-		Mutation.initializeFaultPointsToMutate(q, conf);
-		Mutation.initializeLocalNotTestedFaultId(q);
-		Mutation.mutateFaultSequence(q, conf);
-		if (q.mutates == null || q.mutates.size() == 0) {
-			candidate_queue.remove(q);
-		}
-	}
-
 	public void initializeUniqueIOId(QueueEntry entry) {
-		if(entry.unique_io_id == null || entry.unique_io_id.isEmpty()) {
-			entry.unique_io_id = new HashSet<Integer>();
-			for(IOPoint p:entry.ioSeq) {
-				entry.unique_io_id.add(p.ioID);
-			}
-		}
+		// if(entry.unique_io_id == null || entry.unique_io_id.isEmpty()) {
+		// 	entry.unique_io_id = new HashSet<Integer>();
+		// 	for(IOPoint p:entry.ioSeq) {
+		// 		entry.unique_io_id.add(p.ioID);
+		// 	}
+		// }
 	}
 
 	public void initializeRecoveryIOIdWithUniqueIOId(QueueEntry entry, QueueEntry seedQ) {
-		initializeUniqueIOId(entry);
-		if(entry.recovery_io_id == null || entry.recovery_io_id.isEmpty()) {
-			entry.recovery_io_id = new HashSet<Integer>();
-			entry.recovery_io_id.addAll(entry.unique_io_id);
-			entry.recovery_io_id.removeAll(seedQ.unique_io_id);
+
+		Set<Integer> recoveryIOId = getRecoveryIOId(entry, seedQ);
+		entry.recovery_io_id = recoveryIOId;
+		
+		// initializeUniqueIOId(entry);
+		// if(entry.recovery_io_id == null || entry.recovery_io_id.isEmpty()) {
+		// 	entry.recovery_io_id = new HashSet<Integer>();
+		// 	// for init entry, we call this function with seedQ is null.
+		// 	if (seedQ != null) {
+		// 		entry.recovery_io_id.addAll(entry.unique_io_id);
+		// 		entry.recovery_io_id.removeAll(seedQ.unique_io_id);
+		// 	}
+			
+		// }
+	}
+
+	public static Set<Integer> getRecoveryIOId(QueueEntry entry, QueueEntry seedQ) {
+		// handle init entry.
+		if (seedQ == null || seedQ.ioSeq == null || seedQ.ioSeq.isEmpty()) {
+			return new HashSet<>();
+		}
+		Set<Integer> entryUniqueIOId = new HashSet<Integer>();
+		for(IOPoint p:entry.ioSeq) {
+			entryUniqueIOId.add(p.ioID);
+		}
+		Set<Integer> seedUniqueIOId = new HashSet<Integer>();
+		for(IOPoint p:seedQ.ioSeq) {
+			seedUniqueIOId.add(p.ioID);
+		}
+		Set<Integer> recoveryIOId = new HashSet<Integer>();
+		recoveryIOId.addAll(entryUniqueIOId);
+		recoveryIOId.removeAll(seedUniqueIOId);
+		return recoveryIOId;
+	}
+
+	private void addToQueueAndMutateInSaveIfInterestring(QueueEntry entry, QueueEntry seedQ) {
+
+		
+		updateQueueEntryRuntimeInfo(entry);
+		initializeRecoveryIOIdWithUniqueIOId(entry, seedQ);
+		Mutation.initializeFaultPointsToMutate(entry, conf.MAX_FAULTS, conf.maxDownGroup);
+		Mutation.initializeLocalNotTestedFaultId(entry);
+		Mutation.mutateFaultSequence(entry);
+		// candidate_queue.add(entry);
+		// if (entry.mutates == null || entry.mutates.size() == 0) {
+		// 	candidate_queue.remove(entry);
+		// }
+		if (entry.mutates != null && entry.mutates.size() > 0) {
+			candidate_queue.add(entry);
 		}
 	}
 
@@ -498,7 +536,7 @@ public class Fuzzer {
 					while ((FuzzInfo.getUsedSeconds() < (conf.maxTestMinutes * 60))) {
 						if (!checkPause()) {
 							FileOutputStream out = new FileOutputStream(FileUtil.root + FileUtil.report_file);
-							String report = FuzzInfo.generateBeautifulReport();
+							String report = BeautifulReport.generateBeautifulReportWithFuzzInfo();
 							// String report = FuzzInfo.generateClientReport();
 							out.write(report.getBytes());
 							out.flush();
@@ -536,34 +574,30 @@ public class Fuzzer {
 //        	Stat.log("****************************************************************************");
 //        }
 
-		if (conf.REPLAY_MODE) {
-			Replayer replayer = new Replayer(conf);
-			QueueEntry entry = replayer.retriveReplayQueueEntryFromRSTFolder(conf.REPLAY_TRACE_PATH);
-			replayer.replay(entry);
-		} else {
-			if (!conf.RECOVERY_MODE) {
-				// perform_first_run();
-				for (int i = 0; i < Conf.WORKLOADLIST.size(); i++) {
+		if (!conf.RECOVERY_MODE) {
+			// perform_first_run();
+			FileUtil.clearRootPath();
+			for (int i = 0; i < Conf.WORKLOADLIST.size(); i++) {
 
-					while (checkPause()) {
-						try {
-							Thread.sleep(1000);
-							FuzzInfo.pauseSecond++;
-							Stat.log("FaultFuzzer is paused, waiting for resume...");
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+				while (checkPause()) {
+					try {
+						Thread.sleep(1000);
+						FuzzInfo.pauseSecond++;
+						Stat.log("FaultFuzzer is paused, waiting for resume...");
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
-
-					performNoFaultRun(i);
 				}
-			} else {
-				recovery();
+
+				performNoFaultRun(i);
 			}
-			performOtherRun();
+		} else {
+			recovery();
 		}
+		performOtherRun();
+
         // System.out.println(FuzzInfo.generateClientReport());
-		System.out.println(FuzzInfo.generateBeautifulReport());
+		System.out.println(BeautifulReport.generateBeautifulReportWithFuzzInfo());
 		
     }
 
@@ -638,10 +672,6 @@ public class Fuzzer {
 		QueueEntry seed = pair.seed;
 		QueueEntry mutate = pair.mutate;
 
-		if(mutate.on_recovery) {
-    		seed.on_recovery_mutates.remove(mutate);
-    	}
-    	
     	FaultPoint tmpLastFault = mutate.faultSeq.seq.get(mutate.faultSeq.seq.size()-1);
 		int tmpID = tmpLastFault.getFaultID();
 		seed.not_tested_fault_id.remove(tmpID);

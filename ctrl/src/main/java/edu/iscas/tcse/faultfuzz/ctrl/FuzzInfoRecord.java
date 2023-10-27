@@ -21,8 +21,8 @@ public class FuzzInfoRecord {
     public Set<Integer> testedUniqueCases = new HashSet<Integer>();
     public Set<String> fuzzedFiles = new HashSet<String>();
     
-    public long total_bitmap_size = 0,         /* Total bit count for all bitmaps  */
-    total_bitmap_entries = 0;      /* Number of bitmaps counted        */
+    public long total_bitmap_size = 0;         /* Total bit count for all bitmaps  */
+    public static long total_bitmap_entries = 0;      /* Number of bitmaps counted        */
     
     public HashMap<Integer,HashMap<Integer,Integer>> timeToFaulsToTestsNum = new HashMap<Integer,HashMap<Integer,Integer>>();
     

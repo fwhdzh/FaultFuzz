@@ -24,6 +24,7 @@ import edu.iscas.tcse.faultfuzz.ctrl.model.FaultPos;
 import edu.iscas.tcse.faultfuzz.ctrl.model.FaultSequence;
 import edu.iscas.tcse.faultfuzz.ctrl.model.FaultType;
 import edu.iscas.tcse.faultfuzz.ctrl.random.RandomFaultSequence.RandomFaultPoint;
+import edu.iscas.tcse.faultfuzz.ctrl.report.ClientReport;
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
 
 public class RandomFuzzer {
@@ -46,7 +47,7 @@ public class RandomFuzzer {
     };
     
     public RandomFuzzer(RandomFuzzTarget target, Conf conf, boolean recover) {
-    	monitor = new Monitor(conf);
+    	monitor = new Monitor(conf.MONITOR.getAbsolutePath());
     	stat = new Stat();
     	this.target = target;
     	this.conf = conf;
@@ -186,7 +187,7 @@ public class RandomFuzzer {
 		FuzzInfo.total_bitmap_size += q.bitmap_size;
 		FuzzInfo.total_bitmap_entries++;
 		FileUtil.writePostTestInfo(testID, q.bitmap_size, q.exec_s);
-		FileUtil.copyToTested(testID, usedSeconds, conf);
+		FileUtil.copyToTested(testID, usedSeconds, conf.CUR_FAULT_FILE.getName());
 //		FileUtil.delete(conf.CUR_FAULT_FILE.getAbsolutePath());
 		if(!Conf.DEBUG) {
 			FileUtil.delete(FileUtil.root_tmp+testID);
@@ -251,7 +252,7 @@ public class RandomFuzzer {
 		FuzzInfo.total_bitmap_size += coverage.coveredBlocks(coverage.trace_bits);
 		FuzzInfo.total_bitmap_entries++;
 		long usedSeconds = FuzzInfo.getUsedSeconds();
-		FileUtil.copyToTested(testID, usedSeconds, conf);
+		FileUtil.copyToTested(testID, usedSeconds, conf.CUR_FAULT_FILE.getName());
 		if(!Conf.DEBUG) {
 			FileUtil.delete(tmpRootDir);
 		}
@@ -286,14 +287,14 @@ public class RandomFuzzer {
 				try {
 					while (( FuzzInfo.getUsedSeconds() < (conf.maxTestMinutes*60))) {
 						FileOutputStream out = new FileOutputStream(FileUtil.root+FileUtil.report_file);
-						String report = FuzzInfo.generateClientReport();
+						String report = ClientReport.generateClientReport();
 						out.write(report.getBytes());
 						out.flush();
 						out.close();
 						
 						Thread.currentThread().sleep(1000);
 					}
-					System.out.println(FuzzInfo.generateClientReport());
+					System.out.println(ClientReport.generateClientReport());
 					System.exit(0);
 				} catch (IOException | InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -319,7 +320,7 @@ public class RandomFuzzer {
         	common_fuzz_stuff(q);
         }
         
-        System.out.println(FuzzInfo.generateClientReport());
+        System.out.println(ClientReport.generateClientReport());
     }
 	
 	public RandomFaultSequence generateRadomFaultSequence() {

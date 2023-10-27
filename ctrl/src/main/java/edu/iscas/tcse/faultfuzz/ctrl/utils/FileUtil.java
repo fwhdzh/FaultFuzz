@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
+import edu.iscas.tcse.faultfuzz.ctrl.EntryConstructor;
 import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
 import edu.iscas.tcse.faultfuzz.ctrl.model.FaultPoint;
@@ -36,6 +37,8 @@ public class FileUtil {
 	public static String root_bugs = root+"bugs/";//create a new file every "newBugFileWindow" miniues.
 	public static String root_hangs = root+"hangs/";//create a new file every "newBugFileWindow" miniues.
 	public static String root_tmp = root+"tmp/";
+
+	public static String root_persist = root + "persist/";
 	
 	public final static String monitorDir = "monitor";
 	public final static String ioTracesDir = "fav-rst";
@@ -77,6 +80,8 @@ public class FileUtil {
 		root_bugs = root+"bugs/";//create a new file every "newBugFileWindow" miniues.
 		root_hangs = root+"hangs/";//create a new file every "newBugFileWindow" miniues.
 		root_tmp = root+"tmp/";
+
+		root_persist = root + "persist/";
 	}
 	
 	public static void generateFAVLogInfo(String seed, String testID, List<String> logInfo, FaultSequence seq) {
@@ -191,12 +196,14 @@ public class FileUtil {
 		}
 	}
 	
-	public static void updateQueueInfo(String testID, List<QueueEntry> mutates, int fuzzed_time, int handicap) {
+	public static void updateQueueInfo(String testID, List<QueueEntry> mutates, int handicap) {
 		try {
-			FileOutputStream out = new FileOutputStream(FileUtil.root_queue+testID+"/"+FileUtil.fuzzed_time_file);
-			out.write(String.valueOf(fuzzed_time).getBytes());
-			out.flush();
-			out.close();
+			FileOutputStream out;
+
+			// out = new FileOutputStream(FileUtil.root_queue+testID+"/"+FileUtil.fuzzed_time_file);
+			// out.write(String.valueOf(fuzzed_time).getBytes());
+			// out.flush();
+			// out.close();
 			
 			out = new FileOutputStream(FileUtil.root_queue+testID+"/"+FileUtil.mutates_size_file);
 			out.write(String.valueOf(mutates.size()).getBytes());
@@ -230,12 +237,23 @@ public class FileUtil {
 			e.printStackTrace();
 		}
 	}
+
+	public static void copyDirToPersist(String testID) {
+		File src = new File(FileUtil.root_tmp + testID);
+		File des = new File(FileUtil.root_persist);
+		try {
+			FileUtils.copyDirectoryToDirectory(src, des);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	
 	public static void copyDirToBugs(String testID, long execedSeconds) {
 		File src = new File(FileUtil.root_tmp+testID);
-		String suffix = newBugFileWindow +"m-"+execedSeconds/(60*newBugFileWindow);
-		File des = new File(root_bugs + suffix);
+		String timeInfo = newBugFileWindow +"m-"+execedSeconds/(60*newBugFileWindow);
+		File des = new File(root_bugs + timeInfo);
 		try {
 			FileUtils.copyDirectoryToDirectory(src, des);
 		} catch (IOException e) {
@@ -256,17 +274,11 @@ public class FileUtil {
 		}
 	}
 
-    public static void copyToTested(String testID, long execedSeconds, Conf conf) {
+    public static void copyToTested(String testID, long execedSeconds, String curFaultFileName) {
     	String timeInfo = newBugFileWindow +"m-"+execedSeconds/(60*newBugFileWindow);
     	File des = new File(root_tested + timeInfo +"/"+testID);
     	
-        File faultFile = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_FAULT_FILE.getName());
-        File seedFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.seed_file);
-
-		File fsFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.faultSeqFile);
-		File fsJSONFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.faultSeqJSONFile);
-		
-        
+        File faultFile = new File(FileUtil.root_tmp+testID+"/"+curFaultFileName);
         if(faultFile.exists()){
         	try {
 				FileUtils.copyFileToDirectory(faultFile, des);
@@ -275,6 +287,8 @@ public class FileUtil {
 				e.printStackTrace();
 			}
         }
+
+		File seedFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.seed_file);
         if(seedFile.exists()){
         	try {
 				FileUtils.copyFileToDirectory(seedFile, des);
@@ -284,37 +298,49 @@ public class FileUtil {
 			}
         }
 
-		if(fsFile.exists()){
+		File faultSeqFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.faultSeqFile);
+		if(faultSeqFile.exists()){
         	try {
-				FileUtils.copyFileToDirectory(fsFile, des);
+				FileUtils.copyFileToDirectory(faultSeqFile, des);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         }
 
-		if(fsJSONFile.exists()){
+		File faultSeqJsonFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.faultSeqJSONFile);
+		if(faultSeqJsonFile.exists()){
         	try {
-				FileUtils.copyFileToDirectory(fsJSONFile, des);
+				FileUtils.copyFileToDirectory(faultSeqJsonFile, des);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         }
+
+		File mapFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.map_file);
+		if(mapFile.exists()){
+			try {
+				FileUtils.copyFileToDirectory(mapFile, des);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
         
-        File tmpFile = new File(FileUtil.root_tmp+testID);
-        if(tmpFile.exists() && tmpFile.isDirectory()) {
-        	for(File f:tmpFile.listFiles()) {
-        		if(f.getName().startsWith(FileUtil.map_file)) {
-        			try {
-						FileUtils.copyFileToDirectory(f, des);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-        		}
-        	}
-        }
+        // File tmpFile = new File(FileUtil.root_tmp+testID);
+        // if(tmpFile.exists() && tmpFile.isDirectory()) {
+        // 	for(File f:tmpFile.listFiles()) {
+        // 		if(f.getName().startsWith(FileUtil.map_file)) {
+        // 			try {
+		// 				FileUtils.copyFileToDirectory(f, des);
+		// 			} catch (IOException e) {
+		// 				// TODO Auto-generated catch block
+		// 				e.printStackTrace();
+		// 			}
+        // 		}
+        // 	}
+        // }
 	}
 
     public static void removeFromQueue(String testID, Conf conf) {
@@ -336,7 +362,7 @@ public class FileUtil {
 		}
     }
 
-	public static void copyToQueue(String testID, Conf conf) {
+	public static void copyToQueue(String testID, String curFaultFileName) {
         File ioTraces = new File(FileUtil.root_tmp+testID+"/"+ioTracesDir);
         
         if(ioTraces.exists()){
@@ -345,7 +371,7 @@ public class FileUtil {
         		
 				FileUtils.copyDirectoryToDirectory(ioTraces, des);
 				
-				File faultSeq = new File(FileUtil.root_tmp+testID+"/"+conf.CUR_FAULT_FILE.getName());
+				File faultSeq = new File(FileUtil.root_tmp+testID+"/"+curFaultFileName);
 				if(faultSeq.exists()) {
 					FileUtils.copyFileToDirectory(faultSeq, des);
 				}
@@ -365,20 +391,25 @@ public class FileUtil {
 		        if(seedFile.exists()){
 		        	FileUtils.copyFileToDirectory(seedFile, des);
 		        }
+
+				File mapFile = new File(FileUtil.root_tmp+testID+"/"+FileUtil.map_file);
+				if (mapFile.exists()) {
+					FileUtils.copyFileToDirectory(mapFile, des);
+				}
 		        
-		        File tmpFile = new File(FileUtil.root_tmp+testID);
-		        if(tmpFile.exists() && tmpFile.isDirectory()) {
-		        	for(File f:tmpFile.listFiles()) {
-		        		if(f.getName().startsWith(FileUtil.map_file)) {
-		        			try {
-								FileUtils.copyFileToDirectory(f, des);
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-		        		}
-		        	}
-		        }
+		        // File tmpFile = new File(FileUtil.root_tmp+testID);
+		        // if(tmpFile.exists() && tmpFile.isDirectory()) {
+		        // 	for(File f:tmpFile.listFiles()) {
+		        // 		if(f.getName().startsWith(FileUtil.map_file)) {
+		        // 			try {
+				// 				FileUtils.copyFileToDirectory(f, des);
+				// 			} catch (IOException e) {
+				// 				// TODO Auto-generated catch block
+				// 				e.printStackTrace();
+				// 			}
+		        // 		}
+		        // 	}
+		        // }
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -409,6 +440,8 @@ public class FileUtil {
 			}
         }
 	}
+
+	
 	
 	public static void recordSkippedTests(String testID, List<QueueEntry> mutates, Conf conf) {
 		int count = 1;
@@ -580,5 +613,37 @@ public class FileUtil {
 			rst = rst + seconds+"s";
 		}
 		return rst;
+	}
+
+	public static void clearRootPath() {
+		File src = new File(FileUtil.root);
+		try {
+			//create the root folder if it does not exist
+			if(!src.exists()) {
+				src.mkdirs();
+			}
+			// clear all the files and folders in the root folder
+			FileUtils.cleanDirectory(src);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static QueueEntry retriveReplayQueueEntryFromRSTFolder(String filepath) {
+		EntryConstructor fsc = new EntryConstructor();
+		List<IOPoint> ioPoints = fsc.constructIOPointList(filepath + "/" + ioTracesDir);
+		QueueEntry e = new QueueEntry();
+		e.ioSeq = ioPoints;
+		FaultSequence faultSeq = loadcurrentFaultPoint(filepath + "/zk363curFault");
+		if (faultSeq == null) {
+			faultSeq = new FaultSequence();
+		}
+		e.faultSeq = faultSeq;
+	
+		// TODO: Need to consider whether the workload information should be stored in
+		// the RST folder
+		e.workload = Conf.currentWorkload;
+	
+		return e;
 	}
 }

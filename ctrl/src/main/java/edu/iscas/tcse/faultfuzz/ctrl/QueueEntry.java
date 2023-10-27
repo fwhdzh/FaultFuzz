@@ -17,26 +17,29 @@ public class QueueEntry {
 	
 	public FaultSequence faultSeq;
 	public List<IOPoint> ioSeq;
-	public int candidate_io;
-	public int max_match_fault;
 
-	public int fuzzed_time; // count to retrieve it from the queue
+
+	// public int fuzzed_time; // count to retrieve it from the queue
 
 	public QueueEntry seed;
 	public List<QueueEntry> mutates;
 
-	public List<QueueEntry> favored_mutates;
 	public List<QueueEntry> on_recovery_mutates;
+	public boolean on_recovery = false;
 
-	public Set<Integer> unique_io_id;
+	// public Set<Integer> unique_io_id;
 	public Set<Integer> recovery_io_id;
 	public Set<Integer> not_tested_fault_id;
 
+	public List<QueueEntry> favored_mutates;
 	public boolean favored; // gy for mutate favored /* Currently favored? */
 	// public boolean fs_redundant; /* Marked as redundant in the fs? */
 
-	public int bitmap_size; /* Number of bits set in bitmap */
+	public int candidate_io;
+	public int max_match_fault;
 
+
+	public int bitmap_size; /* Number of bits set in bitmap */
 	public long exec_s; /* Execution time (seconds) */
 	public int handicap; /* Number of queue cycles behind */
 
@@ -48,13 +51,11 @@ public class QueueEntry {
 	public File workload;
 	
 
-	public boolean on_recovery = false;
-
 	public QueueEntry() {
 		mutates = new ArrayList<QueueEntry>();
 		on_recovery_mutates = new ArrayList<QueueEntry>();
 		favored_mutates = new ArrayList<QueueEntry>();
-		unique_io_id = new HashSet<Integer>();
+		// unique_io_id = new HashSet<Integer>();
 		recovery_io_id = new HashSet<Integer>();
 		not_tested_fault_id = new HashSet<Integer>();
 	}

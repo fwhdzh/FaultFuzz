@@ -129,11 +129,11 @@ public class RandomController {
 		}
 		faultSequence = p;
 		faultSequence.reset();
-		updataCurCrashPointFile();
+		updataCurFaultPointFile();
 		Stat.log("Current fault sequence was prepared.");
 	}
 
-	public void updataCurCrashPointFile() {
+	public void updataCurFaultPointFile() {
 		if(faultSequence == null || faultSequence.isEmpty()) {
 			File file = favconfig.CUR_FAULT_FILE;
 			if(file.exists()) {

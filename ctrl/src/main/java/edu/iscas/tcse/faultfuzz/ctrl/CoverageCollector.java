@@ -2,12 +2,10 @@ package edu.iscas.tcse.faultfuzz.ctrl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
@@ -239,40 +237,4 @@ public class CoverageCollector {
         return fileList;
 	}
 	
-	/* When we bump into a new path, we call this to see if the path appears
-	   more "favorable" than any of the existing ones. The purpose of the
-	   "favorables" is to have a minimal set of paths that trigger all the bits
-	   seen in the bitmap so far, and focus on fuzzing them at the expense of
-	   the rest.
-	   The first step of the process is to maintain a list of top_rated[] entries
-	   for every byte in the bitmap. We win that slot if there is no previous
-	   contender, or if the contender has a more favorable speed x size factor. */
-
-	public void update_bitmap_score(QueueEntry q) {
-
-	}
-	
-	/* The second part of the mechanism discussed above is a routine that
-	   goes over top_rated[] entries, and then sequentially grabs winners for
-	   previously-unseen bytes (temp_v) and marks them as favored, at least
-	   until the next run. The favored entries are given more air time during
-	   all fuzzing steps. */
-
-	public void cull_queue() {
-
-	}
-
-	/* Examine map coverage. Called once, for first test case. */
-
-	public void check_map_coverage() {
-
-	}
-	
-	/* Calculate case desirability score to adjust the length of havoc fuzzing.
-	   A helper function for fuzz_one(). Maybe some of these constants should
-	   go into config.h. */
-
-	static int calculate_score(QueueEntry q) {
-		return 100;
-	}
 }

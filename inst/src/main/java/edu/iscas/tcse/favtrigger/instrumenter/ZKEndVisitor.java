@@ -36,7 +36,7 @@ public class ZKEndVisitor extends ClassVisitor {
         boolean ignoreFrames = ioTrackingCV.isIgnoreFrames();
         boolean fixLdcClass = ioTrackingCV.isFixLdcClass();
         boolean generateExtraLVDebug = ioTrackingCV.isGenerateExtraLVDebug();
-        if(Configuration.USE_FAULT_FUZZ && (Configuration.FOR_ZK || Configuration.ZK_CLI)) {
+        if(Configuration.USE_FAULT_FUZZ && Configuration.FOR_ZK) {
         	if(className.equals("org/apache/jute/BinaryOutputArchive")){
             	MethodVisitor mv;
                 int acc = Opcodes.ACC_PUBLIC;
@@ -73,7 +73,7 @@ public class ZKEndVisitor extends ClassVisitor {
                 ga.visitEnd();
             }
         }
-        if(Configuration.USE_FAULT_FUZZ && (Configuration.FOR_ZK || Configuration.ZK_CLI)) {
+        if(Configuration.USE_FAULT_FUZZ && Configuration.FOR_ZK) {
         	if(className.equals("org/apache/jute/BinaryInputArchive")){
             	MethodVisitor mv;
                 int acc = Opcodes.ACC_PUBLIC;

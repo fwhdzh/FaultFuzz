@@ -6,7 +6,7 @@ class InstConf {
 	String instPath;
 	boolean useFaultFuzz;
 	List<String> preDefinedInst;
-	String recordPath;
+	String observerHomePath;
 	String dataPaths;
 	String cacheDir;
 	String controllerSocket;
@@ -36,11 +36,11 @@ class InstConf {
 	public void setPreDefinedInst(List<String> preDefinedInst) {
 		this.preDefinedInst = preDefinedInst;
 	}
-	public String getRecordPath() {
-		return recordPath;
+	public String getObserverHomePath() {
+		return observerHomePath;
 	}
-	public void setRecordPath(String recordPath) {
-		this.recordPath = recordPath;
+	public void setObserverHomePath(String observerHomePath) {
+		this.observerHomePath = observerHomePath;
 	}
 	public String getDataPaths() {
 		return dataPaths;
@@ -108,6 +108,4 @@ class InstConf {
 	public void setAnnotationFile(String annotationFile) {
 		this.annotationFile = annotationFile;
 	}
-
-	
 }

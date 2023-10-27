@@ -48,7 +48,7 @@ public class Cluster {
         }
     }
 
-	public Collection<? extends String> runChecker(Conf conf, List<MaxDownNodes> currentCluster, String runInfoDir) {
+	public Collection<? extends String> runChecker(List<MaxDownNodes> currentCluster, String runInfoDir) {
 		// TODO Auto-generated method stub
 		if(favconfig.CHECKER != null) {
             String path = favconfig.CHECKER.getAbsolutePath();

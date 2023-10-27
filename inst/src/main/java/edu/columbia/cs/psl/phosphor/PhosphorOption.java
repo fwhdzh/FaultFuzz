@@ -100,14 +100,14 @@ public enum PhosphorOption {
             Configuration.READ_AND_SAVE_BCI = isPresent;
         }
     },
-    SERIALIZATION(new PhosphorOptionBuilder("Read and write taint tags through Java Serialization", true, true)) {
-        @Override
-        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
-            if(forRuntimeInst && isPresent) {
-                Configuration.TAINT_THROUGH_SERIALIZATION = true;
-            }
-        }
-    },
+    // SERIALIZATION(new PhosphorOptionBuilder("Read and write taint tags through Java Serialization", true, true)) {
+    //     @Override
+    //     public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+    //         if(forRuntimeInst && isPresent) {
+    //             Configuration.TAINT_THROUGH_SERIALIZATION = true;
+    //         }
+    //     }
+    // },
     SKIP_LOCALS(new PhosphorOptionBuilder("Do not output local variable debug tables for generated local variables " +
             "(useful for avoiding warnings from D8)", true, false)) {
         @Override
@@ -329,6 +329,41 @@ public enum PhosphorOption {
              }
          }
      },//for favtrigger
+     //for favtrigger
+    COV_INCLUDES(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+
+                // File f = new File(
+                // String covIncludesFile = commandLine.getOptionValue(optionName).trim();
+                // File f = new File(covIncludesFile);
+                // if (f.exists()) {
+                //     try {
+                //         FileReader fileReader  = new FileReader(f);
+                //         BufferedReader br = new BufferedReader(fileReader);
+                //         String lineContent = null;
+                //         while((lineContent = br.readLine()) != null){
+                //             if(!lineContent.startsWith("#")) {
+                //                 CoverageMap.includes.add(lineContent.trim().replace(".", "/"));
+                //             }
+                //         }
+                //     } catch (IOException e) {
+                //         // TODO Auto-generated catch block
+                //         e.printStackTrace();
+                //     }
+                // }
+
+                String value = commandLine.getOptionValue(optionName);
+                String[] secs = value.split(":");
+                CoverageMap.includes = new ArrayList<String>();
+                for(String v:secs){
+                    System.out.println("faultfuzz: include "+v.trim());
+                    CoverageMap.includes.add(v.trim());
+                }
+            }
+        }
+    },
      AFL_PORT(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
          @Override
          public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
@@ -355,21 +390,6 @@ public enum PhosphorOption {
             if(isPresent) {
                 CoverageMap.MAP_SIZE = Integer.parseInt(commandLine.getOptionValue(optionName));
                 CoverageMap.initMap();
-            }
-        }
-    },
-    //for favtrigger
-    COV_INCLUDES(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
-        @Override
-        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
-            if(isPresent) {
-                String value = commandLine.getOptionValue(optionName);
-                String[] secs = value.split(":");
-                CoverageMap.includes = new ArrayList<String>();
-                for(String v:secs){
-                    System.out.println("faultfuzz: include "+v.trim());
-                    CoverageMap.includes.add(v.trim());
-                }
             }
         }
     },
@@ -476,15 +496,15 @@ public enum PhosphorOption {
             }
         }
     },
-    ZK_CLI(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
-        @Override
-        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
-            if(isPresent) {
-                boolean value = Boolean.parseBoolean(commandLine.getOptionValue(optionName, "true"));
-                Configuration.ZK_CLI = value;
-            }
-        }
-    },
+    // ZK_CLI(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
+    //     @Override
+    //     public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+    //         if(isPresent) {
+    //             boolean value = Boolean.parseBoolean(commandLine.getOptionValue(optionName, "true"));
+    //             Configuration.ZK_CLI = value;
+    //         }
+    //     }
+    // },
     FOR_HDFS(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
         @Override
         public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
@@ -574,19 +594,19 @@ public enum PhosphorOption {
             }
         }
     },
-    TAINT_THROUGH(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
-        @Override
-        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
-            if(isPresent) {
-                String value = commandLine.getOptionValue(optionName);
-                try {
-                    Instrumenter.taintThroughFile = new FileInputStream(value);
-                } catch(FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    },
+    // TAINT_THROUGH(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
+    //     @Override
+    //     public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+    //         if(isPresent) {
+    //             String value = commandLine.getOptionValue(optionName);
+    //             try {
+    //                 Instrumenter.taintThroughFile = new FileInputStream(value);
+    //             } catch(FileNotFoundException e) {
+    //                 e.printStackTrace();
+    //             }
+    //         }
+    //     }
+    // },
     TAINT_SOURCE_WRAPPER(new PhosphorOptionBuilder(null, false, true).argType(Class.class)) {
         @Override
         public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
@@ -684,6 +704,14 @@ public enum PhosphorOption {
         public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
             if(isPresent) {
                 Configuration.ANNOTATION_FILE = commandLine.getOptionValue(optionName);
+            }
+        }
+    },
+    USE_INJECT_ANNOTATION(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.USE_INJECT_ANNOTATION = Boolean.parseBoolean(commandLine.getOptionValue(optionName));
             }
         }
     };

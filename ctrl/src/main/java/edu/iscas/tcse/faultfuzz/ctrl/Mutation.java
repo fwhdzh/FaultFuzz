@@ -25,19 +25,25 @@ public class Mutation {
 		faults.reset();
 	}
 
-	public static void mutateFaultSequence(QueueEntry q, Conf conf) {
+	public static void mutateFaultSequence(QueueEntry q) {
 		
-		List<QueueEntry> mutates = generateQueueEntry(q, conf);
+		List<QueueEntry> mutates = generateQueueEntry(q);
 		q.mutates = mutates;
 		Stat.log("Got "+mutates.size()+" mutations.");
 		q.favored_mutates = new ArrayList<QueueEntry>(mutates);
-		initializeOnRecoveryMutates(q);
+
+		// initializeOnRecoveryMutates(q);
 	}
 
-	private static List<QueueEntry> generateQueueEntry(QueueEntry q, Conf conf) {
+	
+
+	private static List<QueueEntry> generateQueueEntry(QueueEntry q) {
 		List<QueueEntry> result = new ArrayList<QueueEntry>();
 		List<FaultPoint> faultPointToMutate = q.faultPointsToMutate;
 		FaultSequence original_faults = q.faultSeq;
+
+		Set<Integer> recoveryIOIds = Fuzzer.getRecoveryIOId(q, q.seed);
+
 		for (FaultPoint p : faultPointToMutate) {
 			FaultSequence faults = new FaultSequence();
 			prepareNewFaultSeqByAppendOneFaultToAnExsitingFaultSeq(original_faults, p, faults);
@@ -54,13 +60,17 @@ public class Mutation {
 
 			new_q.workload = q.workload;
 
+			if (recoveryIOIds.contains(p.ioPt.ioID)){
+				new_q.on_recovery = true;
+			}
+
 			result.add(new_q);
 		}
 
 		return result;
 	}
 
-	private static List<FaultPoint> findFaultPointToInject(QueueEntry q, Conf conf) {
+	private static List<FaultPoint> findFaultPointToInject(QueueEntry q, int maxFaults, List<MaxDownNodes> maxDownGroup) {
 
 		List<FaultPoint> result = new ArrayList<>();
 
@@ -70,7 +80,7 @@ public class Mutation {
 		int io_index = q.candidate_io;
 		int fault_index = q.max_match_fault;
 		
-		if(io_index == q.ioSeq.size() || fault_index < original_faults.seq.size() || original_faults.seq.size() >= conf.MAX_FAULTS) {
+		if(io_index == q.ioSeq.size() || fault_index < original_faults.seq.size() || original_faults.seq.size() >= maxFaults) {
 			//no I/O points to inject a new fault
 			//or current I/O points do not match with the fault sequence
 			q.mutates = mutates;
@@ -79,12 +89,12 @@ public class Mutation {
 			return result;
 		}
 
-		List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(conf.maxDownGroup);
+		List<MaxDownNodes> currentCluster = MaxDownNodes.cloneCluster(maxDownGroup);
 		for(FaultPoint fault:original_faults.seq) {
 			MaxDownNodes.buildClusterStatus(currentCluster, fault.tarNodeIp, fault.type);
 		}
 
-		Network network = Network.constructNetworkFromMaxDOwnNodes(MaxDownNodes.cloneCluster(conf.maxDownGroup));
+		Network network = Network.constructNetworkFromMaxDOwnNodes(MaxDownNodes.cloneCluster(maxDownGroup));
 		for(FaultPoint fault:original_faults.seq) {
 			if (fault.type == FaultType.NETWORK_DISCONNECTION) {
 				List<String> msgInfo = fault.ioPt.retrieveTotalInformationAboutMsgFromPath();
@@ -180,8 +190,8 @@ public class Mutation {
 		return result;
 	}
 
-	public static void initializeFaultPointsToMutate(QueueEntry q, Conf conf) {
-		List<FaultPoint> faults = findFaultPointToInject(q, conf);
+	public static void initializeFaultPointsToMutate(QueueEntry q, int maxFaults, List<MaxDownNodes> maxDownGroup) {
+		List<FaultPoint> faults = findFaultPointToInject(q, maxFaults, maxDownGroup);
 		q.faultPointsToMutate = faults;
 	}
 

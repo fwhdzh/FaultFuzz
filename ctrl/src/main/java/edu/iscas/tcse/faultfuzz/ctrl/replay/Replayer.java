@@ -11,20 +11,20 @@ import org.apache.commons.io.FileUtils;
 
 import com.alibaba.fastjson.JSON;
 
+import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Conf;
-import edu.iscas.tcse.faultfuzz.ctrl.EntryConstructor;
-import edu.iscas.tcse.faultfuzz.ctrl.Fuzzer;
 import edu.iscas.tcse.faultfuzz.ctrl.QueueEntry;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
 import edu.iscas.tcse.faultfuzz.ctrl.control.replay.ReplayTarget;
-import edu.iscas.tcse.faultfuzz.ctrl.model.FaultSequence;
-import edu.iscas.tcse.faultfuzz.ctrl.model.IOPoint;
+import edu.iscas.tcse.faultfuzz.ctrl.control.replay.ReplayTarget.ReplayResult;
 import edu.iscas.tcse.faultfuzz.ctrl.runtime.QueueEntryRuntime;
 import edu.iscas.tcse.faultfuzz.ctrl.utils.FileUtil;
 
 public class Replayer {
 
 	public Conf conf;
+
+	public ReplayConf replayConf;
 
 	public Replayer(Conf conf) {
 		this.conf = conf;
@@ -47,32 +47,41 @@ public class Replayer {
 		return result;
 	}
 
-
-	public QueueEntry retriveReplayQueueEntryFromRSTFolder(String filepath) {
-		EntryConstructor fsc = new EntryConstructor();
-		List<IOPoint> ioPoints = fsc.constructIOPointList(filepath + "/" + FileUtil.ioTracesDir);
-		QueueEntry e = new QueueEntry();
-		e.ioSeq = ioPoints;
-		FaultSequence faultSeq = FileUtil.loadcurrentFaultPoint(filepath + "/zk363curCrash");
-		if (faultSeq == null) {
-			faultSeq = new FaultSequence();
-		}
-		e.faultSeq = faultSeq;
-
-		//TODO: Need to consider whether the workload information should be stored in the RST folder
-		e.workload = Conf.currentWorkload;
-
-		return e;
+	public String generateReplayReport(ReplayResult replayResult) {
+		String s = "";
+		s = s + "*************************************************" + "\n";
+		s = s + "**************Replay has finished********************" + "\n";
+		s = s + "replay result: " + replayResult.result + "\n";
+		String explainResultString = "";
+		explainResultString = explainResultString + "Explaination of the replay result:" + "\n";
+		explainResultString = explainResultString + "0: workload finish, replay finish (trigger all I/O points and faults). replay success" + "\n";
+		explainResultString = explainResultString + "1: workload finish, replay finish, and we find a bug." + "\n";
+		explainResultString = explainResultString + "2: workload finish, replay not finish. replay failed" + "\n";
+		explainResultString = explainResultString + "3: workload not finish, replay finish. not possible" + "\n";
+		explainResultString = explainResultString + "-1: workload not finish, replay not finish. we don't know whether the replay could success since the time is not enough." + "\n";
+		explainResultString = explainResultString + "Replay is not always available since FaultFuzz cannot control all non-determinism of the target system. Users can check the detailed information of the test in the folder storing test data" + "\n";
+		s = s + explainResultString;
+		s = s + "*************************************************" + "\n";
+		s = s + "The replay log is:" + "\n";
+		s = s + replayResult.info + "\n";
+		s = s + "**********************End************************" + "\n";
+		return s;
 	}
 
-	public void replay(QueueEntry entry) {
+
+	public String replay(QueueEntry entry) {
 		ReplayTarget rt = new ReplayTarget();
 		QueueEntryRuntime entryRuntime = new QueueEntryRuntime(entry);
 		// rt.beforeTarget(seqPair, conf, "replay", conf.REPLAY_HANG_TIME);
-		rt.beforeTarget(entryRuntime, conf, "replay", conf.hangSeconds);
+		Cluster cluster = new Cluster(conf);
+		rt.beforeTarget(entryRuntime, cluster, conf.AFL_PORT, conf.CUR_FAULT_FILE, conf.MONITOR, "replay", conf.hangSeconds, conf.CONTROLLER_PORT, conf.maxDownGroup);
 		rt.doTarget();
-		int result = rt.afterTarget().result;
-		Stat.log("replay result: " + result);
+		ReplayResult replayResult = rt.afterTarget();
+		cluster.prepareCluster(); //clean the test environment
+
+		String report = generateReplayReport(replayResult);
+		Stat.log(report);
+		return report;
 	}
 
 	public boolean checkQueueEntrySuitedToReplay(QueueEntry q) {
@@ -86,29 +95,56 @@ public class Replayer {
 		return result;
 	}
 
+	/**
+	 * Main function for Replayer
+	 * 
+	 * @param args args[0] is the configuration file, can be normal conf format or
+	 *             special replayer format.
+	 *             args[1] is the path of the RST folder
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		if(args.length < 1) {
-			System.out.println("Please specify the configuration file!");
+		if (args.length < 2) {
+			System.out.println("Please specify the configuration file, the fav_rst!");
 			return;
 		}
-		
+		String replayReportPath = null;
+		if (args.length >= 3) {
+			Stat.log("replay report path is " + args[2]);
+			replayReportPath = args[2];
+		}
+
 		File confFile = new File(args[0]);
-		if(!confFile.exists()) {
+		if (!confFile.exists()) {
 			System.out.println("The configuration file does not exist!");
 			return;
 		}
 
 		Conf conf = new Conf(confFile);
-		// conf.CONTROLLER_PORT = Integer.parseInt(args[0].trim());
-		conf.loadConfigurationAndCheckAndPrint();
-		
-		RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-        //System.out.println(runtimeMXBean.getName());
-        int myproc = Integer.valueOf(runtimeMXBean.getName().split("@")[0]).intValue();
-		FileUtils.writeByteArrayToFile(new File(FileUtil.root+FileUtil.fuzzer_id_file), String.valueOf(myproc).getBytes());
+		conf.loadConfiguration();
 
-		Fuzzer fuzzer = new Fuzzer(conf);
-		fuzzer.start();
+		String rstParentFolder = args[1];
+
+		ReplayConf rConf = new ReplayConf(conf, rstParentFolder);
+
+		RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+		// System.out.println(runtimeMXBean.getName());
+		int myproc = Integer.valueOf(runtimeMXBean.getName().split("@")[0]).intValue();
+		FileUtils.writeByteArrayToFile(new File(FileUtil.root + FileUtil.fuzzer_id_file),
+				String.valueOf(myproc).getBytes());
+
+		Replayer replayer = new Replayer(conf);
+		QueueEntry entry = FileUtil.retriveReplayQueueEntryFromRSTFolder(rstParentFolder);
+		String replayReport = replayer.replay(entry);
+
+		if (replayReportPath != null) {
+			Stat.log("write replay report to " + replayReportPath);
+			FileUtils.writeByteArrayToFile(new File(replayReportPath), replayReport.getBytes());
+			Stat.log("write replay report to " + replayReportPath + " done!");
+		}
+		
+
+		
 	}
 }

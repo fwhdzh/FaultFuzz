@@ -80,7 +80,7 @@ public class AflCli {
 		interactWithNode(serverIp, serverPort, command);
 	}
 
-	public static void executeCliCommandToCluster(List<MaxDownNodes> cluster, final Conf conf, AflCommand command,
+	public static void executeCliCommandToCluster(List<MaxDownNodes> cluster, int aflPort, AflCommand command,
 			long waitTime) {
 		List<Thread> workThreads = new ArrayList<Thread>();
 		for (MaxDownNodes subCluster : cluster) {
@@ -92,7 +92,7 @@ public class AflCli {
 						super.run();
 						String[] args = new String[3];
 						args[0] = alive;
-						args[1] = String.valueOf(conf.AFL_PORT);
+						args[1] = String.valueOf(aflPort);
 						args[2] = command.toString();
 						// args[2] = AflCommand.STABLE.toString();
 
@@ -134,7 +134,7 @@ public class AflCli {
 		return aliveList;
 	}
 
-	public static boolean executeUtilSuccess(List<MaxDownNodes> cluster, final Conf conf, AflCommand command,
+	public static boolean executeUtilSuccess(List<MaxDownNodes> cluster, int aflPort, AflCommand command,
 			long waitTime) {
 		boolean result;
 		List<String> aliveList = getAliveNodesInCluster(cluster);
@@ -151,7 +151,7 @@ public class AflCli {
 				String alive = aliveList.get(i);
 				String[] args = new String[3];
 				args[0] = alive;
-				args[1] = String.valueOf(conf.AFL_PORT);
+				args[1] = String.valueOf(aflPort);
 				args[2] = command.toString();
 				if (exeCount[i] == 0) {
 					Stat.log("Execute AflCli.main with args: " + JSONObject.toJSONString(args));

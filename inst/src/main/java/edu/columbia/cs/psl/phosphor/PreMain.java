@@ -114,6 +114,7 @@ public class PreMain {
                 +", exec_mode:" + Configuration.EXEC_MODE
                 +", determine_state:" + Configuration.DETERMINE_STATE   //only meanful for FaultFuzz mode
                 +", annotation_file:" + Configuration.ANNOTATION_FILE
+                + ", useInjectAnnotation: " + Configuration.USE_INJECT_ANNOTATION
         );
         if(System.getProperty("phosphorCacheDirectory") != null) {
             Configuration.CACHE_DIR = System.getProperty("phosphorCacheDirectory");

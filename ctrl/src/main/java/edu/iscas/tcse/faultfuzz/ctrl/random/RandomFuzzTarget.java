@@ -191,7 +191,7 @@ public class RandomFuzzTarget {
 			logInfo.add(Stat.log("Finish saving run-time traces."));
 		}
 
-		Monitor m = new Monitor(conf);
+		Monitor m = new Monitor(conf.MONITOR.getAbsolutePath());
 		String runInfoPath = m.getTmpReportDir(testID);
 		if(ret != -1) {//no need to collect traces and logs for not triggered ones
 			logInfo.add(Stat.log("Collecting run-time information ..."));
@@ -201,7 +201,7 @@ public class RandomFuzzTarget {
 		
 		if(ret == 0) {
 			logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
-			logInfo.addAll(controller.cluster.runChecker(conf, controller.currentCluster, runInfoPath+FileUtil.monitorDir));
+			logInfo.addAll(controller.cluster.runChecker(controller.currentCluster, runInfoPath+FileUtil.monitorDir));
 			ret = checkBug(seq, conf);
 			logInfo.add(Stat.log("Exit normally, stop controller ..."));
 		}

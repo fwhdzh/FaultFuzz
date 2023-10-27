@@ -1,7 +1,4 @@
-#!/bin/bash
-
-# 要查找的进程名字列表，以空格分隔
-process_names="CloudFuzzMain zkCli1 ZK1Cli ZK1Cli2 ZKChecker GetLeader"
+process_names="BTMain"
 
 # 遍历所有进程名字，查找并杀死相应进程
 for name in $process_names

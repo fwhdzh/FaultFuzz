@@ -64,7 +64,7 @@ public class RecordTaint {
 		if(Configuration.USE_MSGID || Configuration.YARN_RPC || Configuration.FOR_YARN
 		        || Configuration.FOR_MR || Configuration.MR_RPC || Configuration.FOR_HDFS
 				|| Configuration.FOR_HBASE || Configuration.HDFS_RPC || Configuration.HBASE_RPC
-				|| Configuration.FOR_ZK || Configuration.ZK_CLI) {
+				|| Configuration.FOR_ZK ) {
 			int temp = -1;
             // Random rand = new Random();
 			// synchronized (rand) {

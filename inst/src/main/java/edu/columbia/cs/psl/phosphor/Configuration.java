@@ -74,31 +74,46 @@ public class Configuration {
     public static TaintSourceWrapper autoTainter = new TaintSourceWrapper();
     public static DerivedTaintListener derivedTaintListener = new DerivedTaintListener();
     public static boolean WITH_HEAVY_OBJ_EQUALS_HASHCODE = false;
-    public static String CACHE_DIR = null;
-    public static boolean TAINT_THROUGH_SERIALIZATION = true;
+
+    
+    // public static boolean TAINT_THROUGH_SERIALIZATION = true;
 
     public static final int PROTO_MSG_ID_TAG = 1024;
     public static boolean IS_THIRD_PARTY_PROTO = true;
-    public static boolean FOR_YARN = false; //favtrigger
+
+    public static boolean USE_FAULT_FUZZ = false; //favtrigger, default not to use record and trigger logic
+
+    public static boolean USE_MSGID = false; //favtrigger
+
+    public static boolean FOR_JAVA = false; //favtrigger
+    
+    public static boolean JDK_MSG = false; //favtrigger
+    public static boolean JDK_FILE = false; //favtrigger
+    
+    public static boolean FOR_ZK = false; //favtrigger
+    public static boolean ZK_API = false;
+
     public static boolean FOR_HDFS = false; //favtrigger
-    public static boolean FOR_HBASE = false; //favtrigger
-    public static boolean YARN_RPC = false; //pass ip and msgid, but not record or generate taints
     public static boolean HDFS_RPC = false;
+    public static boolean HDFS_API = false;
+
+    public static boolean FOR_HBASE = false; //favtrigger
     public static boolean HBASE_RPC = false;
+
+    public static boolean FOR_YARN = false; //favtrigger
+    public static boolean YARN_RPC = false; //pass ip and msgid, but not record or generate taints
+    
+    
     public static boolean FOR_MR = false; //favtrigger
     public static boolean MR_RPC = false;
-    public static boolean FOR_ZK = false; //favtrigger
-    public static boolean ZK_CLI = false; //favtrigger
+    
+    // public static boolean ZK_CLI = false; //favtrigger
     public static boolean ASYC_TRACE = false; //favtrigger
-    public static boolean USE_MSGID = false; //favtrigger
-    public static boolean FOR_JAVA = false; //favtrigger
-    public static boolean JDK_MSG = false; //favtrigger
-    public static boolean ZK_API = false;
-    public static boolean HDFS_API = false;
-    public static boolean JDK_FILE = false; //favtrigger
-    public static boolean USE_FAULT_FUZZ = false; //favtrigger, default not to use record and trigger logic
+    
+    public static String CACHE_DIR = null;
     public static String FAV_RECORD_PATH = "/home/gaoyu/FAVD/FAVTrigger/fav-rst/"; //favtrigger
     public static String COV_PATH = "/home/gaoyu/FAVD/FAVTrigger/coverage"; //favtrigger
+
     public static List<String> FILTER_PATHS = new ArrayList<String>();
     public static List<String> DATA_PATHS = new ArrayList<String>();
 
@@ -109,7 +124,8 @@ public class Configuration {
 
     public static String CONTROLLER_SOCKET = "127.0.0.1:8888";
     public static final Class TAINT_TAG_OBJ_ARRAY_CLASS = (Taint[].class); //favtrigger
-    public static boolean FAVDEBUG = false;
+
+    // public static boolean FAVDEBUG = false;
 
     // configurable
     public static long SAVE_RESULT_INTERNAL = 10000;
@@ -139,6 +155,8 @@ public class Configuration {
      * 2: control
      */
     public static int DETERMINE_STATE = 2;
+
+    public static boolean USE_INJECT_ANNOTATION = false;
 
     private Configuration() {
         // Prevents this class from being instantiated

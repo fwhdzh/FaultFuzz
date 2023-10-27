@@ -22,7 +22,6 @@ public class Conf {
 	
     public File FAV_TRIGGER_CONFIG; //store the path of the configuration file which contains .sh file paths that used to start cluster, run workload, where to inject crashes and .etc.
     
-
     public File WORKLOAD; //store the .sh file to run the workload
 
     public static List<File> WORKLOADLIST;
@@ -73,17 +72,6 @@ public class Conf {
 
     public int FAULT_SEQUENCE_BATCH_SIZE = 1;
 
-    /*
-     * Some functions have not been tested fully.
-     * So, these configurations will not be provided to users for the time being
-     */
-    public boolean REPLAY_MODE = false;
-    public String REPLAY_QUEUEENTRY_PATH = "/data/fengwenhan/data/crashfuzz_fwh/replay/QueueEntry.txt";
-    // public String REPLAY_TRACE_PATH = "/data/fengwenhan/data/crashfuzz_backup_6_full_workload/queue/6_2f";
-    public String REPLAY_TRACE_PATH;
-    public long REPLAY_HANG_TIME = 40;
-
-    
     public int DETERMINE_WAIT_TIME = 10000;
     public File WRITE_FAV_ENV = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/write-fav-env.sh");
     public File COPY_ENV_TO_CLUSTER = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/copy-env-to-cluster.sh");
@@ -108,7 +96,18 @@ public class Conf {
 
     private File handlePath(String path) {
         String workdir = System.getProperty("user.dir").trim()+"/";
+        if(path != null) {
+            if(!path.startsWith("/")) {
+                path = workdir + path;
+            }
+            File f = new File(path);
+            return f;
+        }
+        return null;
+    }
 
+    private File handlePathAndThrowIfNotExist(String path) {
+        String workdir = System.getProperty("user.dir").trim()+"/";
         if(path != null) {
             if(!path.startsWith("/")) {
                 path = workdir + path;
@@ -121,6 +120,28 @@ public class Conf {
             }
         }
         return null;
+    }
+
+    public List<MaxDownNodes> parseMaxDownGroup(String faultConfig) {
+        List<MaxDownNodes> result = new ArrayList<MaxDownNodes>();
+        String[] groups = faultConfig.trim().split(";"); // 1:{ip1,ip2,ip3};2:{ip4,ip5}
+        for (String group : groups) {
+            String[] secs = group.trim().split(":");
+            int maxDown = Integer.parseInt(secs[0]);
+            String[] ips = secs[1].trim().substring(1, secs[1].trim().length() - 1).split(",");
+            Set<String> ipSet = new HashSet<String>();
+            for (String ip : ips) {
+                ipSet.add(ip.trim());
+            }
+            assert (maxDown < ipSet.size());
+            MaxDownNodes downGroup = new MaxDownNodes();
+            downGroup.maxDown = maxDown;
+            downGroup.aliveGroup = ipSet;
+
+            downGroup.deadGroup = new HashSet<String>();
+            result.add(downGroup);
+        }
+        return result;
     }
 
     public void loadConfiguration() throws IOException {
@@ -138,12 +159,12 @@ public class Conf {
                 String[] workloadArray = workload.split(",");
                 List<File> workloadList = new ArrayList<>();
                 for (String workloadItem : workloadArray) {
-                    workloadList.add(handlePath(workloadItem));
+                    workloadList.add(handlePathAndThrowIfNotExist(workloadItem));
                 }
                 WORKLOADLIST = workloadList;
                 currentWorkload = WORKLOADLIST.get(0);
             } else {
-                WORKLOAD = handlePath(workload);
+                WORKLOAD = handlePathAndThrowIfNotExist(workload);
                 WORKLOADLIST = new ArrayList<>();
                 WORKLOADLIST.add(WORKLOAD);
                 currentWorkload = WORKLOADLIST.get(0);
@@ -163,10 +184,7 @@ public class Conf {
 
         String curFaultFile = p.getProperty(ConfOption.CUR_FAULT_FILE.toString());
         if(curFaultFile != null) {
-            if(!curFaultFile.startsWith("/")) {
-            	curFaultFile = workdir + curFaultFile;
-            }
-        	File f = new File(curFaultFile);
+            File f = handlePath(curFaultFile);
         	CUR_FAULT_FILE = f;
         }
 
@@ -206,58 +224,24 @@ public class Conf {
         }
 
         String faultConfig = p.getProperty(ConfOption.FAULT_CSTR.toString());
-    	maxDownGroup = new ArrayList<MaxDownNodes>();
-        if(faultConfig != null) {
-        	String[] groups = faultConfig.trim().split(";"); //1:{ip1,ip2,ip3};2:{ip4,ip5}
-        	for(String group:groups) {
-        		String[] secs = group.trim().split(":");
-        		int maxDown = Integer.parseInt(secs[0]);
-        		String[] ips = secs[1].trim().substring(1, secs[1].trim().length()-1).split(",");
-        		Set<String> ipSet = new HashSet<String>();
-        		for(String ip:ips) {
-        			ipSet.add(ip.trim());
-        		}
-        		assert(maxDown<ipSet.size());
-        		MaxDownNodes downGroup = new MaxDownNodes();
-        		downGroup.maxDown = maxDown;
-        		downGroup.aliveGroup = ipSet;
-        		
-        		downGroup.deadGroup = new HashSet<String>();
-        		maxDownGroup.add(downGroup);
-        	}
-        }
+        maxDownGroup = parseMaxDownGroup(faultConfig);
 
         String pretreatment = p.getProperty(ConfOption.PRETREATMENT.toString());
         if(pretreatment != null) {
-            if(!pretreatment.startsWith("/")) {
-            	pretreatment = workdir + pretreatment;
-            }
-        	File f = new File(pretreatment);
-            if(f.exists()) {
-            	PRETREATMENT = f;
-            }
+            File f = handlePath(pretreatment);
+            PRETREATMENT = f;
         }
 
         String checker = p.getProperty(ConfOption.CHECKER.toString());
         if(checker != null) {
-            if(!checker.startsWith("/")) {
-            	checker = workdir + checker;
-            }
-        	File f = new File(checker);
-            if(f.exists()) {
-            	CHECKER = f;
-            }
+            File f = handlePath(checker);
+            CHECKER = f;
         }
 
         String monitor = p.getProperty(ConfOption.MONITOR.toString());
         if(monitor != null) {
-            if(!monitor.startsWith("/")) {
-            	monitor = workdir + monitor;
-            }
-            File f = new File(monitor);
-            if(f.exists()) {
-                MONITOR = f;
-            }
+            File f = handlePath(monitor);
+            MONITOR = f;
         }
         
         String root = p.getProperty(ConfOption.ROOT_DIR.toString());
@@ -276,24 +260,14 @@ public class Conf {
 
         String checkCrash = p.getProperty(ConfOption.CRASH.toString());
         if(checkCrash != null) {
-            if(!checkCrash.startsWith("/")) {
-            	checkCrash = workdir + checkCrash;
-            }
-        	File f = new File(checkCrash);
-            if(f.exists()) {
-            	CRASH = f;
-            }
+            File f = handlePath(checkCrash);
+            CRASH = f;
         }
 
         String checkRestart = p.getProperty(ConfOption.REBOOT.toString());
         if(checkRestart != null) {
-            if(!checkRestart.startsWith("/")) {
-            	checkRestart = workdir + checkRestart;
-            }
-        	File f = new File(checkRestart);
-            if(f.exists()) {
-            	REBOOT = f;
-            }
+            File f = handlePath(checkRestart);
+            REBOOT = f;
         }
 
         String recoveryMode = p.getProperty(ConfOption.RECOVERY_MODE.toString());
@@ -312,16 +286,6 @@ public class Conf {
             RECOVERY_VIRGINBITS_PATH = recoveryDir + "/VirginBits.txt";
         }
 
-        String replayMode = p.getProperty(ConfOption.REPLAY_MODE.toString());
-        if(replayMode != null) {
-        	REPLAY_MODE = Boolean.parseBoolean(replayMode);
-        }
-
-        String replayTracePath = p.getProperty(ConfOption.REPLAY_TRACE_PATH.toString());
-        if(replayTracePath != null) {
-        	REPLAY_TRACE_PATH = replayTracePath;
-        }
-
         String determineWaitTime = p.getProperty(ConfOption.DETERMINE_WAIT_TIME.toString());
         if(determineWaitTime != null) {
         	DETERMINE_WAIT_TIME = Integer.parseInt(determineWaitTime);
@@ -329,35 +293,20 @@ public class Conf {
 
         String writeFavEnv = p.getProperty(ConfOption.WRITE_FAV_ENV.toString());
         if (writeFavEnv != null) {
-            if (!writeFavEnv.startsWith("/")) {
-                writeFavEnv = workdir + writeFavEnv;
-            }
-            File f = new File(writeFavEnv);
-            if (f.exists()) {
-                WRITE_FAV_ENV = f;
-            }
+            File f = handlePath(writeFavEnv);
+            WRITE_FAV_ENV = f;
         }
 
         String copyEnvToCluster = p.getProperty(ConfOption.COPY_ENV_TO_CLUSTER.toString());
         if (copyEnvToCluster != null) {
-            if (!copyEnvToCluster.startsWith("/")) {
-                copyEnvToCluster = workdir + copyEnvToCluster;
-            }
-            File f = new File(copyEnvToCluster);
-            if (f.exists()) {
-                COPY_ENV_TO_CLUSTER = f;
-            }
+            File f = handlePath(copyEnvToCluster);
+            COPY_ENV_TO_CLUSTER = f;
         }
 
         String copyLogsToController = p.getProperty(ConfOption.COPY_LOGS_TO_CONTROLLER.toString());
         if (copyLogsToController != null) {
-            if (!copyLogsToController.startsWith("/")) {
-                copyLogsToController = workdir + copyLogsToController;
-            }
-            File f = new File(copyLogsToController);
-            if (f.exists()) {
-                COPY_LOGS_TO_CONTROLLER = f;
-            }
+            File f = handlePath(copyLogsToController);
+            COPY_LOGS_TO_CONTROLLER = f;
         }
 
         String clusterlogsInControllerDir = p.getProperty(ConfOption.CLUSTER_LOGS_IN_CONTROLLER_DIR.toString());
@@ -367,24 +316,14 @@ public class Conf {
 
         String networkDisconnection = p.getProperty(ConfOption.NETWORK_DISCONNECTION.toString());
         if (networkDisconnection != null) {
-            if (!networkDisconnection.startsWith("/")) {
-                networkDisconnection = workdir + networkDisconnection;
-            }
-            File f = new File(networkDisconnection);
-            if (f.exists()) {
-                NETWORK_DISCONNECTION = f;
-            }
+            File f = handlePath(networkDisconnection);
+            NETWORK_DISCONNECTION = f;
         }
 
         String networkReconnection = p.getProperty(ConfOption.NETWORK_RECONNECTION.toString());
         if (networkReconnection != null) {
-            if (!networkReconnection.startsWith("/")) {
-                networkReconnection = workdir + networkReconnection;
-            }
-            File f = new File(networkReconnection);
-            if (f.exists()) {
-                NETWORK_RECONNECTION = f;
-            }
+            File f = handlePath(networkReconnection);
+            NETWORK_RECONNECTION = f;
         }
 
         String evaluateTarget = p.getProperty(ConfOption.EVALUATE_TARGET.toString());
@@ -403,19 +342,16 @@ public class Conf {
     }
 
     public void loadConfigurationAndCheckAndPrint() throws IOException {
-    	
         loadConfiguration();
-
         if (!checkLegal()) {
             throw new IOException();
         }
-
         printConfInformation();
     }
 
     public boolean checkLegal() throws IOException {
         if (REBOOT == null || CRASH == null || WORKLOADLIST == null
-                || WORKLOADLIST.size() == 0 || CUR_FAULT_FILE == null || PRETREATMENT == null
+                || WORKLOADLIST.size() == 0 || CUR_FAULT_FILE == null || PRETREATMENT == null || MONITOR==null
                 || CONTROLLER_PORT == -1) {
             return false;
         }
@@ -448,21 +384,11 @@ public class Conf {
         System.out.println("Monitor script: "+(MONITOR==null?"":MONITOR.getAbsolutePath()));
         System.out.println("Max test time: "+FileUtil.parseSecondsToStringTime(this.maxTestMinutes*60));
         System.out.println("Hang timeout: "+FileUtil.parseSecondsToStringTime(this.hangSeconds));
-//        System.out.println("Similar points window: "+this.similarBehaviorWindow+"ms");
         System.out.println("Max fault number: "+this.MAX_FAULTS);
         System.out.println("Fault constraints: ");
         for(MaxDownNodes group:maxDownGroup) {
         	System.out.println("For nodes "+group.aliveGroup+", allowed max down nodes at same time is:"+group.maxDown);
         }
-
-        // System.out.println("Recovery mode: " + RECOVERY_MODE);
-        // System.out.println("Recovery fuzzinfo path: " + (RECOVERY_MODE ? RECOVERY_FUZZINFO_PATH : ""));
-        // System.out.println("Recovery candidate queue path: " + (RECOVERY_MODE ? RECOVERY_CANDIDATEQUEUE_PATH : ""));
-        // System.out.println("Recovery tested fault id path: " + (RECOVERY_MODE ? RECOVERY_TESTEDFAULTID_PATH : ""));
-        // System.out.println("Recovery virgin bits path: " + (RECOVERY_MODE ? RECOVERY_VIRGINBITS_PATH : ""));
-
-        // System.out.println("Replay mode: " + REPLAY_MODE);
-        // System.out.println("Replay trace path: " + REPLAY_TRACE_PATH);
 
         System.out.println("Network_Disconnection script: " + NETWORK_DISCONNECTION.getAbsolutePath());
         System.out.println("Network_Reconnection script: " + NETWORK_RECONNECTION.getAbsolutePath());

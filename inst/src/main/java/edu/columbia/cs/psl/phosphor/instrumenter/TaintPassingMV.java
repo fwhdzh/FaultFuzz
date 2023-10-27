@@ -1104,45 +1104,6 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
             } else {
                 if(bsmArgs.length > 1 && bsmArgs[1] instanceof Handle) {
                     Type t = Type.getMethodType(((Handle) bsmArgs[1]).getDesc());
-                    //favdebug:
-                    // try {
-                    // 	t.getReturnType();
-                    // 	String s = "";
-                    // 	for(Object a:bsmArgs) {
-                    // 		if(a instanceof Handle) {
-                    // 			s += " | handle "+ ((Handle) a).getDesc();
-                    // 		} else if (a instanceof Type) {
-                    // 			s += " | type "+ ((Type) a).getDescriptor();
-                    // 		} else {
-                    // 			s += " | other "+a.toString();
-                    // 		}
-                    // 	}
-                    // 	System.out.println("&&&&&&&&&&&&&&FAV DEBUG:"+this.owner+"."+this.name+this.descriptor+" | "+t.toString()
-                    // 	+" | "
-                    // 	+((Handle) bsmArgs[0]).getDesc()
-                    // 	+" | "
-                    // 	+((Handle) bsmArgs[1]).getDesc()
-                    // 	+s);
-                    // } catch (Exception e) {
-                    // 	String s = "";
-                    // 	for(Object a:bsmArgs) {
-                    // 		if(a instanceof Handle) {
-                    // 			s += " | handle "+ ((Handle) a).getDesc();
-                    // 		} else if (a instanceof Type) {
-                    // 			s += " | type "+ ((Type) a).getDescriptor();
-                    // 		} else {
-                    // 			s += " | other "+a.toString();
-                    // 		}
-                    // 	}
-                    // 	System.out.println("!!!!!!!!!!!FAV DEBUG:"+this.owner+"."+this.name+this.descriptor+" | "+t.toString()
-                    // 	+" | "
-                    // 	+((Handle) bsmArgs[0]).getDesc()
-                    // 	+" | "
-                    // 	+((Handle) bsmArgs[1]).getDesc()
-                    // 	+s
-                    // 	+" | "+e.getMessage());
-                    // }
-                    //favdebug end
                     if(TaintUtils.isPrimitiveType(t.getReturnType())) {
                         Type _t = (Type) bsmArgs[0];
                         if(_t.getReturnType().getSort() == Type.VOID) {

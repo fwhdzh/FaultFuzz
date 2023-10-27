@@ -147,12 +147,12 @@ public class InjectAnnotationIdentifier {
     public static void main(String[] args) throws IOException {
         System.out.println("Hello World!");
         if (args.length > 2) {
-            System.out.println("Usage: java -jar InjectAnnotationIdentifier.jar <classfile_folder> <information_store_file>");
+            System.out.println("Usage: java -cp $inst_jar edu.iscas.tcse.favtrigger.instrumenter.InjectAnnotationIdentifier $class_dir $info_file");
             return;
         }
-        String classfileFolder = args[0];  
+        String classFileFolder = args[0];  
         InjectAnnotationIdentifier identifier = new InjectAnnotationIdentifier();
-        annotatedMethodList = identifier.identify(classfileFolder);
+        annotatedMethodList = identifier.identify(classFileFolder);
         /*
          * Write the annotated method information to a file. Override the file if it exists.
          */

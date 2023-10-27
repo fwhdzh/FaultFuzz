@@ -2,6 +2,7 @@ package edu.iscas.tcse.faultfuzz.ctrl.control.replay;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,7 +19,6 @@ import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
 import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
-import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.Network;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
@@ -60,10 +60,33 @@ extends AbstractController
 
 	public boolean existFaultNotMeet;
 
-	public ReplayController(Cluster cluster, int port, Conf favconfig) {
-		super(cluster, port, favconfig);
+	public int aflPort;
 
-		currentCluster = MaxDownNodes.cloneCluster(favconfig.maxDownGroup);
+	// public ReplayController(Cluster cluster, int port, Conf favconfig) {
+	// 	super(cluster, port, favconfig.CUR_FAULT_FILE);
+
+	// 	currentCluster = MaxDownNodes.cloneCluster(favconfig.maxDownGroup);
+	// 	network = Network.constructNetworkFromMaxDOwnNodes(currentCluster);
+
+	// 	replayClients = Collections.synchronizedSet(new HashSet<ReplayCilentHandler>());
+	// 	faultPointList = Collections.synchronizedList(new ArrayList<RunTimeIOPoint>());
+	// 	index = new AtomicInteger(0);
+	// 	fIndex = new AtomicInteger(0);
+	// 	arriveAllFaultPoint = false;
+	// 	arriveRunTimeIOPointList = Collections.synchronizedList(new ArrayList<RunTimeIOPoint>());
+	// 	actualRunTimeIOPointList = Collections.synchronizedList(new ArrayList<RunTimeIOPoint>());
+	// 	counter = 0;
+	// 	finishFlag = false;
+
+	// 	existFaultNotMeet = false;
+
+	// 	aflPort = favconfig.AFL_PORT;
+	// }
+
+	public ReplayController(Cluster cluster, int controllerPort, File curFaultFile, List<MaxDownNodes> maxDownGroup, int aflPort) {
+		super(cluster, controllerPort, curFaultFile);
+
+		currentCluster = MaxDownNodes.cloneCluster(maxDownGroup);
 		network = Network.constructNetworkFromMaxDOwnNodes(currentCluster);
 
 		replayClients = Collections.synchronizedSet(new HashSet<ReplayCilentHandler>());
@@ -77,6 +100,8 @@ extends AbstractController
 		finishFlag = false;
 
 		existFaultNotMeet = false;
+
+		this.aflPort = aflPort;
 	}
 
 	public static class ReplayControllerResult {
@@ -107,14 +132,10 @@ extends AbstractController
 		
 	}
 
-	// @Override
-	public void startController() {
-		startSeverThread();
-		startScanThread();
-	}
+	
 
 	protected void startSeverThread() {
-		running = true;
+		serverThreadRunning = true;
 		counter = 0;
 		serverThread = new Thread() {
 
@@ -127,7 +148,7 @@ extends AbstractController
 					serverSocket = new ServerSocket(CONTROLLER_PORT);
 					Stat.log("Controller started ...");
 
-					while (running) {
+					while (serverThreadRunning) {
 						while (replayClients.size() > maxClients) {
 							Thread.currentThread().sleep(500);
 						}
@@ -165,14 +186,27 @@ extends AbstractController
 		Stat.log("controller serverThread has started!");
 	}
 
+	ListScanner scanThread = null;
 	protected void startScanThread() {
-		ListScanner scanThread = new ListScanner();
+		scanThread = new ListScanner();
 		scanThread.start();
 		Stat.log("controller scanThread has started!");
 	}
 
+	protected void stopScanThread() {
+		Stat.log("interrupt scanThread ...");
+		scanThread.interrupt();
+	}
+
+	// @Override
+	public void startController() {
+		startSeverThread();
+		startScanThread();
+	}
+
 	public void stopController() {
-		running = false;
+		stopScanThread();
+		serverThreadRunning = false;
 		try {
 			if(serverThread.isAlive()) {
 				serverThread.interrupt();
@@ -198,14 +232,6 @@ extends AbstractController
 		for (RunTimeIOPoint fpb : faultPointList) {
 			fpb.cilentHander.doOperationToCluster(fpb);
 		}
-	}
-
-	public abstract class AbstarctRunTimeIOPointComparator {
-
-	}
-
-	public class ConnectedNodeRunTimeIOPointComparator extends AbstarctRunTimeIOPointComparator{
-		
 	}
 
 	public class ReplayCilentHandler extends Thread {
@@ -264,7 +290,8 @@ extends AbstractController
 				replyToNode(outStream, "CRASH");
 				String[] args = new String[3];
 				args[0] = p.actualNodeIp;
-				args[1] = String.valueOf(favconfig.AFL_PORT);
+				// args[1] = String.valueOf(favconfig.AFL_PORT);
+				args[1] = String.valueOf(aflPort);
 				args[2] = AflCommand.SAVE.toString();
 				AflCli.interactWithNode(args);
 				rst.add(Stat.log("Prepare to crash node " + p.actualNodeIp));
@@ -342,12 +369,16 @@ extends AbstractController
 			Stat.log("ioList size is: " + ioSeq.size());
 			// Stat.log("All the ioIDs are: " + entry.getIoSeqToIDString());
 			try {
-				while (index.get() < ioSeq.size()) {
+				while (index.get() < ioSeq.size() && !isInterrupted()) {
 					IOPoint p = ioSeq.get(index.get());
 					Stat.debug("ListScanner next index to check:  " + index.get());
 					Stat.log("ListScanner next to wait: " + p.ioID + ", from " + p.ip + ", path: " + p.PATH);
 					RunTimeIOPoint b = findAndRemoveRunTimeIOPointInList(p);
 					while (b == null) {
+						if (isInterrupted()) {
+							Stat.log("ListScanner will return by interrupt!");
+							return;
+						}
 						sleep(scanInternal);
 						b = findAndRemoveRunTimeIOPointInList(p);
 					}
@@ -356,8 +387,10 @@ extends AbstractController
 					index.getAndIncrement();
 					actualRunTimeIOPointList.add(b);
 				}
-				Stat.log("All of IOPoints have been replayed!");
-				finishFlag = true;
+				if (index.get() >= ioSeq.size()) {
+					Stat.log("All of IOPoints have been replayed!");
+					finishFlag = true;
+				}
 			} catch (Exception e) {
 				// TODO: handle exception
 				e.printStackTrace();

@@ -1,12 +1,13 @@
-package edu.iscas.tcse.faultfuzz.ctrl;
+package edu.iscas.tcse.faultfuzz.ctrl.report;
 
 import java.util.HashMap;
 
 import org.junit.Test;
 
-public class FuzzInfoTest {
+public class BeautifulReportTest {
+
     @Test
-    public void testGenerateBeautifulReport() {
+    public void testFormat() {
         String myString = "20h28m2s";
         int totalLength = 20;
 
@@ -51,18 +52,15 @@ public class FuzzInfoTest {
     @Test
     public void printToString() {
 
-        String formattedString = FuzzInfo.getFixedWidthTwoNumberString(435345, 123, 24);
+        String formattedString = BeautifulReport.getFixedWidthTwoNumberString(435345, 123, 24);
 
         System.out.println("生成的字符串为: " + formattedString);
         System.out.println("占位符用于比较: " + "                    13 1");
         // return formattedString;
     }
 
-
-    
-
     @Test
-    public void testGenerateBeautifulReport2() {
+    public void testGenerateBeautifulReport() {
         String t = "*********************************************************************************\n" +
                 "**************************** Test result statistics ****************************\n" +
                 "**************************** 2023-10-20 17:24:41 PM ****************************\n" +
@@ -108,7 +106,7 @@ public class FuzzInfoTest {
         faultToNewCovs.put(1, 8);
         faultToNewCovs.put(2, 2);
         faultToNewCovs.put(3, 1);
-        String result = FuzzInfo.generateBeautifulReport2(currentTime, testTime, totalCoverage, totalBugs, totalHangs, lastNewCoverage, totalExecs, totalNoTriggeres, totalNewCovTest, faultToExec, faultToNewCovs);
+        String result = BeautifulReport.generateBeautifulReport(currentTime, testTime, totalCoverage, totalBugs, totalHangs, lastNewCoverage, totalExecs, totalNoTriggeres, totalNewCovTest, faultToExec, faultToNewCovs);
         System.out.println(result);
     }
 }

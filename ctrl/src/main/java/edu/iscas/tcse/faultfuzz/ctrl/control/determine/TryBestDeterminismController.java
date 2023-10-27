@@ -1,5 +1,6 @@
 package edu.iscas.tcse.faultfuzz.ctrl.control.determine;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,6 @@ import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflException;
 import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
-import edu.iscas.tcse.faultfuzz.ctrl.Conf;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
 import edu.iscas.tcse.faultfuzz.ctrl.control.AbstractController;
@@ -22,9 +22,18 @@ public class TryBestDeterminismController extends ReplayController{
 	
 	List<FaultPoint> injectedFaultPointList = new ArrayList<>(); 
 
-    public TryBestDeterminismController(Cluster cluster, int port, Conf favconfig) {
-        super(cluster, port, favconfig);
+	public int determineWaitTime;
+
+    // public TryBestDeterminismController(Cluster cluster, int port, Conf favconfig) {
+    //     super(cluster, port, favconfig);
+    //     //TODO Auto-generated constructor stub
+	// 	this.determineWaitTime = favconfig.DETERMINE_WAIT_TIME;
+    // }
+
+	public TryBestDeterminismController(Cluster cluster, int controllerPort, File curFaultFile, List<MaxDownNodes> maxDownGroup, int aflPort, int determineWaitTime) {
+        super(cluster, controllerPort, curFaultFile, maxDownGroup, aflPort);
         //TODO Auto-generated constructor stub
+		this.determineWaitTime = determineWaitTime;
     }
 
     public static class TryBestDeterminismControllerResult {
@@ -47,17 +56,26 @@ public class TryBestDeterminismController extends ReplayController{
 		return result;
 	}
 
+
+	TryBestDeterminismListScanner scanThread;
 	
 	@Override
 	protected void startScanThread() {
-		// TODO Auto-generated method stub
-		TryBestDeterminismListScanner scanThread = new TryBestDeterminismListScanner();
+		scanThread = new TryBestDeterminismListScanner();
 		scanThread.start();
+		Stat.log("TryBestDeterminismController overrrided scanThread has started!");
+	}
+
+	@Override
+	protected void stopScanThread() {
+		Stat.log("interrupt TryBestDeterminismController scanThread ...");
+		scanThread.interrupt();
 	}
 
     public class TryBestDeterminismListScanner extends ListScanner {
 
-        public int maxWaitInternalInNormalIOPoint = favconfig.DETERMINE_WAIT_TIME;
+        // public int maxWaitInternalInNormalIOPoint = favconfig.DETERMINE_WAIT_TIME;
+		public int maxWaitInternalInNormalIOPoint = determineWaitTime;
 
 		public int[] indexOfFaultPoint;
 
@@ -93,7 +111,7 @@ public class TryBestDeterminismController extends ReplayController{
 			printTheIndexOfFaultPoint();
             boolean needToTurnToNormalController = false;
 			try {
-                while (!arriveAllFaultPoint) {
+                while (!arriveAllFaultPoint && !isInterrupted()) {
 					IOPoint p = ioSeq.get(index.get());
 					Stat.debug("ListScanner next index to check:  " + index.get());
 					Stat.log("ListScanner next to wait: " + p.ioID + ", from " + p.ip + ", path: " + p.PATH);
@@ -103,7 +121,7 @@ public class TryBestDeterminismController extends ReplayController{
 					if (index.get() == 0) {
 						maxWaitInternal = maxWaitInternal * 3;
 					}
-					while (b == null && waitTime < maxWaitInternal) {
+					while (b == null && waitTime < maxWaitInternal  && !isInterrupted()) {
 						sleep(scanInternal);
                         waitTime += scanInternal;
 						b = findAndRemoveRunTimeIOPointInList(p);
@@ -120,8 +138,9 @@ public class TryBestDeterminismController extends ReplayController{
 				}
                 if (needToTurnToNormalController) {
 					Stat.log("Begin to normal control, left faults size is " + faultPointList.size());
-					AflCli.executeUtilSuccess(currentCluster, favconfig, AflCommand.DETERMINE_NORMAL, 300000);
-					while (!arriveAllFaultPoint) {
+					// AflCli.executeUtilSuccess(currentCluster, favconfig.AFL_PORT, AflCommand.DETERMINE_NORMAL, 300000);
+					AflCli.executeUtilSuccess(currentCluster, aflPort, AflCommand.DETERMINE_NORMAL, 300000);
+					while (!arriveAllFaultPoint  && !isInterrupted()) {
 						if (faultPointList.size() > 0) {
 							RunTimeIOPoint b = faultPointList.get(0);
 							faultPointList.remove(0);
@@ -145,7 +164,8 @@ public class TryBestDeterminismController extends ReplayController{
 				for (String node: aliveNodes) {
 					String[] args = new String[3];
 					args[0] = node;
-					args[1] = String.valueOf(favconfig.AFL_PORT);
+					// args[1] = String.valueOf(favconfig.AFL_PORT);
+					args[1] = String.valueOf(aflPort);
 					args[2] = AflCommand.DETERMINE_NO_SEND.toString();
 					AflCliNoSendThread aCliNoSendThread = new AflCliNoSendThread(args);
 					aflCliNoSendThreadList.add(aCliNoSendThread);

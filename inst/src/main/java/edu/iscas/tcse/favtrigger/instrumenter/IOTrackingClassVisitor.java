@@ -47,7 +47,7 @@ import edu.columbia.cs.psl.phosphor.struct.harmony.util.LinkedList;
 import edu.columbia.cs.psl.phosphor.struct.harmony.util.List;
 import edu.columbia.cs.psl.phosphor.struct.harmony.util.Map;
 import edu.columbia.cs.psl.phosphor.struct.harmony.util.Set;
-import edu.iscas.tcse.favtrigger.instrumenter.annotation.AnnotationBasedInjectionMethodVisitor;
+import edu.iscas.tcse.favtrigger.instrumenter.annotation.inner.InnerAnnotationInjectMethodVisitor;
 import edu.iscas.tcse.favtrigger.instrumenter.hbase.HBaseTrackingMV;
 import edu.iscas.tcse.favtrigger.instrumenter.hdfs.HDFSTrackingMV;
 import edu.iscas.tcse.favtrigger.instrumenter.jdk.FileOperationMV;
@@ -257,8 +257,9 @@ public class IOTrackingClassVisitor extends ClassVisitor {
 //            TestMV tmv = new TestMV(niomv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);
 //            tmv.setFields(fields);
 
-            AnnotationBasedInjectionMethodVisitor amv = new AnnotationBasedInjectionMethodVisitor(zkmv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);
-            amv.setFields(fields);
+            // AnnotationBasedInjectionMethodVisitor amv = new AnnotationBasedInjectionMethodVisitor(zkmv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);
+            // amv.setFields(fields);
+            InnerAnnotationInjectMethodVisitor amv = new InnerAnnotationInjectMethodVisitor(zkmv, access, className, name, desc, signature, exceptions, desc, analyzer, this.superName, this.interfaces);
 
 
             // LocalVariableManager lvs = new LocalVariableManager(access, desc, zkmv, analyzer, mv, generateExtraLVDebug);
@@ -491,7 +492,7 @@ public class IOTrackingClassVisitor extends ClassVisitor {
         	HBaseVisitEnd();
         }
 
-        if(Configuration.USE_FAULT_FUZZ && (Configuration.FOR_ZK || Configuration.ZK_CLI)) {
+        if(Configuration.USE_FAULT_FUZZ && Configuration.FOR_ZK) {
             ZKVisitEnd();
         }
         //favtrigger: end

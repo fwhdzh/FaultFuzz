@@ -1,10 +1,11 @@
 package edu.iscas.tcse.faultfuzz.ctrl.control.replay;
 
+import java.io.File;
 import java.util.List;
 
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
 import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
-import edu.iscas.tcse.faultfuzz.ctrl.Conf;
+import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Fuzzer;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
 import edu.iscas.tcse.faultfuzz.ctrl.Stat;
@@ -26,8 +27,12 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 	// target result
 	private ReplayResult mResult;
 
+	int controllerPort;
+	List<MaxDownNodes> maxDownGroup;
+
 	public static class ReplayResult {
 		public int result;
+		public String info;
 	}
 
 	// @Override
@@ -50,9 +55,23 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 	// 	mCluster = new Cluster(conf);
 	// }
 
+	public void beforeTarget(QueueEntryRuntime seqPair, Cluster cluster, int aflPort, File curFaultFile, File monitor, String testID, long waitSeconds, int controllerPort, List<MaxDownNodes> maxDownGroup) {
+		
+		// Cluster cluster = new Cluster(conf);
+		// int aflPort = conf.AFL_PORT;
+		// File curFaultFile = conf.CUR_FAULT_FILE;
+		// File monitor = conf.MONITOR;
+		
+		super.beforeTarget(seqPair, cluster, aflPort, curFaultFile, monitor, testID, waitSeconds);
+		this.controllerPort = controllerPort;
+		this.maxDownGroup = maxDownGroup;
+	}
+
+	
+
 	@Override
 	public void doTarget() {
-		replayATest(mSeqPair, mConf, mTestID, mWaitSeconds);
+		replayATest(mSeqPair, controllerPort, curFaultFile, maxDownGroup, aflPort, mTestID, mWaitSeconds);
 	}
 
 	@Override
@@ -70,12 +89,12 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 	 */
 	protected void sendNotReplayToCluster(List<MaxDownNodes> cluster) {
 		Stat.log("Command to wait all nodes not replay ...");
-		AflCli.executeCliCommandToCluster(cluster, mConf, AflCommand.NOTREPLAY, 300000);
+		AflCli.executeCliCommandToCluster(cluster, aflPort, AflCommand.NOTREPLAY, 300000);
 		// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
 		Stat.log("Finish waiting all nodes not replay ...");
 	}
 
-    private int replayATest(QueueEntryRuntime entryRuntime, final Conf conf, String testID, long waitSeconds) {
+    private int replayATest(QueueEntryRuntime entryRuntime, int controllerPort, File curFaultFile, List<MaxDownNodes> maxDownGroup, int aflPort, String testID, long waitSeconds) {
 		logInfo.add(Stat.log("=========================Going to conduct test "+testID+"("+waitSeconds+"s)========================="));
 		logInfo.add(Stat.log(""));
 		logInfo.add(Stat.log("Fault sequence info {"));
@@ -86,7 +105,8 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 		//prepare the cluster, e.g., format the namenode of HDFS. could be do nothing
 		//prepare current crash point and corresponding crash event, i.e., crash
 		//or remote crash
-		final ReplayController dController = new ReplayController(mCluster, conf.CONTROLLER_PORT, conf);
+		// final ReplayController dController = new ReplayController(mCluster, conf.CONTROLLER_PORT, conf);
+		final ReplayController dController = new ReplayController(mCluster, controllerPort, curFaultFile, maxDownGroup, aflPort);
 		// final ReplayController dController = new ReplayController(new Cluster(conf), conf.CONTROLLER_PORT, conf);
 		logInfo.add(Stat.log("Prepare cluster ..."));
 		logInfo.addAll(dController.cluster.prepareCluster());
@@ -156,9 +176,9 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 		if (controllerResult.allPointsAreReplayed) {
 			FaultSequence seq = mSeqPair.faultSeq;
 			logInfo.add(Stat.log("Going to check the system. Faults injected: "+seq.toString()));
-			logInfo.addAll(mCluster.runChecker(mConf, controllerResult.finalCluster, runInfoPath+FileUtil.monitorDir));
+			logInfo.addAll(mCluster.runChecker(controllerResult.finalCluster, runInfoPath+FileUtil.monitorDir));
 			// logInfo.addAll(dController.cluster.runChecker(conf, dController.currentCluster, runInfoPath+FileUtil.monitorDir));
-			int checkBugRst = checkBug(seq, mConf);
+			int checkBugRst = checkBug(seq);
 			if (checkBugRst == 1) {
 				result = true;
 			}
@@ -191,6 +211,12 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 			result.result = 3;
 		} else if (!workloadFinish && !replayFinish) {
 			result.result = -1;
+		}
+
+		// construct result.info with logInfo
+		result.info = "";
+		for (String s : logInfo) {
+			result.info += s + "\n";
 		}
 		return result;
 	}
