@@ -166,6 +166,7 @@ public class JavaAfl implements Thread.UncaughtExceptionHandler {
 
     				String parent = coverOutFile.getParent();
     				String logfile = "fuzzcov-recs";
+					//TODO: it seems there is a bug. The parent is null.
     				if(parent == null) {
     					logfile = parent+"/fuzzcov-recs";
     				}

@@ -91,6 +91,6 @@ networks:
       - subnet: 172.30.0.0/24
 
 
-# docker-compose -p fav-zk -f ~/code/faultfuzz/script/controller-bash/zk-3.6.3/zk-compose.yaml up -d
-# docker-compose -p fav-zk -f ~/code/faultfuzz/script/controller-bash/zk-3.6.3/zk-compose.yaml down
-# docker-compose -p fav-zk -f ~/code/faultfuzz/script/controller-bash/zk-3.6.3/zk-compose.yaml exec C1ZK1 /bin/bash
+# docker-compose -p fav-zk -f zk-compose.yaml up -d
+# docker-compose -p fav-zk -f zk-compose.yaml down
+# docker-compose -p fav-zk -f zk-compose.yaml exec C1ZK1 /bin/bash

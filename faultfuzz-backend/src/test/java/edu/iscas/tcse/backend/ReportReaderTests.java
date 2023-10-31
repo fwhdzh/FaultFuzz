@@ -39,6 +39,7 @@ public class ReportReaderTests {
         
     }
 
+    @Disabled
     @Test
     public void fwhTest() {
         RunCommand.run("/data/fengwenhan/code/faultfuzz/faultfuzz-backend/scripts/clear-master-process.sh");

@@ -3,8 +3,6 @@ package edu.iscas.tcse.faultfuzz.ctrl.control.replay;
 import java.io.File;
 import java.util.List;
 
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli;
-import edu.iscas.tcse.faultfuzz.ctrl.AflCli.AflCommand;
 import edu.iscas.tcse.faultfuzz.ctrl.Cluster;
 import edu.iscas.tcse.faultfuzz.ctrl.Fuzzer;
 import edu.iscas.tcse.faultfuzz.ctrl.MaxDownNodes;
@@ -76,7 +74,7 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 
 	@Override
 	public ReplayResult afterTarget() {
-		sendNotReplayToCluster(controllerResult.finalCluster);
+		// sendNotReplayToCluster(controllerResult.finalCluster);
 		// For replay target, we should collect run-time information for all scenarios.
 		String runInfoPath = collectRuntimeInfo(controllerResult.finalCluster);
 		boolean findBug = checkIfABugExist(runInfoPath);
@@ -89,7 +87,7 @@ public class ReplayTarget extends AbstractDeterminismTarget{
 	 */
 	protected void sendNotReplayToCluster(List<MaxDownNodes> cluster) {
 		Stat.log("Command to wait all nodes not replay ...");
-		AflCli.executeCliCommandToCluster(cluster, aflPort, AflCommand.NOTREPLAY, 300000);
+		// AflCli.executeCliCommandToCluster(cluster, aflPort, AflCommand.NOTREPLAY, 300000);
 		// executeCliCommandToCluster(dController.currentCluster, conf, AflCommand.NOTREPLAY, 300000);
 		Stat.log("Finish waiting all nodes not replay ...");
 	}

@@ -49,6 +49,7 @@ import edu.columbia.cs.psl.phosphor.struct.harmony.util.Set;
 import edu.iscas.tcse.favtrigger.instrumenter.CoverageMap;
 import edu.iscas.tcse.favtrigger.instrumenter.IOTrackingClassVisitor;
 import edu.iscas.tcse.favtrigger.instrumenter.annotation.InjectAnnotationIdentifier;
+import edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAfl;
 import edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAflInstrument.InstrumentationOptions;
 import edu.iscas.tcse.favtrigger.instrumenter.cov.JavaAflInstrument.InstrumentingClassVisitor;
 //import edu.iscas.tcse.favtrigger.instrumenter.CodeCoverageCV;
@@ -96,9 +97,88 @@ public class PreMain {
         if(Configuration.FOR_YARN) {
             Configuration.JDK_MSG = false;
         }
+        if (Configuration.IO_ALLOWLIST != null && Configuration.IO_ALLOWLIST.size() > 0) {
+            for (String s : Configuration.IO_ALLOWLIST) {
+                System.out.println("IO allowlist: " + s);
+            }
+        }
+        if (Configuration.IO_DENYLIST != null && Configuration.IO_DENYLIST.size() > 0) {
+            for (String s : Configuration.IO_DENYLIST) {
+                System.out.println("IO denylist: " + s);
+            }
+        }
+
+        if (Configuration.CACHE_DIR == null) {
+            Configuration.CACHE_DIR = Configuration.OBSERVER_HOME + "/CacheFolder";
+            File f = new File(Configuration.CACHE_DIR);
+            if (!f.exists()) {
+                if (!f.mkdir()) {
+                    // The cache directory did not exist and the attempt to create it failed
+                    System.err.printf("Failed to create cache directory: %s. Generated files are not being cached.\n",
+                            Configuration.CACHE_DIR);
+                    Configuration.CACHE_DIR = null;
+                }
+            }
+        }
+
+        if (Configuration.FAV_RECORD_PATH == null) {
+            Configuration.FAV_RECORD_PATH = Configuration.OBSERVER_HOME + "/fav-rst";
+            File f = new File(Configuration.FAV_RECORD_PATH);
+            if (!f.exists()) {
+                if (!f.mkdir()) {
+                    // The cache directory did not exist and the attempt to create it failed
+                    System.err.printf("Failed to create cache directory: %s. Generated files are not being cached.\n",
+                            Configuration.FAV_RECORD_PATH);
+                    Configuration.FAV_RECORD_PATH = null;
+                }
+            }
+        }
+
+        if (Configuration.COV_PATH == null) {
+            Configuration.COV_PATH = Configuration.OBSERVER_HOME + "/fuzzcov";
+            File f = new File(Configuration.COV_PATH);
+            if (!f.exists()) {
+                if (!f.mkdir()) {
+                    System.err.printf("Failed to create cache directory: %s. Generated files are not being cached.\n",
+                            Configuration.COV_PATH);
+                    // The cache directory did not exist and the attempt to create it failed
+                    Configuration.COV_PATH = null;
+                }
+                File file = new File(Configuration.COV_PATH.trim() + "/" + FAVTaint.getIP().replace("/", "_") + "-"
+                        + FAVTaint.getProcessID() + "/" + "fuzzcov");
+                if (!file.getParentFile().exists()) {
+                    file.getParentFile().mkdirs();
+                }
+                Configuration.COV_PATH = file.getAbsolutePath();
+                CoverageMap.coverOutFile = file;
+                JavaAfl.coverOutFile = file;
+            }
+        }
+
+        // if(System.getProperty("phosphorCacheDirectory") != null) {
+        //     Configuration.CACHE_DIR = System.getProperty("phosphorCacheDirectory");
+        //     File f = new File(Configuration.CACHE_DIR);
+        //     if(!f.exists()) {
+        //         if(!f.mkdir()) {
+        //             // The cache directory did not exist and the attempt to create it failed
+        //             System.err.printf("Failed to create cache directory: %s. Generated files are not being cached.\n", Configuration.CACHE_DIR);
+        //             Configuration.CACHE_DIR = null;
+        //         }
+        //     }
+        // }
+
+        // InjectAnnotationIdentifier.retrieveAnnotatedMethod(args);
+        if (Configuration.ANNOTATION_FILE != null) {
+            try {
+                InjectAnnotationIdentifier.retrieveAnnotatedMethod(Configuration.ANNOTATION_FILE);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
         System.out.println(FAVTaint.getProcessID()
                 +" Running with FAVTrigger! Use FaultFuzz:"+Configuration.USE_FAULT_FUZZ
-                +", Record Path:"+Configuration.FAV_RECORD_PATH
                 +", for Yarn:"+Configuration.FOR_YARN
                 +", for MapReduce:"+Configuration.FOR_MR
                 +", for HDFS:"+Configuration.FOR_HDFS
@@ -115,29 +195,14 @@ public class PreMain {
                 +", determine_state:" + Configuration.DETERMINE_STATE   //only meanful for FaultFuzz mode
                 +", annotation_file:" + Configuration.ANNOTATION_FILE
                 + ", useInjectAnnotation: " + Configuration.USE_INJECT_ANNOTATION
+                + ", ioAllow: " + Configuration.IO_ALLOW
+                + ", ioDeny: " + Configuration.IO_DENY
+                + ", observerHome: " + Configuration.OBSERVER_HOME
+                +", Record Path:"+Configuration.FAV_RECORD_PATH
+                + ", cacheDir: " + Configuration.CACHE_DIR
+                + ", covPath: " + Configuration.COV_PATH
+
         );
-        if(System.getProperty("phosphorCacheDirectory") != null) {
-            Configuration.CACHE_DIR = System.getProperty("phosphorCacheDirectory");
-            File f = new File(Configuration.CACHE_DIR);
-            if(!f.exists()) {
-                if(!f.mkdir()) {
-                    // The cache directory did not exist and the attempt to create it failed
-                    System.err.printf("Failed to create cache directory: %s. Generated files are not being cached.\n", Configuration.CACHE_DIR);
-                    Configuration.CACHE_DIR = null;
-                }
-            }
-        }
-
-        // InjectAnnotationIdentifier.retrieveAnnotatedMethod(args);
-        if (Configuration.ANNOTATION_FILE != null) {
-            try {
-                InjectAnnotationIdentifier.retrieveAnnotatedMethod(Configuration.ANNOTATION_FILE);
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-
         if(Instrumenter.loader == null) {
             Instrumenter.loader = bigLoader;
         }

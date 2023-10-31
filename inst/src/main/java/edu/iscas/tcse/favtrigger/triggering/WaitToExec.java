@@ -25,10 +25,10 @@ public class WaitToExec { //for docker
 	}
 
 	public static void triggerAndRecordFaultPoint(FAVEntry entry) throws IOException {
-		if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.FaultFuzz || Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.Replay) {
+		// if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.FaultFuzz || Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.Replay) {
 			// handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
 			handleFaultPointInDeplayMode(entry);
-		}
+		// }
 
 		RecordTaint.recordFaultPoint(entry);
 	}
@@ -36,7 +36,7 @@ public class WaitToExec { //for docker
 	public static void triggerAndRecordFaultPoint(List<String> callStack, String reportNodeIP, String path) throws IOException {
 		MyLogger.log("checkFaultPoint begin! path is: "+path);
 		MyLogger.log("callstack is :"+JSONObject.toJSONString(callStack));
-		MyLogger.log("exec mode: " + Configuration.EXEC_MODE);
+		// MyLogger.log("exec mode: " + Configuration.EXEC_MODE);
 		long procID = FAVTaint.getProcessID();
 		MyLogger.log("procID: " + procID);
 		triggerAndRecordFaultPoint(callStack, reportNodeIP, path, procID);
@@ -66,11 +66,11 @@ public class WaitToExec { //for docker
 		// handleCrashPointInDeplayMode(procID, crashNode, entry, callstack, path);
 		// MyLogger.log("replay mode: " + Configuration.REPLAY_MODE + ", determine state: " + Configuration.DETERMINE_STATE);
 
-		MyLogger.log("exec mode: " + Configuration.EXEC_MODE);
+		// MyLogger.log("exec mode: " + Configuration.EXEC_MODE);
 
-		if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.FaultFuzz || Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.Replay) {
+		// if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.FaultFuzz || Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.Replay) {
 			handleFaultPointInDeplayMode(entry);
-		}
+		// }
 
 		MyLogger.log("checkFaultPoint end!");
 	}
@@ -85,12 +85,12 @@ public class WaitToExec { //for docker
         entry.CALLSTACK = callstack;
         entry.ip = crashNode;
 
-		MyLogger.log("exec mode: " + Configuration.EXEC_MODE);
+		// MyLogger.log("exec mode: " + Configuration.EXEC_MODE);
 
-		if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.FaultFuzz || Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.Replay) {
+		// if (Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.FaultFuzz || Configuration.EXEC_MODE == Configuration.EXEC_MODE_SET.Replay) {
 			// handleFaultPointInDeplayMode(procID, crashNode, entry, callstack, path);
 			handleFaultPointInDeplayMode(entry);
-		} 
+		// } 
     }
 
     public static int currentIOID(List<String> callstack) {
@@ -121,11 +121,13 @@ public class WaitToExec { //for docker
 			info = info + "WaitToExec handle nodeIP path is " + path + "\n";
 			info = info + "thread id " + threadInfo + "\n";
 			MyLogger.log(info);
-			if (Configuration.REPLAY_MODE) {
-				if (!Configuration.REPLAY_NOW) {
-					return;
-				} 
-			}  
+
+			// if (Configuration.REPLAY_MODE) {
+			// 	if (!Configuration.REPLAY_NOW) {
+			// 		return;
+			// 	} 
+			// }  
+
 			if (Configuration.DETERMINE_STATE == 0) {
 				MyLogger.log("DETERMINE_STATE is 0! return!" );
 				return;

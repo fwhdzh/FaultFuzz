@@ -60,11 +60,12 @@ public class InnerAnnotationInjectMethodVisitor extends TaintAdapter{
     @Override
     public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
         // TODO Auto-generated method stub
-        System.out.println("InnerAnnotationInjectMethodVisitor.visitAnnotation");
-        System.out.println(name);
-        System.out.println(methodDescriptor);
-        System.out.println(descriptor);
+       
         if (descriptor.startsWith("Ledu/iscas/tcse/favtrigger/instrumenter/annotation/Inject;")) {
+            System.out.println("InnerAnnotationInjectMethodVisitor.visitAnnotation has visited an @Inject notation");
+            System.out.println(name);
+            System.out.println(methodDescriptor);
+            System.out.println(descriptor);
             needInject = true;
         }
         return super.visitAnnotation(descriptor, visible);

@@ -140,12 +140,12 @@ The file FaultFuzz-backend-configuration.properties is used for test controller,
 The FaultFuzz-SUT-configuration.sh. is used for the observers in the SUT. Generally, this file provides two Linux environment variables.
 
 ```
-export PHOS_OPTS="-Xbootclasspath/a:/home/gaoyu/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:/home/gaoyu/FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFaultFuzz=false,useMsgid=false,jdkMsg=false"
+export PHOS_OPTS="-Xbootclasspath/a:/SUT-configuration/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:/SUT-configuration/FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFaultFuzz=false"
 
-export FAV_OPTS="-Xbootclasspath/a:/home/gaoyu/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:/home/gaoyu/FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFaultFuzz=true,forZk=true,useMsgid=false,jdkMsg=false,jdkFile=true,recordPath=/home/gaoyu/zk363-fav-rst/,dataPaths=/home/gaoyu/evaluation/zk-3.8.1/zkData/version-2,cacheDir=/home/gaoyu/CacheFolder,controllerSocket=172.30.0.1:12090,mapSize=10000,wordSize=64,covPath=/home/gaoyu/fuzzcov,covIncludes=org/apache/zookeeper,aflAllow=/home/gaoyu/evaluation/zk-3.8.1/allowlist,aflDeny=/home/gaoyu/evaluation/zk-3.8.1/denylist,aflPort=12081,execMode=FaultFuzz"
+export FAV_OPTS="-Xbootclasspath/a:/SUT-configuration/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:/SUT-configuration/FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFaultFuzz=true,forZk=true,jdkFile=true,observerHome=/oberver,dataPaths=/zookeeper-3.6.3/zkData/version-2,controllerSocket=172.30.0.1:12090,covIncludes=org/apache/zookeeper,aflAllow=/SUT-configuration/allowlist,aflDeny=/SUT-configuration/denylist,aflPort=12081"
 ```
 
-Where FAV_OPTS is an environment variable generated based on the user-defined configuration. PHOS_OPTS, on the other hand, retains additional information introduced by FaultFuzz on top of FAV_OPTS, but without control. PHOS_OPTS is particularly useful in distributed systems where multiple processes interact. For instance, in the case of Zookeeper, we may want the server processes to be controlled by FaultFuzz while the client processes remain uncontrolled.
+Where FAV_OPTS is an environment variable generated based on the user-defined configuration. PHOS_OPTS, on the other hand, retains additional variable and fields introduced by FaultFuzz, but without the communication with FaultFuzz's controller. PHOS_OPTS is particularly useful in distributed systems where multiple processes interact. For instance, in the case of Zookeeper, we may want the server processes to be controlled by FaultFuzz while the client processes remain uncontrolled.
 
 Users need to independently the FaultFuzz-SUT-configuration.sh file items to the launching script of their SUT. To use our built-in I/O point information, they also need to make the target system run in an instrumented JRE in the launching script. We have provided the instrumented JRE in our artifact package. Users can also instrument a JRE by themselves with the command `java -jar FaultFuzz-inst-0.0.5-SNAPSHOT.jar -forJava <jre\_path> <output\_path>`.
 
@@ -166,11 +166,11 @@ If you are interesting in the meaning of each configuration item in these config
 
 ### Step 4  Start the testing and observe the results.
 
-After finishing configuration, users can go to the ``Test and result''
+After finishing configuration, users can go to the ``Test and result``
 page, enter the path of FaultFuzz test controller jar file and the path of the configuration file. When a user clicks the ``Start
-test'' button, FaultFuzz will automatically perform fault injection testing for SUT. Users can also pause, resume or stop the test by clicking the corresponding buttons.
+test`` button, FaultFuzz will automatically perform fault injection testing for SUT. Users can also pause, resume or stop the test by clicking the corresponding buttons.
 
 FaultFuzz displays quantitative statistics of the runtime test results at the bottom of the web page, including the elapsed testing time, the total number of detected bugs, the total number of tested fault sequences, the
 total number of covered basic code blocks and so on.
 If the user wants to further observe one specific bug, she can check the detailed bug reports. The user can also try to replay a bug by entering the file path of the fault sequence that triggers the bug and clicking the
-``Start replay'' button.
+``Start replay`` button.

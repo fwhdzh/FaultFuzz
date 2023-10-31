@@ -57,7 +57,7 @@ public class FaultFuzzRecovery {
         
         Map<String, QueueEntry> queueEntryMap = new HashMap<>();
         for (File file : persistTestFiles) {
-            QueueEntry entry = FileUtil.retriveReplayQueueEntryFromRSTFolder(file.getAbsolutePath());
+            QueueEntry entry = FileUtil.retriveReplayQueueEntryFromRSTFolder(file.getAbsolutePath(), conf.CUR_FAULT_FILE.getName());
             entry.fname = file.getName();
             queueEntryMap.put(file.getName(), entry);
         }

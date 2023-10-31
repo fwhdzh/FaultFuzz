@@ -46,12 +46,12 @@ public class AflCliHandler extends Thread {
 				// serverMessage = AflCommand.HEATBEAT.toString();
 				MyLogger.log("Recieve command HEARTBEAT");
 				JavaAfl.ready = true;
-		  } else if (clientMessage.equals(AflCommand.NOTREPLAY.toString())) {
-				MyLogger.log("Recieve command NOTREPLAY");
-				Configuration.REPLAY_NOW = false;
-		  } else if (clientMessage.equals(AflCommand.DOREPLAY.toString())) {
-				MyLogger.log("Recieve command DOREPLAY");
-				Configuration.REPLAY_NOW = true;
+		//   } else if (clientMessage.equals(AflCommand.NOTREPLAY.toString())) {
+				// MyLogger.log("Recieve command NOTREPLAY");
+				// Configuration.REPLAY_NOW = false;
+		//   } else if (clientMessage.equals(AflCommand.DOREPLAY.toString())) {
+				// MyLogger.log("Recieve command DOREPLAY");
+				// Configuration.REPLAY_NOW = true;
 		  } else if (clientMessage.equals(AflCommand.DETERMINE_CONTROL.toString())) {
 				MyLogger.log("Recieve command DETERMINE_CONTROL");
 				Configuration.DETERMINE_STATE = 2;

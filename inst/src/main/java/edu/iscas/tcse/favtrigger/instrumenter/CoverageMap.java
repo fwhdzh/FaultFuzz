@@ -10,7 +10,8 @@ import edu.columbia.cs.psl.phosphor.TaintUtils;
 import edu.columbia.cs.psl.phosphor.struct.harmony.util.Arrays;
 
 public class CoverageMap {
-	public static int MAP_SIZE = Integer.MAX_VALUE;
+	// public static int MAP_SIZE = Integer.MAX_VALUE;
+	public static int MAP_SIZE = 10000;
 //	public static BitArray trace_map;
     public static byte[] data = null;
 	public static File coverOutFile;
@@ -112,6 +113,20 @@ public class CoverageMap {
 			return isInList(cname, mname, desc, Configuration.AFL_ALLOWLIST);
 		}
 	}
+
+	public static boolean useIOInst(String cname, String mname, String desc) {
+		if(Configuration.IO_DENYLIST !=null && !Configuration.IO_DENYLIST.isEmpty()
+				&& isInList(cname, mname, desc, Configuration.IO_DENYLIST)) {
+			return false;
+		}
+		if (Configuration.IO_ALLOWLIST == null || Configuration.IO_ALLOWLIST.isEmpty()) {
+			return true;
+		} else {
+			return isInList(cname, mname, desc, Configuration.IO_ALLOWLIST);
+		}
+	}
+
+	
 
 	public static void startUp() {
 		if(Configuration.USE_FAULT_FUZZ && data != null && coverOutFile != null) {

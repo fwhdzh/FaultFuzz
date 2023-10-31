@@ -127,16 +127,16 @@ public class Cluster {
 		}
 	}
 
-	public ArrayList<String> copyEnvToCluster() {
-		if(favconfig.COPY_ENV_TO_CLUSTER != null) {
-			String path = favconfig.COPY_ENV_TO_CLUSTER.getAbsolutePath();
-			String workingDir = path.substring(0, path.lastIndexOf("/"));
-			return RunCommand.run(path, workingDir);
-			//return RunCommand.run(path+" "+nodeName);
-		} else {
-			return null;
-		}
-	}
+	// public ArrayList<String> copyEnvToCluster() {
+	// 	if(favconfig.COPY_ENV_TO_CLUSTER != null) {
+	// 		String path = favconfig.COPY_ENV_TO_CLUSTER.getAbsolutePath();
+	// 		String workingDir = path.substring(0, path.lastIndexOf("/"));
+	// 		return RunCommand.run(path, workingDir);
+	// 		//return RunCommand.run(path+" "+nodeName);
+	// 	} else {
+	// 		return null;
+	// 	}
+	// }
 	
 	
 

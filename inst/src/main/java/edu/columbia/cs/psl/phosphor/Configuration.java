@@ -109,10 +109,12 @@ public class Configuration {
     
     // public static boolean ZK_CLI = false; //favtrigger
     public static boolean ASYC_TRACE = false; //favtrigger
+
+    public static String OBSERVER_HOME;
     
     public static String CACHE_DIR = null;
-    public static String FAV_RECORD_PATH = "/home/gaoyu/FAVD/FAVTrigger/fav-rst/"; //favtrigger
-    public static String COV_PATH = "/home/gaoyu/FAVD/FAVTrigger/coverage"; //favtrigger
+    public static String FAV_RECORD_PATH = null; //favtrigger
+    public static String COV_PATH = null; //favtrigger
 
     public static List<String> FILTER_PATHS = new ArrayList<String>();
     public static List<String> DATA_PATHS = new ArrayList<String>();
@@ -121,6 +123,11 @@ public class Configuration {
     public static List<String> AFL_ALLOWLIST = new ArrayList<String>();
     public static String AFL_DENY;
     public static List<String> AFL_DENYLIST  = new ArrayList<String>();
+
+    public static String IO_ALLOW;
+    public static List<String> IO_ALLOWLIST = new ArrayList<String>();
+    public static String IO_DENY;
+    public static List<String> IO_DENYLIST  = new ArrayList<String>();
 
     public static String CONTROLLER_SOCKET = "127.0.0.1:8888";
     public static final Class TAINT_TAG_OBJ_ARRAY_CLASS = (Taint[].class); //favtrigger
@@ -134,15 +141,15 @@ public class Configuration {
     public static long TAINT_MSG_RAND_SEED = 0;
 
     // not stable for now
-    public static boolean REPLAY_MODE = false;
-    public static boolean REPLAY_NOW = false;
+    // public static boolean REPLAY_MODE = false;
+    // public static boolean REPLAY_NOW = false;
 
     // for annotation instrument
     public static String ANNOTATION_FILE = null;
 
     public enum EXEC_MODE_SET {
         // CrashFuzz,
-        Replay,
+        // Replay,
         FaultFuzz
     }
 

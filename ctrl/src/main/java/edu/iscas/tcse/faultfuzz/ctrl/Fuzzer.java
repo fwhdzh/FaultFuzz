@@ -174,10 +174,7 @@ public class Fuzzer {
 		// Stat.debug("q is after constructed! q is: " + JSONObject.toJSONString(q, SerializerFeature.IgnoreNonFieldGetter));
 		Stat.debug("q is after constructed!" );
 		
-		/*
-		 * Even if the fault sequence does not trigger new basic blocks,
-		 * we mutate it since it is the empty fault sequence of another workload.
-		 */
+		
 		// candidate_queue.add(entry);
 		// updateQueueEntryRuntimeInfo(entry);
 		// initializeUniqueIOId(entry);
@@ -191,6 +188,10 @@ public class Fuzzer {
 		// 	candidate_queue.remove(entry);
 		// }
 
+		/*
+		 * Even if the fault sequence does not trigger new basic blocks,
+		 * we mutate it since it is the empty fault sequence of another workload.
+		 */
 		addToQueueAndMutateInSaveIfInterestring(entry, null);
 		
 		Stat.debug("q is after mutation! ");
@@ -205,8 +206,10 @@ public class Fuzzer {
 
 		if(entry == null || entry.mutates.isEmpty()) {
     		int seedIdx = candidate_queue.indexOf(entry);
-			candidate_queue.remove(seedIdx);
-        	FileUtil.removeFromQueue(entry.fname, conf);
+			if (seedIdx >= 0) {
+				candidate_queue.remove(seedIdx);
+				FileUtil.removeFromQueue(entry.fname, conf);
+			}
     	}
 	}
 
@@ -314,7 +317,7 @@ public class Fuzzer {
 		QueueEntry q = pair.mutate ;
         
         long waitTime = conf.hangSeconds > q.exec_s*3? conf.hangSeconds : q.exec_s*3;	
-        String testID = String.valueOf(FuzzInfo.total_execs+1)+"_"+q.faultSeq.seq.size()+"f";
+        String testID = String.valueOf(FuzzInfo.total_execs)+"_"+q.faultSeq.seq.size()+"f";
 		int rst = -1;
 
 		Conf.currentWorkload = q.workload;

@@ -629,12 +629,12 @@ public class FileUtil {
 		}
 	}
 
-	public static QueueEntry retriveReplayQueueEntryFromRSTFolder(String filepath) {
+	public static QueueEntry retriveReplayQueueEntryFromRSTFolder(String filepath, String faultUnderTest) {
 		EntryConstructor fsc = new EntryConstructor();
 		List<IOPoint> ioPoints = fsc.constructIOPointList(filepath + "/" + ioTracesDir);
 		QueueEntry e = new QueueEntry();
 		e.ioSeq = ioPoints;
-		FaultSequence faultSeq = loadcurrentFaultPoint(filepath + "/zk363curFault");
+		FaultSequence faultSeq = loadcurrentFaultPoint(filepath + "/" + faultUnderTest);
 		if (faultSeq == null) {
 			faultSeq = new FaultSequence();
 		}

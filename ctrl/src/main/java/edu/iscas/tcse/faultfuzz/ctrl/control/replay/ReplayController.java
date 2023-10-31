@@ -61,27 +61,7 @@ extends AbstractController
 	public boolean existFaultNotMeet;
 
 	public int aflPort;
-
-	// public ReplayController(Cluster cluster, int port, Conf favconfig) {
-	// 	super(cluster, port, favconfig.CUR_FAULT_FILE);
-
-	// 	currentCluster = MaxDownNodes.cloneCluster(favconfig.maxDownGroup);
-	// 	network = Network.constructNetworkFromMaxDOwnNodes(currentCluster);
-
-	// 	replayClients = Collections.synchronizedSet(new HashSet<ReplayCilentHandler>());
-	// 	faultPointList = Collections.synchronizedList(new ArrayList<RunTimeIOPoint>());
-	// 	index = new AtomicInteger(0);
-	// 	fIndex = new AtomicInteger(0);
-	// 	arriveAllFaultPoint = false;
-	// 	arriveRunTimeIOPointList = Collections.synchronizedList(new ArrayList<RunTimeIOPoint>());
-	// 	actualRunTimeIOPointList = Collections.synchronizedList(new ArrayList<RunTimeIOPoint>());
-	// 	counter = 0;
-	// 	finishFlag = false;
-
-	// 	existFaultNotMeet = false;
-
-	// 	aflPort = favconfig.AFL_PORT;
-	// }
+	
 
 	public ReplayController(Cluster cluster, int controllerPort, File curFaultFile, List<MaxDownNodes> maxDownGroup, int aflPort) {
 		super(cluster, controllerPort, curFaultFile);
@@ -150,7 +130,7 @@ extends AbstractController
 
 					while (serverThreadRunning) {
 						while (replayClients.size() > maxClients) {
-							Thread.currentThread().sleep(500);
+							Thread.sleep(500);
 						}
 						Socket socket = serverSocket.accept(); // server accept the client connection request
 						counter++;
@@ -253,7 +233,6 @@ extends AbstractController
 				String cliID = inStream.readUTF();
 				String path = inStream.readUTF();
 				String threadInfo = inStream.readUTF();
-				String info = "";
 				Stat.debug("" + id + "ReplayCilentHandler read ioID: " + ioID + "\n");
 				Stat.debug("" + id + "ReplayCilentHandler read reportNodeIp: " + reportNodeIp + "\n");
 				Stat.debug("" + id + "recieve cliID: " + cliID + " for ioID " + ioID + ", " + "\n");

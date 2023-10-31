@@ -193,6 +193,25 @@ public enum PhosphorOption {
             }
         }
     },
+    OBSERVER_HOME(new PhosphorOptionBuilder("Directory for caching generated files", false, true)
+            .argType(String.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.OBSERVER_HOME = commandLine.getOptionValue(optionName);
+                File f = new File(Configuration.OBSERVER_HOME);
+                if(!f.exists()) {
+                    if(!f.mkdir()) {
+                        // The cache directory did not exist and the attempt to create it failed
+                        System.err.printf("Failed to create cache directory: %s. Generated files are not being cached.\n", Configuration.CACHE_DIR);
+                        Configuration.OBSERVER_HOME = null;
+                    }
+                }
+            } else {
+                Configuration.OBSERVER_HOME = null;
+            }
+        }
+    },
     CACHE_DIR(new PhosphorOptionBuilder("Directory for caching generated files", false, true)
             .argType(String.class)) {
         @Override
@@ -209,14 +228,6 @@ public enum PhosphorOption {
                 }
             } else {
                 Configuration.CACHE_DIR = null;
-            }
-        }
-    },
-    WITH_HEAVY_OBJ_EQUALS_HASHCODE(new PhosphorOptionBuilder(null, true, true).alternativeName("objmethods")) {
-        @Override
-        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
-            if(isPresent) {
-                Configuration.WITH_HEAVY_OBJ_EQUALS_HASHCODE = true;
             }
         }
     },
@@ -244,6 +255,14 @@ public enum PhosphorOption {
                 Configuration.COV_PATH = file.getAbsolutePath();
                 CoverageMap.coverOutFile = file;
                 JavaAfl.coverOutFile = file;
+            }
+        }
+    },
+    WITH_HEAVY_OBJ_EQUALS_HASHCODE(new PhosphorOptionBuilder(null, true, true).alternativeName("objmethods")) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.WITH_HEAVY_OBJ_EQUALS_HASHCODE = true;
             }
         }
     },
@@ -328,8 +347,61 @@ public enum PhosphorOption {
              	}
              }
          }
-     },//for favtrigger
-     //for favtrigger
+     },
+     IO_ALLOW(new PhosphorOptionBuilder("Specify allowed classes that need to track I/O point", true, true).argType(String.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                //input is splic with space: classname mname desc
+                Configuration.IO_ALLOW = commandLine.getOptionValue(optionName).trim();
+                Configuration.IO_ALLOWLIST = new ArrayList<String>();
+            	File f = new File(Configuration.IO_ALLOW);
+            	if(f.exists()) {
+            		try {
+                        FileReader fileReader  = new FileReader(f);
+                        BufferedReader br = new BufferedReader(fileReader);
+                        String lineContent = null;
+                        while((lineContent = br.readLine()) != null) {
+                            if(!lineContent.startsWith("#")) {
+                                Configuration.IO_ALLOWLIST.add(lineContent.trim().replace(".", "/"));
+                            }
+                        }
+                        br.close();
+                        System.out.println("IO_ALLOW:"+Configuration.IO_ALLOWLIST.size());
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+            	}
+            }
+        }
+    },
+    IO_DENY(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
+        @Override
+        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+            if(isPresent) {
+                Configuration.IO_DENY = commandLine.getOptionValue(optionName).trim();
+                Configuration.IO_DENYLIST = new ArrayList<String>();
+                 File f = new File(Configuration.IO_DENY);
+                if(f.exists()) {
+                    try {
+                       FileReader fileReader  = new FileReader(f);
+                       BufferedReader br = new BufferedReader(fileReader);
+                       String lineContent = null;
+                       while((lineContent = br.readLine()) != null){
+                           if(!lineContent.startsWith("#")) {
+                               Configuration.IO_DENYLIST.add(lineContent.trim().replace(".", "/"));
+                           }
+                       }
+                       br.close();
+                   } catch (IOException e) {
+                       // TODO Auto-generated catch block
+                       e.printStackTrace();
+                   }
+                }
+            }
+        }
+    },
     COV_INCLUDES(new PhosphorOptionBuilder(null, false, true).argType(String.class)) {
         @Override
         public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
@@ -663,22 +735,22 @@ public enum PhosphorOption {
             }
         }
     },
-    REPLAY_MODE(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
-        @Override
-        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
-            if(isPresent) {
-                Configuration.REPLAY_MODE = Boolean.parseBoolean(commandLine.getOptionValue(optionName));
-            }
-        }
-    },
-    REPLAY_NOW(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
-        @Override
-        public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
-            if(isPresent) {
-                Configuration.REPLAY_NOW = Boolean.parseBoolean(commandLine.getOptionValue(optionName));
-            }
-        }
-    },
+    // REPLAY_MODE(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
+    //     @Override
+    //     public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+    //         if(isPresent) {
+    //             Configuration.REPLAY_MODE = Boolean.parseBoolean(commandLine.getOptionValue(optionName));
+    //         }
+    //     }
+    // },
+    // REPLAY_NOW(new PhosphorOptionBuilder(null, false, true).argType(boolean.class)) {
+    //     @Override
+    //     public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {
+    //         if(isPresent) {
+    //             Configuration.REPLAY_NOW = Boolean.parseBoolean(commandLine.getOptionValue(optionName));
+    //         }
+    //     }
+    // },
     DETERMINE_STATE(new PhosphorOptionBuilder(null, false, true).argType(int.class)) {
         @Override
         public void configure(boolean forRuntimeInst, boolean isPresent, CommandLine commandLine) {

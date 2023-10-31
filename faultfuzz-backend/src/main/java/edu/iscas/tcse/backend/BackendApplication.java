@@ -88,15 +88,17 @@ public class BackendApplication {
 			}
 		}
 
-		t = t + "recordPath=" + conf.observerHomePath + "/fav-rst" + ",";
-		t = t + "cacheDir=" + conf.observerHomePath + "/CacheFolder" + ",";
-		t = t + "covPath=" + conf.observerHomePath + "/fuzzcov" + ",";
+		t = t + "observerHome=" + conf.observerHome + ",";
+
+		// t = t + "recordPath=" + conf.observerHome + "/fav-rst" + ",";
+		// t = t + "cacheDir=" + conf.observerHome + "/CacheFolder" + ",";
+		// t = t + "covPath=" + conf.observerHome + "/fuzzcov" + ",";
 
 		t = t + "dataPaths=" + conf.dataPaths + ",";
 		
 		t = t + "controllerSocket=" + conf.controllerSocket + ",";
-		t = t + "mapSize=" + conf.mapSize + ",";
-		t = t + "wordSize=" + conf.wordSize + ",";
+		// t = t + "mapSize=" + conf.mapSize + ",";
+		// t = t + "wordSize=" + conf.wordSize + ",";
 		
 		t = t + "covIncludes=" + conf.covIncludes + ",";
 		t = t + "aflAllow=" + conf.aflAllow + ",";
@@ -125,7 +127,7 @@ public class BackendApplication {
 		s = s + "CHECKER=" + conf.checker + "\n";
 		s = s + "FAULT_TYPE=[" + conf.faultType.stream().collect(Collectors.joining(",")) + "]" + "\n";
 		s = s + "CRASH=" + conf.crash + "\n";
-		s = s + "REBOOT=" + conf.reboot;
+		s = s + "REBOOT=" + conf.reboot + "\n";
 		s = s + "NETWORK_DISCONNECTION=" + conf.networkDisconnection + "\n";
 		s = s + "NETWORK_RECONNECTION=" + conf.networkReconnection + "\n";
 		s = s + "ROOT_DIR=" + conf.rootDir + "\n";

@@ -15,7 +15,10 @@ COV_PATH_OPT="covPath=/data/fengwenhan/data/faultfuzz_bt/fuzzcov"
 
 # COV_INCLUDES_OPTS
 
+IO_ALLOW_OPT="ioAllow=ioAllowlist"
+IO_DENY_OPT="ioDeny=ioDenylist"
 
-export FAV_OPTS="-Xbootclasspath/a:${OWN_DIR}/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:${OWN_DIR}/FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFaultFuzz=true,jdkFile=true,${RECORD_PATH_OPT},${CACHE_DIR_OPT},${COV_PATH_OPT},dataPaths=/home/gaoyu/evaluation/zk-3.8.1/zkData/version-2,controllerSocket=127.0.0.1:12091,covIncludes=edu/iscas/tcse/bt,aflAllow=allowlist,aflDeny=denylist,aflPort=12081,execMode=FaultFuzz,${ANNOTATION_FILE_OPT},${USE_INJECT_ANNOTATION_OPT}"
+
+export FAV_OPTS="-Xbootclasspath/a:${OWN_DIR}/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:${OWN_DIR}/FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFaultFuzz=true,jdkFile=true,${RECORD_PATH_OPT},${CACHE_DIR_OPT},${COV_PATH_OPT},dataPaths=/home/gaoyu/evaluation/zk-3.8.1/zkData/version-2,controllerSocket=127.0.0.1:12091,covIncludes=edu/iscas/tcse/bt,aflAllow=allowlist,aflDeny=denylist,${IO_ALLOW_OPT},${IO_DENY_OPT},aflPort=12081,execMode=FaultFuzz,${ANNOTATION_FILE_OPT},${USE_INJECT_ANNOTATION_OPT}"
 export TIME_OPTS="-Dfile.encoding=UTF8 -Duser.timezone=GMT+08"
 

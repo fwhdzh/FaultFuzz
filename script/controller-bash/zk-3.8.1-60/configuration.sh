@@ -1,3 +1,0 @@
-CRASHFUZZ_NETWORK_NAME=faultfuzz-zookeeper
-
-echo $CRASHFUZZ_NETWORK_NAME

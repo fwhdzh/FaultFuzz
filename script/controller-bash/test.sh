@@ -1,1 +1,0 @@
-ls /data/fengwenhan/data/faultfuzz_ctrl/tmp/init

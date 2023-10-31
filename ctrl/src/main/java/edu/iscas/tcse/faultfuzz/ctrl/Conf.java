@@ -50,7 +50,7 @@ public class Conf {
 	public List<MaxDownNodes> maxDownGroup;
 	public long maxTestMinutes = Long.MAX_VALUE;
 	public long hangSeconds = 10;
-	public static int MAP_SIZE = 10000;
+	// public static int MAP_SIZE = 10000;
 	public long similarBehaviorWindow = 1000;//timestamp value millisecond
 	public int AFL_PORT;
 	public int MAX_FAULTS = Integer.MAX_VALUE;
@@ -73,11 +73,11 @@ public class Conf {
     public int FAULT_SEQUENCE_BATCH_SIZE = 1;
 
     public int DETERMINE_WAIT_TIME = 10000;
-    public File WRITE_FAV_ENV = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/write-fav-env.sh");
-    public File COPY_ENV_TO_CLUSTER = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/copy-env-to-cluster.sh");
+    // public File WRITE_FAV_ENV = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/write-fav-env.sh");
+    // public File COPY_ENV_TO_CLUSTER = new File("/home/fengwenhan/code/crashfuzz-ctrl/script/controller-bash/copy-env-to-cluster.sh");
 
-    public File COPY_LOGS_TO_CONTROLLER;
-    public String CLUSTER_LOGS_IN_CONTROLLER_DIR;
+    // public File COPY_LOGS_TO_CONTROLLER;
+    // public String CLUSTER_LOGS_IN_CONTROLLER_DIR;
 
     public static LOG_LEVEL_SET LOG_LEVEL = LOG_LEVEL_SET.DEBUG;
 
@@ -193,10 +193,10 @@ public class Conf {
         	CONTROLLER_PORT = Integer.parseInt(controllerPort);
         }
         
-        String mapSize = p.getProperty(ConfOption.MAP_SIZE.toString());
-        if(mapSize != null) {
-        	MAP_SIZE = Integer.parseInt(mapSize);
-        }
+        // String mapSize = p.getProperty(ConfOption.MAP_SIZE.toString());
+        // if(mapSize != null) {
+        // 	MAP_SIZE = Integer.parseInt(mapSize);
+        // }
         
         String aflPort = p.getProperty(ConfOption.AFL_PORT.toString());
         if(aflPort != null) {
@@ -291,28 +291,28 @@ public class Conf {
         	DETERMINE_WAIT_TIME = Integer.parseInt(determineWaitTime);
         }
 
-        String writeFavEnv = p.getProperty(ConfOption.WRITE_FAV_ENV.toString());
-        if (writeFavEnv != null) {
-            File f = handlePath(writeFavEnv);
-            WRITE_FAV_ENV = f;
-        }
+        // String writeFavEnv = p.getProperty(ConfOption.WRITE_FAV_ENV.toString());
+        // if (writeFavEnv != null) {
+        //     File f = handlePath(writeFavEnv);
+        //     WRITE_FAV_ENV = f;
+        // }
 
-        String copyEnvToCluster = p.getProperty(ConfOption.COPY_ENV_TO_CLUSTER.toString());
-        if (copyEnvToCluster != null) {
-            File f = handlePath(copyEnvToCluster);
-            COPY_ENV_TO_CLUSTER = f;
-        }
+        // String copyEnvToCluster = p.getProperty(ConfOption.COPY_ENV_TO_CLUSTER.toString());
+        // if (copyEnvToCluster != null) {
+        //     File f = handlePath(copyEnvToCluster);
+        //     COPY_ENV_TO_CLUSTER = f;
+        // }
 
-        String copyLogsToController = p.getProperty(ConfOption.COPY_LOGS_TO_CONTROLLER.toString());
-        if (copyLogsToController != null) {
-            File f = handlePath(copyLogsToController);
-            COPY_LOGS_TO_CONTROLLER = f;
-        }
+        // String copyLogsToController = p.getProperty(ConfOption.COPY_LOGS_TO_CONTROLLER.toString());
+        // if (copyLogsToController != null) {
+        //     File f = handlePath(copyLogsToController);
+        //     COPY_LOGS_TO_CONTROLLER = f;
+        // }
 
-        String clusterlogsInControllerDir = p.getProperty(ConfOption.CLUSTER_LOGS_IN_CONTROLLER_DIR.toString());
-        if(clusterlogsInControllerDir != null) {
-        	CLUSTER_LOGS_IN_CONTROLLER_DIR = clusterlogsInControllerDir;
-        }
+        // String clusterlogsInControllerDir = p.getProperty(ConfOption.CLUSTER_LOGS_IN_CONTROLLER_DIR.toString());
+        // if(clusterlogsInControllerDir != null) {
+        // 	CLUSTER_LOGS_IN_CONTROLLER_DIR = clusterlogsInControllerDir;
+        // }
 
         String networkDisconnection = p.getProperty(ConfOption.NETWORK_DISCONNECTION.toString());
         if (networkDisconnection != null) {

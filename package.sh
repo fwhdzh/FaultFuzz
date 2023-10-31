@@ -56,4 +56,4 @@ else
   echo "FaultFuzz cannot find the corresponding workload jar file! PACKAGE_TARGET is $PACKAGE_TARGET"
 fi
 
-cp ${WORKLOAD_ROOT_DIR} ${PACKAGE_DIR}
+cp ${WORKLOAD_ROOT_DIR} ${PACKAGE_DIR}/backend-configuration

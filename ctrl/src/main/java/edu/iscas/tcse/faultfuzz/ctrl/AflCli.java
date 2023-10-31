@@ -16,15 +16,14 @@ public class AflCli {
 
 	public static enum AflCommand {
 		HEARTBEAT, // check connection
-		NOTREPLAY, // stop replay and do normal execution from now
-		DOREPLAY, // start replay from now
+		// NOTREPLAY, // stop replay and do normal execution from now
+		// DOREPLAY, // start replay from now
 		DETERMINE_CONTROL,
 		DETERMINE_NORMAL,
 		DETERMINE_NO_SEND,
 		SAVE, STABLE, // command
 		FINISH, // succ response
 		TMOUT, // timeout response
-		ILLEGAL // Illegal command
 	}
 
 	public static class AflException extends Exception {

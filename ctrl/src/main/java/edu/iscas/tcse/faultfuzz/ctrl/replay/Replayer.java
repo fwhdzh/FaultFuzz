@@ -135,7 +135,7 @@ public class Replayer {
 				String.valueOf(myproc).getBytes());
 
 		Replayer replayer = new Replayer(conf);
-		QueueEntry entry = FileUtil.retriveReplayQueueEntryFromRSTFolder(rstParentFolder);
+		QueueEntry entry = FileUtil.retriveReplayQueueEntryFromRSTFolder(rstParentFolder, conf.CUR_FAULT_FILE.getName());
 		String replayReport = replayer.replay(entry);
 
 		if (replayReportPath != null) {

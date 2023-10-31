@@ -102,7 +102,7 @@ public class RecordTaint {
 
 	public static String getRecordPath() {
 		// MyLogger.log("getRecordPath is invoked");
-	    String path = Configuration.FAV_RECORD_PATH+FAVTaint.getIP().replace("/", "_")+"-"+FAVTaint.getProcessID()+"/"+Thread.currentThread().getId();
+	    String path = Configuration.FAV_RECORD_PATH + "/" +FAVTaint.getIP().replace("/", "_")+"-"+FAVTaint.getProcessID()+"/"+Thread.currentThread().getId();
         //String path = Configuration.FAV_RECORD_PATH+"tmp";
 	    return path;
 	}

@@ -6,7 +6,7 @@ class InstConf {
 	String instPath;
 	boolean useFaultFuzz;
 	List<String> preDefinedInst;
-	String observerHomePath;
+	String observerHome;
 	String dataPaths;
 	String cacheDir;
 	String controllerSocket;
@@ -36,11 +36,11 @@ class InstConf {
 	public void setPreDefinedInst(List<String> preDefinedInst) {
 		this.preDefinedInst = preDefinedInst;
 	}
-	public String getObserverHomePath() {
-		return observerHomePath;
+	public String getObserverHome() {
+		return observerHome;
 	}
-	public void setObserverHomePath(String observerHomePath) {
-		this.observerHomePath = observerHomePath;
+	public void setObserverHome(String observerHomePath) {
+		this.observerHome = observerHomePath;
 	}
 	public String getDataPaths() {
 		return dataPaths;

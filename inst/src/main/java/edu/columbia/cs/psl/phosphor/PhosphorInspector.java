@@ -75,7 +75,9 @@ public class PhosphorInspector {
                 || StringUtils.startsWith(owner, "java/lang/invoke/LambdaForm")
                 || StringUtils.startsWith(owner, "java/lang/invoke/LambdaMetafactory")
                 || StringUtils.startsWith(owner, "edu/columbia/cs/psl/phosphor/struct/TaintedWith")
-                || StringUtils.startsWith(owner, "java/util/regex/HashDecompositions"); //Huge constant array/hashmap
+                || StringUtils.startsWith(owner, "java/util/regex/HashDecompositions")
+                || StringUtils.startsWith(owner, "com/alibaba/fastjson")
+                ; //Huge constant array/hashmap
     }
     
 }

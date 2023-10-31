@@ -202,19 +202,33 @@ public class IOTrackingClassVisitor extends ClassVisitor {
         this.isUninstMethods = PhosphorInspector.isIgnoredClassWithStubsButNoTracking(className);
     }
 
+    
+
 	@Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 		if(PhosphorInspector.isIgnoredClass(this.className)) {
     		return super.visitMethod(access, name, desc, signature, exceptions);
     	}
+
     	if (name.contains(TaintUtils.METHOD_SUFFIX)) {
             //Some dynamic stuff might result in there being weird stuff here
             return new MethodVisitor(Configuration.ASM_VERSION) {
             };
         }
+
+       
+        
+
     	Type oldReturnType = Type.getReturnType(desc);
     	boolean isImplicitLightTrackingMethod = false;
     	if((access & Opcodes.ACC_NATIVE) == 0) {
+
+            if (!CoverageMap.useIOInst(this.className, name, desc)) {
+                return super.visitMethod(access, name, desc, signature, exceptions);
+            }
+            // System.out.println("IOInst: " + this.className + " " + name + " " + desc);
+    
+
       		 //not a native method
     		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
     		SpecialOpcodeRemovingMV specialOpcodeRemovingMV = new SpecialOpcodeRemovingMV(mv, ignoreFrames, access, className, desc, fixLdcClass);
