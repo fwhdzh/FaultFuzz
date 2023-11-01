@@ -21,6 +21,8 @@ if [ "$PACKAGE_TARGET" = "hdfs-3.3.1" ]; then
   SCRIPT_ROOT_DIR=${OWN_DIR}/script/controller-bash/hdfs-3.3.1-60
 elif [ "$PACKAGE_TARGET" = "hdfs-3.3.5" ]; then
   SCRIPT_ROOT_DIR=${OWN_DIR}/script/controller-bash/hdfs-3.3.5-60
+elif [ "$PACKAGE_TARGET" = "zk-3.6.3-60" ]; then
+  SCRIPT_ROOT_DIR=${OWN_DIR}/script/controller-bash/zk-3.6.3-60
 else
   SCRIPT_ROOT_DIR=${OWN_DIR}/script/controller-bash/$PACKAGE_TARGET
 fi
@@ -39,6 +41,8 @@ cp ${OWN_DIR}/inst/target/FaultFuzz-inst-0.0.5-SNAPSHOT.jar ${PACKAGE_DIR}
 declare WORKLOAD_ROOT_DIR
 
 if [ "$PACKAGE_TARGET" = "zk-3.6.3" ]; then
+  WORKLOAD_ROOT_DIR=${OWN_DIR}/workload/ZKCases/target/FaultFuzz-workload-ZKCases-0.0.1-SNAPSHOT.jar
+elif [ "$PACKAGE_TARGET" = "zk-3.6.3-60" ]; then
   WORKLOAD_ROOT_DIR=${OWN_DIR}/workload/ZKCases/target/FaultFuzz-workload-ZKCases-0.0.1-SNAPSHOT.jar
 elif [ "$PACKAGE_TARGET" = "hdfs-3.3.1" ]; then
   WORKLOAD_ROOT_DIR=${OWN_DIR}/workload/HDFSCasesV3/target/FaultFuzz-workload-HDFSCasesV3-0.0.1-SNAPSHOT.jar

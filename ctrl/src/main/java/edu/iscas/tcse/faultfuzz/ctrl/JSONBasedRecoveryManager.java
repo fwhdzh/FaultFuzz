@@ -41,7 +41,7 @@ public class JSONBasedRecoveryManager {
     		oriList = Files.readAllLines(file.toPath());
     		String s = oriList.get(0);
     		List<QueueEntry> c = JSON.parseArray(s, QueueEntry.class);
-    		Stat.log(JSONObject.toJSONString(c));
+    		// Stat.log(JSONObject.toJSONString(c));
     		Fuzzer.candidate_queue = c;
     	} catch (IOException e) {
     		e.printStackTrace();
@@ -116,7 +116,7 @@ public class JSONBasedRecoveryManager {
     		oriList = Files.readAllLines(file.toPath());
     		String s = oriList.get(0);
     		Set<Integer> c = (Set)JSON.parseObject(s, Set.class);
-    		Stat.log(JSONObject.toJSONString(c));
+    		// Stat.log(JSONObject.toJSONString(c));
     		SelectionInfo.tested_fault_id = c;
     	} catch (IOException e) {
     		e.printStackTrace();
@@ -161,5 +161,38 @@ public class JSONBasedRecoveryManager {
     public void recoverVirginBits(Fuzzer fuzzer) {
     	recoverVirginBits(fuzzer.conf.RECOVERY_VIRGINBITS_PATH);
     }
+
+	public void recordAll(String recoveryRootPath) {
+		File dir = new File(recoveryRootPath);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		recordCandidateQueue(recoveryRootPath + "/" + candidateQueueFile);
+		recordFuzzInfo(recoveryRootPath + "/" + fuzzInfoFile);
+		recordTestedFaultId(recoveryRootPath + "/" + testedFaultIdFile);
+		recordVirginBits(recoveryRootPath + "/" + virginBitsFile);
+	}
+
+	public void recoverAll(String recoveryRootPath) {
+		if (Fuzzer.candidate_queue == null || Fuzzer.candidate_queue.size() == 0) {
+			recoverCandidateQueue(recoveryRootPath + "/" + candidateQueueFile);
+		}
+		if (FuzzInfo.exec_us == 0) {
+			recoverFuzzInfo(recoveryRootPath + "/" + fuzzInfoFile);
+		}
+		if (SelectionInfo.tested_fault_id == null || SelectionInfo.tested_fault_id.size() == 0) {
+			recoverTestedFaultId(recoveryRootPath + "/" + testedFaultIdFile);
+		}
+		if (CoverageCollector.virgin_bits == null || CoverageCollector.virgin_bits.length == 0) {
+			recoverVirginBits(recoveryRootPath + "/" + virginBitsFile);
+		}
+	}
+
+	public final static String jsonRecordFolder = "jsonRecord";
+	public final static String candidateQueueFile = "candidateQueue.txt";
+	public final static String fuzzInfoFile = "fuzzInfo.txt";
+	public final static String testedFaultIdFile = "testedFaultId.txt";
+	public final static String virginBitsFile = "virginBits.txt";
+
 
 }

@@ -164,7 +164,7 @@ export CLIENT_JVMFLAGS="-Xmx${ZK_CLIENT_HEAP}m $CLIENT_JVMFLAGS $PHOS_OPTS $TIME
 
 If you are interesting in the meaning of each configuration item in these configuration files, please refer to our configuration documentation. Note that the configurations in these files are more low-level and slightly different from the configuration items provided in our configuration interface. In the configuration interface, we have simplified the configuration information to make it more human-understandable.
 
-### Step 4  Start the testing and observe the results.
+### Step 4:  Start the testing and observe the results.
 
 After finishing configuration, users can go to the ``Test and result``
 page, enter the path of FaultFuzz test controller jar file and the path of the configuration file. When a user clicks the ``Start

@@ -4,13 +4,12 @@
 
 * A Docker installation
 
-* At least 32GB of RAM (CrashFuzz can start with small RAM, but it
+* At least 32GB of RAM (FaultFuzz can start with small RAM, but it
   needs more RAM to handle numerous fault sequences as time goes on)
 
 * At least 50GB of available disk space
 
-* Our experiments were executed using `Java v1.8.0_271` and `OpenJDK
-  jdk8u`.
+* Our experiments were executed using `Java v1.8.0_271` and `OpenJDK jdk8u`.
 
 We also provide Docker images for a distributed ZooKeeper cluster with
 five nodes, already configured with all dependencies and which is ready-to-use

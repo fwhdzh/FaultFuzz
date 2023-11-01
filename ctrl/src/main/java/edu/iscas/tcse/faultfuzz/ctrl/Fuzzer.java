@@ -582,6 +582,12 @@ public class Fuzzer {
 			FileUtil.clearRootPath();
 			for (int i = 0; i < Conf.WORKLOADLIST.size(); i++) {
 
+				if (checkPause()) {
+					Stat.log("FaultFuzzer is recording, it may take a long time ...");
+					recoveryManager.recordAll(conf.ROOTDIR + "/" + JSONBasedRecoveryManager.jsonRecordFolder);
+					Stat.log("FaultFuzzer recording process has finished");
+				}
+
 				while (checkPause()) {
 					try {
 						Thread.sleep(1000);
@@ -595,7 +601,29 @@ public class Fuzzer {
 				performNoFaultRun(i);
 			}
 		} else {
-			recovery();
+			// recovery();
+			Stat.log("FaultFuzzer is recovering, it may take a long time ...");
+			recoveryManager.recoverAll(conf.ROOTDIR + "/" + JSONBasedRecoveryManager.jsonRecordFolder);
+			Stat.log("FaultFuzzer recovering process has finished");
+			if (FuzzInfo.total_execs < Conf.WORKLOADLIST.size()) {
+				for (int i = (int) FuzzInfo.total_execs; i < Conf.WORKLOADLIST.size(); i++) {
+					if (checkPause()) {
+						Stat.log("FaultFuzzer is recording, it may take a long time ...");
+						recoveryManager.recordAll(conf.ROOTDIR + "/" + JSONBasedRecoveryManager.jsonRecordFolder);
+						Stat.log("FaultFuzzer recording process has finished");
+					}
+					while (checkPause()) {
+						try {
+							Thread.sleep(1000);
+							FuzzInfo.pauseSecond++;
+							Stat.log("FaultFuzzer is paused, waiting for resume...");
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+					performNoFaultRun(i);
+				}
+			} 
 		}
 		performOtherRun();
 
@@ -603,6 +631,8 @@ public class Fuzzer {
 		System.out.println(BeautifulReport.generateBeautifulReportWithFuzzInfo());
 		
     }
+
+	boolean hasRecorded = false;
 
 	public boolean checkPause() {
 		boolean pause = false;
@@ -617,13 +647,13 @@ public class Fuzzer {
 	
 	public void recovery() {
 		Stat.log("recoveryFuzzInfo...");
-		recoveryManager.recoverFuzzInfo(this);
+		recoveryManager.recoverFuzzInfo(conf.RECOVERY_FUZZINFO_PATH);
 		Stat.log("recoveryCandidateQueue...");
-		recoveryManager.recoverCandidateQueue(this);
+		recoveryManager.recoverCandidateQueue(conf.RECOVERY_CANDIDATEQUEUE_PATH);
 		Stat.log("recoveryTestedFaultId...");
-		recoveryManager.recoverTestedFaultId(this);
+		recoveryManager.recoverTestedFaultId(conf.RECOVERY_TESTEDFAULTID_PATH);
 		Stat.log("recoveryVirginBits...");
-		recoveryManager.recoverVirginBits(this);
+		recoveryManager.recoverVirginBits(conf.RECOVERY_VIRGINBITS_PATH);
 	}
 
 	private void updateFavorListOfPairSeed(SelectionInfo.QueuePair q, FaultPoint injected_fault) {

@@ -60,11 +60,6 @@ public class Conf {
     public String ROOTDIR;
     
     public boolean RECOVERY_MODE = false;
-    // public String RECOVERY_ROOT_PATH = "/data/fengwenhan/data/crashfuzz_fwh";
-    // public String RECOVERY_FUZZINFO_PATH = "/data/fengwenhan/data/crashfuzz_fwh/FuzzInfo.txt";
-    // public String RECOVERY_CANDIDATEQUEUE_PATH = "/data/fengwenhan/data/crashfuzz_fwh/CandidateQueue.txt";
-    // public String RECOVERY_TESTEDFAULTID_PATH = "/data/fengwenhan/data/crashfuzz_fwh/TestedFaultId.txt";
-    // public String RECOVERY_VIRGINBITS_PATH = "/data/fengwenhan/data/crashfuzz_fwh/VirginBits.txt";
     public String RECOVERY_FUZZINFO_PATH;
     public String RECOVERY_CANDIDATEQUEUE_PATH;
     public String RECOVERY_TESTEDFAULTID_PATH;
@@ -280,10 +275,10 @@ public class Conf {
             if(!recoveryDir.startsWith("/")) {
             	recoveryDir = workdir + recoveryDir;
             }
-        	RECOVERY_FUZZINFO_PATH = recoveryDir + "/FuzzInfo.txt";
-            RECOVERY_CANDIDATEQUEUE_PATH = recoveryDir + "/CandidateQueue.txt";
-            RECOVERY_TESTEDFAULTID_PATH = recoveryDir + "/TestedFaultId.txt";
-            RECOVERY_VIRGINBITS_PATH = recoveryDir + "/VirginBits.txt";
+        	RECOVERY_FUZZINFO_PATH = recoveryDir + "/" + JSONBasedRecoveryManager.candidateQueueFile;
+            RECOVERY_CANDIDATEQUEUE_PATH = recoveryDir + "/" + JSONBasedRecoveryManager.candidateQueueFile;
+            RECOVERY_TESTEDFAULTID_PATH = recoveryDir + "/" + JSONBasedRecoveryManager.testedFaultIdFile;
+            RECOVERY_VIRGINBITS_PATH = recoveryDir + "/" + JSONBasedRecoveryManager.virginBitsFile;
         }
 
         String determineWaitTime = p.getProperty(ConfOption.DETERMINE_WAIT_TIME.toString());

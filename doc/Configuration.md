@@ -1,4 +1,35 @@
-The configuration options supported by FaultFuzz-ctrl include:
+Note that the configurations in the
+configuration file are more low-level and slightly different from the configuration items
+provided in our FaultFuzz frontend website. In the FaultFuzz frontend website, we have
+simplified the configuration information to make it more human-understandable.
+
+There are two configuration files used in FaultFuzz, i.e., configuration file for FaultFuzz backend
+(named FaultFuzz-backend-configuration.properties if you generate it by FaultFuzz frontend) and configuration file 
+for FaultFuzz observer and the system under test (named FaultFuzz-SUT-configuration.sh if you generate it by FaultFuzz frontend).
+
+FaultFuzz-backend-configuration.properties is property file, which looks like: 
+```
+WORKLOAD={/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/workload-1.sh,/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/workload-2.sh}
+CHECKER=/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/detectFailureSymptoms.sh
+FAULT_TYPE=[CRASH,REBOOT,NETWORK_DISCONNECTION,NETWORK_RECONNECTION]
+CRASH=/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/crashNode.sh
+REBOOT=/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/startNode.sh
+NETWORK_DISCONNECTION=/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/network-disconnect.sh
+NETWORK_RECONNECTION=/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/network-connect.sh
+ROOT_DIR=/data/faultfuzz_zk
+CUR_FAULT_FILE=/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/faultUnderTest
+CONTROLLER_PORT=12090
+MONITOR=/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/copyRuntimeInformation.sh
+PRETREATMENT=/zookeeper/faultfuzz/package/zk-3.6.3/backend-configuration/resetSystem.sh
+TEST_TIME=80h
+FAULT_CSTR=2:{172.30.0.2,172.30.0.3,172.30.0.4,172.30.0.5,172.30.0.6}
+AFL_PORT=12081
+HANG_TIMEOUT=10m
+MAX_FAULTS=10
+DETERMINE_WAIT_TIME=30000
+```
+
+The configuration options supported by FaultFuzz-backend-configuration.properties include:
 
 - **WORKLOAD**: The string path for the script used for running a workload.
 - **CHECKER**: The string path for the script used for checking failure symptoms.
@@ -43,7 +74,23 @@ The configuration options supported by FaultFuzz-ctrl include:
   giving up to wait next I/O operation.
 
 
-The configuration options supported by FaultFuzz-inst include:
+FaultFuzz-SUT-configuration.sh is a linux bash file. It provides two Linux environment variables, i.e., `FAV_OPTS` and `PHOS_OPTS`. 
+Where FAV_OPTS is an environment variable generated based on the user-defined
+configuration. PHOS_OPTS, on the other hand, retains additional information
+introduced by FaultFuzz on top of FAV_OPTS, but without control. PHOS_OPTS is
+particularly useful in distributed systems where multiple processes interact.
+For instance, in the case of Zookeeper, we may want the server processes to be
+controlled by FaultFuzz while the client processes remain uncontrolled.
+
+An example of FaultFuzz-SUT-configuration.sh looks like:
+
+```
+export PHOS_OPTS="-Xbootclasspath/a:/SUT-configuration/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:/SUT-configuration/FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFaultFuzz=false"
+
+export FAV_OPTS="-Xbootclasspath/a:/SUT-configuration/FaultFuzz-inst-0.0.5-SNAPSHOT.jar -javaagent:/SUT-configuration/FaultFuzz-inst-0.0.5-SNAPSHOT.jar=useFaultFuzz=true,forZk=true,jdkFile=true,observerHome=/observer,dataPaths=/zookeeper-3.6.3/zkData/version-2,controllerSocket=172.30.0.1:12090,covIncludes=org/apache/zookeeper,aflAllow=/SUT-configuration/allowlist,aflDeny=/SUT-configuration/denylist,aflPort=12081"
+```
+
+The configuration options supported by FaultFuzz-SUT-configuration.sh include:
 
 - **useFaultFuzz**: Controls the usage of FaultFuzz for the program or process.
 

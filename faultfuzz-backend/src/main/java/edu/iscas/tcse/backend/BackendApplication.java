@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.iscas.tcse.backend.ReportReader.BugReportGetParams;
 import edu.iscas.tcse.backend.ReportReader.BugReportPostParams;
 
 @SpringBootApplication
@@ -180,8 +179,32 @@ public class BackendApplication {
 		return pretreatmentPath;
 	}
 
+	public String readRootPathFromCtrlConfFile(File ctrlConfFile) throws IOException {
+		String rootPath = null;
+		List<String> lines = null;
+		lines = Files.readAllLines(ctrlConfFile.toPath());
+		for (String line : lines) {
+			if (line.startsWith("ROOT_DIR")) {
+				rootPath = line.substring(line.indexOf("=") + 1);
+				break;
+			}
+		}
+		if (rootPath == null) {
+			return null;
+		}
+		if (!rootPath.startsWith("/")){
+			File workDir = ctrlConfFile.getParentFile();
+			rootPath = workDir.getAbsolutePath() + "/" + rootPath;
+		}
+		return rootPath;
+	}
+
+	public String ctrlJarPath;
+	public String ctrlPropertiesPath;
+
 	public String bugReportPath;
 	public String pretreatmentPath;
+	public String rootPath;
 
 	@PostMapping("/begin/test")
 	public String beginTest(@RequestBody BugReportPostParams params) throws IOException {
@@ -190,6 +213,9 @@ public class BackendApplication {
 			System.out.println("FaultFuzz is running! please stop it first!");
 			return "FaultFuzz is running! please stop it first!";
 		}
+
+		ctrlJarPath = params.ctrlJarPath;
+		ctrlPropertiesPath = params.ctrlPropertiesPath;
 
 		String s = "";
 		s = s + "java";
@@ -227,6 +253,12 @@ public class BackendApplication {
 			throw new RuntimeException("pretreatment path is null!");
 		}
 		System.out.println("pretreatmentPath is: " + pretreatmentPath);
+
+		rootPath = readRootPathFromCtrlConfFile(file);
+		if (rootPath == null || rootPath.length() == 0) {
+			throw new RuntimeException("rootPath path is null!");
+		}
+		System.out.println("rootPath is: " + rootPath);
 
 		Thread t = new Thread() {
 			@Override
@@ -279,7 +311,7 @@ public class BackendApplication {
 	int i = 0;
 
 	@GetMapping("/report")
-	public String getReport(@RequestBody BugReportGetParams params) throws IOException {
+	public String getReport() throws IOException {
 		
 		// String path = params.bugReportLocation;
 		String path = bugReportPath;
@@ -309,12 +341,62 @@ public class BackendApplication {
 
 	@PostMapping("/resume")
 	public String resumeTest(@RequestBody pauseTesttPostParams params) {
+
+		System.out.println("Remove PAUSE file......");
 		String rootDir = params.rootDir;
 		File f = new File(rootDir + "/PAUSE");
 		f.delete();
-		String s = "resume test";
+
+		if (faultFuzzIsRun || (faultFuzzThread != null && faultFuzzThread.isAlive())) {
+			System.out.println("FaultFuzz is running! just resume it by removing PAUSE file!");
+			String s = "resume test";
+			System.out.println(s);
+			return s;
+		}
+		
+		String s = "";
+		s = s + "java";
+		s = s + " " + "-cp" + " " + ctrlJarPath;
+		s = s + " " + "edu.iscas.tcse.faultfuzz.ctrl.CloudFuzzMain";
+		s = s + " " + ctrlPropertiesPath;
+		s = s + " " + "recover";
 		System.out.println(s);
-		return s;
+
+		final String beginCommand = s;
+		final File tmpFile = new File("evaluation-process");
+		if (tmpFile.exists()) {
+			tmpFile.delete();
+		}
+		try {
+			tmpFile.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		File file = new File(ctrlPropertiesPath);
+		if (!file.exists()) {
+			throw new RuntimeException("properties file not exist!");
+		}
+		File workDir = file.getParentFile();
+
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				// List<String> result = RunCommand.run(beginCommand,
+				// "/data/fengwenhan/code/faultfuzz/package/zk-3.6.3", tmpFile);
+
+				List<String> result = RunCommand.run(beginCommand,
+						workDir.getAbsolutePath(), tmpFile);
+				faultFuzzIsRun = false;
+			}
+		};
+		faultFuzzIsRun = true;
+		faultFuzzThread = t;
+		t.start();
+		return beginCommand;
+
+		
 	}
 
 	public int replayCount = 0;

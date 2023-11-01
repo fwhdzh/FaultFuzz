@@ -46,7 +46,7 @@ public class FileUtil {
 
 	public final static String seed_file = "SEED";
 	
-	public final static String fuzzed_time_file = "FUZZED_TIME";
+	// public final static String fuzzed_time_file = "FUZZED_TIME";
 	public final static String mutates_size_file = "MUTATES_SIZE";
 	public final static String handicap_file = "HANDICAP";
 	public final static String mutates_file = "MUTATES";

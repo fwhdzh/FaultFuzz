@@ -84,6 +84,8 @@ Append the following content to `/etc/hosts` and make sure the host machine can 
 172.30.0.6      C1ZK5 C1ZK5.fav-zookeeper1
 ```
 
+<!-- If you want to use other network segment like 172.40.0.0:16, you should also update all ip addresses in scripts. -->
+
 ## Testing the Setup
 
 Run the following commands to start FaultFuzz:

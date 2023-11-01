@@ -27,6 +27,10 @@ public class CloudFuzzMain {
 		Conf conf = new Conf(confFile);
 		// conf.CONTROLLER_PORT = Integer.parseInt(args[0].trim());
 		conf.loadConfigurationAndCheckAndPrint();
+
+		if ((args.length == 2) && (args[1].equals("recover"))) {
+			conf.RECOVERY_MODE = true;
+		}
 		
 		RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
         //System.out.println(runtimeMXBean.getName());

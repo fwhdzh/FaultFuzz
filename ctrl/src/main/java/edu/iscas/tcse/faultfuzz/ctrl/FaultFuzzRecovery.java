@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -37,7 +39,6 @@ public class FaultFuzzRecovery {
     }
 
     public void recoverCandidateQueue(String rootPath) throws IOException {
-
         File root = new File(rootPath);
         File[] files = root.listFiles();
         //get "persist" subfolder
@@ -52,8 +53,6 @@ public class FaultFuzzRecovery {
         for (File file : persistTestFiles) {
             System.out.println(file.getName());
         }
-
-
         
         Map<String, QueueEntry> queueEntryMap = new HashMap<>();
         for (File file : persistTestFiles) {
@@ -103,7 +102,51 @@ public class FaultFuzzRecovery {
             }
         }
 
+        for (String entryId : queueEntryMap.keySet()) {
+            QueueEntry entry = queueEntryMap.get(entryId);
+            File entryFolder = new File(persistFolder.getAbsolutePath() + "/" + entryId);
+            File[] entryFiles = entryFolder.listFiles();
+            // File mapFile = null;
+            for (File file : entryFiles) {
+                if (file.getName().startsWith("MAP_")) {
+                    // mapFile = file;
+                    int bitmapSize = getBitmapSizeFromMapFileName(file.getName());
+                    if (bitmapSize >= 0) {
+                        entry.bitmap_size = bitmapSize;
+                    }
+                    break;
+                }
+            }
+        }
+
+        for (String entryId : queueEntryMap.keySet()) {
+            QueueEntry entry = queueEntryMap.get(entryId);
+            File execTimeFile = new File(persistFolder.getAbsolutePath() + "/" + entryId + "/" + FileUtil.exec_second_file);
+            if (execTimeFile.exists()) {
+                List<String> lines = Files.readAllLines(execTimeFile.toPath());
+                if (lines.size() > 0) {
+                    String execTimeStr = lines.get(0);
+                    long execSeconds = FileUtil.parseStringTimeToSeconds(execTimeStr);
+                    entry.exec_s = execSeconds;
+                }
+            }
+        }
+
         System.out.println("candidateQueue size: " + candidateQueue.size());
+    }
+
+    public static int getBitmapSizeFromMapFileName(String mapFileName) {
+        Pattern pattern = Pattern.compile("MAP_(\\d+)\\(\\d+\\)");
+        Matcher matcher = pattern.matcher(mapFileName);
+        if (matcher.find()) {
+            String number = matcher.group(1);
+            // System.out.println("Extracted Number: " + number);
+            int bitmapSize = Integer.parseInt(number);
+            return bitmapSize;
+        } else {
+            System.out.println("No number found in the string.");
+            return -1;
+        }
     }
 
     public void recordVirginBits(String filepath) {

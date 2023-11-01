@@ -32,11 +32,15 @@ java -cp FaultFuzz-workload-ZKCases-0.0.1-SNAPSHOT.jar edu.iscas.tcse.ZKCases.ZK
 
 echo "exec edu.iscas.tcse.ZKCases.ZK1Cli finished!"
 
+sleep 1
+
 servers=$(sh aliveServers.sh)
 echo $servers
 java -cp FaultFuzz-workload-ZKCases-0.0.1-SNAPSHOT.jar edu.iscas.tcse.ZKCases.ZK1Cli2 "$servers" check nullcrash nullstart $workdir/failTest.sh
 
 echo "exec edu.iscas.tcse.ZKCases.ZK1Cli2 finished!"
+
+sleep 1
 
 END_TIME=`date +%s`
 EXECUTING_TIME=`expr $END_TIME - $START_TIME`
