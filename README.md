@@ -52,7 +52,7 @@ FaultFuzz comprises several sub-projects, including:
 
 The FaultFuzz-FrontEnd is maintained as a standalone project, and we have deployed it on
 [AppSmith cloud](https://app.appsmith.com/app/faultfuzz/readme-652b42d079d5b0084315e511?branch=master).
-Users also have the option to independently deploy the frontend using our [published frontend source codes](https://github.com/fwhdzh/FaultFuzz-FrontEnd).
+Users also have the option to independently deploy the frontend using our [published frontend repository](https://github.com/fwhdzh/FaultFuzz-FrontEnd).
 
 
 ## How dose FaultFuzz work
@@ -111,7 +111,7 @@ can uccessfully establishes a connection with the backend.
 
 We have provided deploy FaultFuzz frontend as a website on [AppSmith
 cloud](https://app.appsmith.com/app/faultfuzz/readme-652b42d079d5b0084315e511?branch=master).
-Users can also deploy the frontend website on their own computer using our accessible [frontend source code](https://github.com/fwhdzh/FaultFuzz-FrontEnd).
+Users can also deploy the frontend website on their own computer using our accessible [frontend repository](https://github.com/fwhdzh/FaultFuzz-FrontEnd).
 
 
 ### Step 2:  (Optional) Preparation of user-defined I/O points.
